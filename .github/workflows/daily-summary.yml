@@ -12,8 +12,11 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout main
         uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,14 +37,19 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon --hours 48
 
-      - name: Set current date as environment variable
-        run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          commit_message: "Daily Summary: ${{ env.DATE }}"
-          publish_branch: gh-pages
-          enable_jekyll: true
+      - name: Deploy docs to master for Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout master
+          git pull origin master || true
+          rm -rf docs
+          git checkout main -- docs
+          git add docs/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            DATE=$(date +'%Y-%m-%d')
+            git commit -m "📝 Daily Summary: $DATE"
+            git push origin master
+          fi
