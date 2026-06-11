@@ -9,29 +9,84 @@
     "throttle_sec": 0,
     "analysis_concurrency": 1,
     "enrichment_concurrency": 1,
-    "languages": ["zh"]
+    "languages": [
+      "zh"
+    ]
   },
   "sources": {
     "github": [
-      {"type": "user_events", "username": "torvalds", "enabled": true},
-      {"type": "repo_releases", "owner": "astral-sh", "repo": "uv", "enabled": true}
+      {
+        "type": "user_events",
+        "username": "torvalds",
+        "enabled": true
+      },
+      {
+        "type": "repo_releases",
+        "owner": "astral-sh",
+        "repo": "uv",
+        "enabled": true
+      }
     ],
-    "hackernews": {"enabled": true, "fetch_top_stories": 20, "min_score": 100},
+    "hackernews": {
+      "enabled": true,
+      "fetch_top_stories": 20,
+      "min_score": 100
+    },
     "rss": [
-      {"name": "Simon Willison", "url": "https://simonwillison.net/atom/everything/", "enabled": true, "category": "ai-tools"},
-      {"name": "LWN.net", "url": "https://lwn.net/headlines/full_text?key=${LWN_KEY}", "enabled": false, "category": "linux"}
+      {
+        "name": "Simon Willison",
+        "url": "https://simonwillison.net/atom/everything/",
+        "enabled": true,
+        "category": "ai-tools"
+      },
+      {
+        "name": "LWN.net",
+        "url": "https://lwn.net/headlines/full_text?key=${LWN_KEY}",
+        "enabled": false,
+        "category": "linux"
+      }
     ],
     "reddit": {
       "enabled": true,
-      "subreddits": [{"subreddit": "MachineLearning", "enabled": true, "sort": "hot", "time_filter": "day", "fetch_limit": 15, "min_score": 50}],
+      "subreddits": [
+        {
+          "subreddit": "MachineLearning",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 15,
+          "min_score": 50
+        }
+      ],
       "users": [],
       "fetch_comments": 5
     },
-    "twitter": {"enabled": false},
-    "openbb": {"enabled": false},
-    "ossinsight": {"enabled": false}
+    "twitter": {
+      "enabled": false
+    },
+    "openbb": {
+      "enabled": false
+    },
+    "ossinsight": {
+      "enabled": false
+    }
   },
-  "filtering": {"ai_score_threshold": 4.0, "time_window_hours": 48},
-  "email": {"enabled": false},
-  "webhook": {"enabled": false}
+  "filtering": {
+    "ai_score_threshold": 4.0,
+    "time_window_hours": 48
+  },
+  "email": {
+    "enabled": false,
+    "smtp_server": "smtp.example.com",
+    "smtp_port": 465,
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "email_address": "placeholder@example.com",
+    "sender_name": "Horizon Daily",
+    "subscribe_keyword": "SUBSCRIBE",
+    "unsubscribe_keyword": "UNSUBSCRIBE"
+  },
+  "webhook": {
+    "enabled": false
+  }
 }
