@@ -75,14 +75,14 @@ ROLLUP_LABELS = {
     "weekly": {
         "en": {
             "title": "Horizon Weekly",
-            "intro": "This week's {n} most important stories, scored {lo}+ from the past {days} days.",
+            "intro": "This week's {n} most important stories, scored {lo}+, from the past {span}.",
             "report_intro": "## Lead Story — must-read",
             "followup": "Follow-up & impact",
             "no_items": "No stories scored {lo}+ this week.",
         },
         "zh": {
             "title": "Horizon 上周总览",
-            "intro": "本周 {days} 天内 {lo} 分以上 {n} 条要事速览。",
+            "intro": "本周 {n} 条 {lo} 分以上要事速览,来自过去 {span}。",
             "report_intro": "## 头条 — 必读",
             "followup": "后续与影响",
             "no_items": "本周暂无 {lo} 分以上的重要新闻。",
@@ -91,14 +91,14 @@ ROLLUP_LABELS = {
     "monthly": {
         "en": {
             "title": "Horizon Monthly",
-            "intro": "This month's {n} most consequential stories, scored {lo}+ from the past {weeks} weeks.",
+            "intro": "This month's {n} most consequential stories, scored {lo}+, from the past {span}.",
             "report_intro": "## Top {n} — monthly call-outs",
             "followup": "Follow-up & impact",
             "no_items": "No stories scored {lo}+ this month.",
         },
         "zh": {
             "title": "Horizon 上月总览",
-            "intro": "本月 {weeks} 周内 {lo} 分以上 {n} 条要事速览。",
+            "intro": "本月 {n} 条 {lo} 分以上要事速览,来自过去 {span}。",
             "report_intro": "## 本月 Top {n}",
             "followup": "后续与影响",
             "no_items": "本月暂无 {lo} 分以上的重要新闻。",
@@ -107,14 +107,14 @@ ROLLUP_LABELS = {
     "yearly": {
         "en": {
             "title": "Horizon Yearly",
-            "intro": "This year's {n} most consequential stories, scored {lo}+ from the past {months} months.",
+            "intro": "This year's {n} most consequential stories, scored {lo}+, from the past {span}.",
             "report_intro": "## Top {n} — annual retrospective",
             "followup": "Long-term impact",
             "no_items": "No stories scored {lo}+ this year.",
         },
         "zh": {
             "title": "Horizon 本年总览",
-            "intro": "本年 {months} 个月内 {lo} 分以上 {n} 条要事速览。",
+            "intro": "本年 {n} 条 {lo} 分以上要事速览,来自过去 {span}。",
             "report_intro": "## 年度 Top {n}",
             "followup": "长远影响",
             "no_items": "本年暂无 {lo} 分以上的重要新闻。",
@@ -453,7 +453,7 @@ class DailySummarizer:
 # --- Roll-up summarisers (weekly / monthly / yearly) ---------------------
 
 
-def _ai_followup_for_story(
+async def _ai_followup_for_story(
     ai_client,
     story: Story,
     related_news: List[dict],
@@ -591,7 +591,7 @@ class _RollupSummarizerBase:
 
         n = len(selected)
         intro = labels["intro"].format(
-            n=n, lo=threshold, days=lookback_label, weeks=lookback_label, months=lookback_label,
+            n=n, lo=threshold, span=lookback_label,
         )
 
         header = (
