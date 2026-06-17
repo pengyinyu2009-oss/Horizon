@@ -72,7 +72,8 @@
     }
   },
   "filtering": {
-    "ai_score_threshold": 4.0,
+    "ai_score_threshold": 7.0,
+    "ai_score_full_threshold": 8.0,
     "time_window_hours": 48
   },
   "email": {
@@ -88,5 +89,35 @@
   },
   "webhook": {
     "enabled": false
+  },
+  "weekly": {
+    "enabled": true,
+    "ai_score_threshold": 8.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 1,
+    "lookback_days": 7,
+    "languages": [
+      "zh"
+    ]
+  },
+  "monthly": {
+    "enabled": true,
+    "ai_score_threshold": 9.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 3,
+    "lookback_weeks": 5,
+    "languages": [
+      "zh"
+    ]
+  },
+  "yearly": {
+    "enabled": true,
+    "ai_score_threshold": 9.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 10,
+    "lookback_months": 12,
+    "languages": [
+      "zh"
+    ]
   }
 }
