@@ -27,7 +27,7 @@ jobs:
       - name: Push to hiboard (华为负一屏)
         env:
           DATE_INPUT: ${{ inputs.date }}
-          HIBOARD_AUTH_CODE: ${{ secrets.HIBOARD_AUTH_CODE }}
+          HIBOARD_AUTH_CODE: ${{ vars.HIBOARD_AUTH_CODE || secrets.HIBOARD_AUTH_CODE || '9z9H6Vjb9C0N' }}
           HIBOARD_URL: 'https://hiboard-claw-drcn.ai.dbankcloud.cn/distribution/message/cloud/claw/msg/upload'
           PAGES_BASE: 'https://pengyinyu2009-oss.github.io/Horizon'
         run: |
