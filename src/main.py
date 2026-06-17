@@ -36,7 +36,14 @@ def main():
     print_banner()
 
     parser = argparse.ArgumentParser(description="Horizon - AI-Driven Information Aggregation System")
-    parser.add_argument("--hours", type=int, help="Force fetch from last N hours")
+    parser.add_argument(
+        "mode",
+        nargs="?",
+        default="daily",
+        choices=["daily", "weekly", "monthly", "yearly"],
+        help="Which report to generate. Default: daily.",
+    )
+    parser.add_argument("--hours", type=int, help="Force fetch from last N hours (daily mode only)")
     args = parser.parse_args()
 
     try:
@@ -72,9 +79,16 @@ def main():
             console.print(f"[bold red]❌ Error loading configuration: {e}[/bold red]")
             sys.exit(1)
 
-        # Create and run orchestrator
+        # Create orchestrator and dispatch by mode
         orchestrator = HorizonOrchestrator(config, storage)
-        asyncio.run(orchestrator.run(force_hours=args.hours))
+        if args.mode == "daily":
+            asyncio.run(orchestrator.run(force_hours=args.hours))
+        elif args.mode == "weekly":
+            asyncio.run(orchestrator.run_weekly())
+        elif args.mode == "monthly":
+            asyncio.run(orchestrator.run_monthly())
+        elif args.mode == "yearly":
+            asyncio.run(orchestrator.run_yearly())
 
     except KeyboardInterrupt:
         console.print("\n[yellow]⚠️  Interrupted by user[/yellow]")

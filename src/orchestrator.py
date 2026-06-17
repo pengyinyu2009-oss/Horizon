@@ -3,7 +3,7 @@
 import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import List, Dict
+from typing import List, Dict, Optional
 from urllib.parse import urlparse
 import httpx
 from rich.console import Console
@@ -22,7 +22,12 @@ from .scrapers.openbb import OpenBBScraper
 from .scrapers.ossinsight import OSSInsightScraper
 from .ai.client import create_ai_client
 from .ai.analyzer import ContentAnalyzer
-from .ai.summarizer import DailySummarizer
+from .ai.summarizer import (
+    DailySummarizer,
+    WeeklySummarizer,
+    MonthlySummarizer,
+    YearlySummarizer,
+)
 from .ai.enricher import ContentEnricher
 from .ai.tokens import get_usage_snapshot
 
@@ -128,9 +133,16 @@ class HorizonOrchestrator:
 
             # 7. Generate and save daily summaries for each configured language
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            full_threshold = self.config.filtering.ai_score_full_threshold
             for lang in self.config.ai.languages:
                 summarizer = DailySummarizer()
-                summary = await summarizer.generate_summary(important_items, today, len(all_items), language=lang)
+                summary = await summarizer.generate_summary(
+                    important_items,
+                    today,
+                    len(all_items),
+                    language=lang,
+                    full_threshold=full_threshold,
+                )
 
                 # Save to data/summaries/
                 summary_path = self.storage.save_daily_summary(today, summary, language=lang)
@@ -140,32 +152,19 @@ class HorizonOrchestrator:
                 try:
                     from pathlib import Path
 
-                    post_filename = f"{today}-summary-{lang}.md"
+                    post_filename = f"{today}-horizon-{lang}.md"
                     posts_dir = Path("docs/_posts")
                     posts_dir.mkdir(parents=True, exist_ok=True)
 
                     dest_path = posts_dir / post_filename
 
-                    # Add Jekyll front matter
-                    front_matter = (
-                        "---\n"
-                        "layout: default\n"
-                        f"title: \"Horizon Summary: {today} ({lang.upper()})\"\n"
-                        f"date: {today}\n"
-                        f"lang: {lang}\n"
-                        "---\n\n"
-                    )
-
-                    # Strip leading H1 header to avoid duplication with Jekyll title
-                    summary_content = summary
-                    first_line = summary_content.strip().split("\n")[0]
-                    if first_line.startswith("# "):
-                        parts = summary_content.split("\n", 1)
-                        if len(parts) > 1:
-                            summary_content = parts[1].strip()
-
+                    # The save_daily_summary already wrote front matter
+                    # to data/summaries/. Read it back so the deployed
+                    # copy preserves the period/period_id fields.
+                    with open(summary_path, "r", encoding="utf-8") as f:
+                        stored = f.read()
                     with open(dest_path, "w", encoding="utf-8") as f:
-                        f.write(front_matter + summary_content)
+                        f.write(stored)
 
                     self.console.print(f"📄 Copied {lang.upper()} summary to GitHub Pages: {dest_path}\n")
                 except Exception as e:
@@ -571,3 +570,151 @@ class HorizonOrchestrator:
         summarizer = DailySummarizer()
 
         return await summarizer.generate_summary(items, date, total_fetched, language=language)
+
+    # --- Roll-up workflows: weekly / monthly / yearly ---------------------
+
+    async def _run_rollup(
+        self,
+        period: str,
+        lookback_hours: int,
+        lookback_label_zh: str,
+        lookback_label_en: str,
+        save_method_name: str,
+        period_id_factory,
+    ) -> None:
+        """Shared implementation for weekly / monthly / yearly reports."""
+        period_cfg = getattr(self.config, period, None)
+        if period_cfg is None or not period_cfg.enabled:
+            self.console.print(
+                f"[yellow]⏭  {period} rollup is disabled in config; skipping.[/yellow]"
+            )
+            return
+
+        self.console.print(
+            f"\n[bold cyan]📅 Horizon {period} rollup — "
+            f"lookback {lookback_hours} hours[/bold cyan]\n"
+        )
+
+        since = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
+        all_items = await self.fetch_all_sources(since)
+        self.console.print(f"📥 Fetched {len(all_items)} items from all sources\n")
+        if not all_items:
+            self.console.print("[yellow]No content in lookback window; exiting.[/yellow]")
+            return
+
+        merged = self.merge_cross_source_duplicates(all_items)
+        analyzed = await self._analyze_content(merged)
+        self.console.print(f"🤖 Analyzed {len(analyzed)} items with AI\n")
+
+        threshold = period_cfg.ai_score_threshold
+        in_scope = [
+            it for it in analyzed
+            if (it.ai_score or 0) >= threshold
+        ]
+        in_scope.sort(key=lambda x: x.ai_score or 0, reverse=True)
+        self.console.print(
+            f"⭐ {len(in_scope)} items scored ≥ {threshold} (period {period})\n"
+        )
+
+        languages = period_cfg.languages or self.config.ai.languages
+        now = datetime.now(timezone.utc)
+        period_id = period_id_factory(now)
+        ai_client = create_ai_client(self.config.ai)
+
+        summarizer_cls = {
+            "weekly": WeeklySummarizer,
+            "monthly": MonthlySummarizer,
+            "yearly": YearlySummarizer,
+        }[period]
+
+        for lang in languages:
+            summarizer = summarizer_cls(ai_client=ai_client)
+            lookback_label = lookback_label_zh if lang == "zh" else lookback_label_en
+            report = await summarizer.generate_report(
+                items=in_scope,
+                period_id=period_id,
+                total_fetched=len(all_items),
+                language=lang,
+                threshold=threshold,
+                report_threshold=period_cfg.ai_score_report_threshold,
+                top_n_report=period_cfg.top_n_report,
+                lookback_label=lookback_label,
+            )
+            save_method = getattr(self.storage, save_method_name)
+            saved = save_method(period_id, report, language=lang)
+            self.console.print(f"💾 Saved {period} {lang.upper()} report to: {saved}\n")
+            self._deploy_period_post(period, period_id, lang)
+
+    def _deploy_period_post(self, period: str, period_id: str, lang: str) -> None:
+        """Copy a freshly saved roll-up summary into docs/_posts/."""
+        try:
+            from pathlib import Path
+
+            filename = f"{period_id}-horizon-{lang}.md"
+            src = self.storage.summaries_dir / filename
+            posts_dir = Path("docs/_posts")
+            posts_dir.mkdir(parents=True, exist_ok=True)
+            dest = posts_dir / filename
+
+            if not src.exists():
+                self.console.print(
+                    f"[yellow]⚠️  Source {src} not found; skipping deploy.[/yellow]"
+                )
+                return
+
+            with open(src, "r", encoding="utf-8") as f:
+                stored = f.read()
+            with open(dest, "w", encoding="utf-8") as f:
+                f.write(stored)
+            self.console.print(
+                f"📄 Copied {period} {lang.upper()} report to GitHub Pages: {dest}\n"
+            )
+        except Exception as e:
+            self.console.print(
+                f"[yellow]⚠️  Failed to deploy {period} {lang} report: {e}[/yellow]\n"
+            )
+
+    async def run_weekly(self) -> None:
+        """Run the weekly roll-up. Reads ``config.weekly`` for settings."""
+        cfg = self.config.weekly
+        if cfg is None:
+            self.console.print("[yellow]weekly config missing; nothing to do.[/yellow]")
+            return
+        await self._run_rollup(
+            period="weekly",
+            lookback_hours=cfg.lookback_days * 24,
+            lookback_label_zh=f"{cfg.lookback_days} 天",
+            lookback_label_en=f"{cfg.lookback_days} days",
+            save_method_name="save_weekly_summary",
+            period_id_factory=lambda now: now.strftime("%G-W%V"),
+        )
+
+    async def run_monthly(self) -> None:
+        """Run the monthly roll-up. Reads ``config.monthly`` for settings."""
+        cfg = self.config.monthly
+        if cfg is None:
+            self.console.print("[yellow]monthly config missing; nothing to do.[/yellow]")
+            return
+        await self._run_rollup(
+            period="monthly",
+            lookback_hours=cfg.lookback_weeks * 7 * 24,
+            lookback_label_zh=f"{cfg.lookback_weeks} 周",
+            lookback_label_en=f"{cfg.lookback_weeks} weeks",
+            save_method_name="save_monthly_summary",
+            period_id_factory=lambda now: now.strftime("%Y-%m"),
+        )
+
+    async def run_yearly(self) -> None:
+        """Run the yearly roll-up. Reads ``config.yearly`` for settings."""
+        cfg = self.config.yearly
+        if cfg is None:
+            self.console.print("[yellow]yearly config missing; nothing to do.[/yellow]")
+            return
+        await self._run_rollup(
+            period="yearly",
+            lookback_hours=cfg.lookback_months * 30 * 24,
+            lookback_label_zh=f"{cfg.lookback_months} 个月",
+            lookback_label_en=f"{cfg.lookback_months} months",
+            save_method_name="save_yearly_summary",
+            period_id_factory=lambda now: now.strftime("%Y"),
+        )

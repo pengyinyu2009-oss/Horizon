@@ -124,13 +124,150 @@ class StorageManager:
         basename begins with a date. A leading ``horizon-`` prefix
         (e.g. ``horizon-2026-06-17-zh.md``) gets silently skipped and
         site.posts ends up empty even when front matter is correct.
+
+        Front matter includes ``period: daily`` so the home page can
+        group the four roll-up types into separate sections.
         """
         filename = f"{date}-horizon-{language}.md"
+        return self._write_period_post(
+            filename=filename,
+            markdown=markdown,
+            period="daily",
+            period_id=date,
+            language=language,
+        )
+
+    def save_weekly_summary(
+        self, iso_week_id: str, markdown: str, language: str = "en"
+    ) -> Path:
+        """Save a weekly roll-up summary.
+
+        Args:
+            iso_week_id: ISO 8601 week identifier, e.g. ``2026-W25``.
+            markdown: Generated weekly report body.
+            language: ``en`` or ``zh``.
+
+        Returns:
+            Path to the saved file under data/summaries/.
+        """
+        filename = f"{iso_week_id}-horizon-{language}.md"
+        return self._write_period_post(
+            filename=filename,
+            markdown=markdown,
+            period="weekly",
+            period_id=iso_week_id,
+            language=language,
+        )
+
+    def save_monthly_summary(
+        self, year_month: str, markdown: str, language: str = "en"
+    ) -> Path:
+        """Save a monthly roll-up summary.
+
+        Args:
+            year_month: ``YYYY-MM`` identifier, e.g. ``2026-06``.
+        """
+        filename = f"{year_month}-horizon-{language}.md"
+        return self._write_period_post(
+            filename=filename,
+            markdown=markdown,
+            period="monthly",
+            period_id=year_month,
+            language=language,
+        )
+
+    def save_yearly_summary(
+        self, year: str, markdown: str, language: str = "en"
+    ) -> Path:
+        """Save a yearly roll-up summary.
+
+        Args:
+            year: ``YYYY`` identifier, e.g. ``2026``.
+        """
+        filename = f"{year}-horizon-{language}.md"
+        return self._write_period_post(
+            filename=filename,
+            markdown=markdown,
+            period="yearly",
+            period_id=year,
+            language=language,
+        )
+
+    def list_recent_summaries(
+        self,
+        period: str,
+        language: str = "zh",
+        since_id: str = "",
+        until_id: str = "",
+    ) -> List[Path]:
+        """List existing summary files for a given period + language.
+
+        ``period`` is one of ``daily``, ``weekly``, ``monthly``, ``yearly``.
+        The id format depends on the period:
+        - daily: ``YYYY-MM-DD``
+        - weekly: ``YYYY-Www`` (ISO week, e.g. ``2026-W25``)
+        - monthly: ``YYYY-MM``
+        - yearly: ``YYYY``
+
+        ``since_id`` and ``until_id`` are inclusive string bounds used
+        for lexical comparison.
+        """
+        if period not in {"daily", "weekly", "monthly", "yearly"}:
+            raise ValueError(f"unknown period: {period}")
+        suffix = f"-horizon-{language}.md"
+        results: List[Path] = []
+        for path in self.summaries_dir.iterdir():
+            if not path.name.endswith(suffix):
+                continue
+            prefix = path.name[: -len(suffix)]
+            if not self._period_id_matches(prefix, period):
+                continue
+            period_id = prefix
+            if since_id and period_id < since_id:
+                continue
+            if until_id and period_id > until_id:
+                continue
+            results.append(path)
+        results.sort()
+        return results
+
+    @staticmethod
+    def _period_id_matches(prefix: str, period: str) -> bool:
+        """Return True if a summary filename prefix looks like a period id."""
+        if period == "daily":
+            parts = prefix.split("-")
+            return len(parts) == 3 and all(p.isdigit() for p in parts)
+        if period == "weekly":
+            return (
+                len(prefix) == 8
+                and prefix[:4].isdigit()
+                and prefix[4] == "-"
+                and prefix[5] == "W"
+                and prefix[6:].isdigit()
+            )
+        if period == "monthly":
+            parts = prefix.split("-")
+            return len(parts) == 2 and all(p.isdigit() for p in parts)
+        if period == "yearly":
+            return prefix.isdigit() and len(prefix) == 4
+        return False
+
+    def _write_period_post(
+        self,
+        filename: str,
+        markdown: str,
+        period: str,
+        period_id: str,
+        language: str,
+    ) -> Path:
+        """Shared writer for daily / weekly / monthly / yearly posts.
+
+        All four pass through the same front-matter + H1 strip logic so
+        downstream tooling (the Pages deploy step, the home-page Jekyll
+        template, and ``list_recent_summaries``) sees a consistent shape.
+        """
         filepath = self.summaries_dir / filename
 
-        # Strip the leading H1 ("# Horizon 每日速递 - YYYY-MM-DD" or
-        # "# Horizon Daily Digest - YYYY-MM-DD") because the Jekyll
-        # `title:` from front matter renders as the page heading.
         content = markdown
         first_line = content.strip().split("\n", 1)[0]
         if first_line.startswith("# "):
@@ -138,12 +275,22 @@ class StorageManager:
             if len(parts) > 1:
                 content = parts[1].lstrip("\n")
 
+        period_titles = {
+            "daily": "Horizon Daily",
+            "weekly": "Horizon Weekly",
+            "monthly": "Horizon Monthly",
+            "yearly": "Horizon Yearly",
+        }
+        title = f"{period_titles[period]}: {period_id} ({language.upper()})"
+
         front_matter = (
             "---\n"
             "layout: default\n"
-            f'title: "Horizon Summary: {date} ({language.upper()})"\n'
-            f"date: {date}\n"
+            f'title: "{title}"\n'
+            f"date: {period_id}\n"
             f"lang: {language}\n"
+            f"period: {period}\n"
+            f"period_id: {period_id}\n"
             "---\n\n"
         )
 

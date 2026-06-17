@@ -2,7 +2,14 @@ name: Daily Horizon Summary
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at 00:00 UTC = 08:00 Beijing time
+    - cron: '0 0 * * *'  # Daily at 00:00 Asia/Shanghai
+      timezone: 'Asia/Shanghai'
+    - cron: '0 0 * * 1'  # Weekly: every Monday 00:00 Asia/Shanghai
+      timezone: 'Asia/Shanghai'
+    - cron: '0 0 1 * *'  # Monthly: 1st of each month 00:00 Asia/Shanghai
+      timezone: 'Asia/Shanghai'
+    - cron: '0 0 31 12 *'  # Yearly: Dec 31 00:00 Asia/Shanghai
+      timezone: 'Asia/Shanghai'
   workflow_dispatch:
 
 jobs:
@@ -53,5 +60,116 @@ jobs:
           else
             DATE=$(date +'%Y-%m-%d')
             git commit -m "📝 Daily Summary: $DATE"
+            git push origin master
+          fi
+
+  weekly-summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - run: cp data/config.github.json data/config.json
+      - name: Run weekly roll-up
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: uv run horizon weekly
+      - name: Deploy weekly to Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout master
+          git pull origin master || true
+          rm -rf docs
+          git checkout main -- docs
+          mkdir -p docs/_posts
+          cp data/summaries/*.md docs/_posts/ || true
+          git add -f docs/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📅 Weekly Summary"
+            git push origin master
+          fi
+
+  monthly-summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - run: cp data/config.github.json data/config.json
+      - name: Run monthly roll-up
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: uv run horizon monthly
+      - name: Deploy monthly to Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout master
+          git pull origin master || true
+          rm -rf docs
+          git checkout main -- docs
+          mkdir -p docs/_posts
+          cp data/summaries/*.md docs/_posts/ || true
+          git add -f docs/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📆 Monthly Summary"
+            git push origin master
+          fi
+
+  yearly-summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - run: cp data/config.github.json data/config.json
+      - name: Run yearly roll-up
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: uv run horizon yearly
+      - name: Deploy yearly to Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout master
+          git pull origin master || true
+          rm -rf docs
+          git checkout main -- docs
+          mkdir -p docs/_posts
+          cp data/summaries/*.md docs/_posts/ || true
+          git add -f docs/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🗓 Yearly Summary"
             git push origin master
           fi

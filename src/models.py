@@ -310,10 +310,58 @@ class EmailConfig(BaseModel):
 
 
 class FilteringConfig(BaseModel):
-    """Content filtering configuration."""
+    """Content filtering configuration.
+
+    Two-tier scoring:
+    - `ai_score_threshold` (default 7.0): items that appear in the daily
+      TOC list. Anything below this score is dropped before summarisation.
+    - `ai_score_full_threshold` (default 8.0): items that get their own
+      expanded section in the daily summary (with summary, background,
+      discussion, tags). Items between the two thresholds are listed in
+      the TOC but not expanded.
+    """
 
     ai_score_threshold: float = 7.0
+    ai_score_full_threshold: float = 8.0
     time_window_hours: int = 24
+
+
+class PeriodSummaryConfig(BaseModel):
+    """Shared configuration for weekly / monthly / yearly roll-ups.
+
+    Each tier filters the same items the daily run collected, calls the
+    AI once more to look for *follow-up* impact, then formats a report.
+    `ai_score_threshold` is the floor for inclusion in the TOC; items at
+    or above `ai_score_report_threshold` are considered for the
+    "formal report" callout at the top of the report.
+    """
+
+    enabled: bool = True
+    ai_score_threshold: float = 8.0
+    ai_score_report_threshold: float = 9.0
+    top_n_report: int = 1
+    languages: Optional[List[str]] = None  # defaults to ai.languages
+
+
+class WeeklyConfig(PeriodSummaryConfig):
+    """Weekly digest (rolls up the past 7 days)."""
+
+    lookback_days: int = 7
+    top_n_report: int = 1
+
+
+class MonthlyConfig(PeriodSummaryConfig):
+    """Monthly digest (rolls up the past ~5 weeks)."""
+
+    lookback_weeks: int = 5
+    top_n_report: int = 3
+
+
+class YearlyConfig(PeriodSummaryConfig):
+    """Yearly digest (rolls up the past 12 months)."""
+
+    lookback_months: int = 12
+    top_n_report: int = 10
 
 
 class Config(BaseModel):
@@ -325,3 +373,6 @@ class Config(BaseModel):
     filtering: FilteringConfig
     email: Optional[EmailConfig] = None
     webhook: Optional[WebhookConfig] = None
+    weekly: Optional[WeeklyConfig] = None
+    monthly: Optional[MonthlyConfig] = None
+    yearly: Optional[YearlyConfig] = None
