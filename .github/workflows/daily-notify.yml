@@ -1,0 +1,165 @@
+name: Daily Notify
+
+# Runs ~10 minutes after daily-summary. Reads the freshly-deployed
+# daily post from master, extracts the 8+ story headlines, and
+# pushes a notification to Ntfy.sh so the digest lands on the
+# phone's lock screen / notification centre without opening any
+# app.
+on:
+  schedule:
+    - cron: '10 0 * * *'  # 08:10 Asia/Shanghai every day
+      timezone: 'Asia/Shanghai'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Override the date to notify for (YYYY-MM-DD). Default: today.'
+        required: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master for the just-deployed post
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Build notification payload
+        id: payload
+        env:
+          DATE_INPUT: ${{ inputs.date }}
+          NTFY_SERVER: ${{ vars.NTFY_SERVER || 'https://ntfy.sh' }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_AUTH: ${{ secrets.NTFY_AUTH }}
+          PAGES_BASE: 'https://pengyinyu2009-oss.github.io/Horizon'
+        run: |
+          set -eu
+          DATE="${DATE_INPUT:-$(date +'%Y-%m-%d')}"
+          POST="docs/_posts/${DATE}-horizon-zh.md"
+          echo "Looking for: $POST"
+          if [ ! -f "$POST" ]; then
+            echo "::error::No daily post at $POST — daily run must have failed or hasn't deployed yet."
+            echo "::error::Available posts in docs/_posts/:"
+            ls -la docs/_posts/ 2>&1 | head -20
+            exit 1
+          fi
+
+          # Extract the 8+ headlines + scores from the daily post.
+          # The post has Jekyll front matter, then markdown with
+          # sections like "## [title](url) ⭐️ X/10".
+          python3 - "$POST" <<'PY'
+          import os, re, sys, json
+          path = sys.argv[1]
+          text = open(path, encoding="utf-8").read()
+          # Strip front matter
+          if text.startswith("---\n"):
+              end = text.find("\n---\n", 4)
+              if end != -1:
+                  text = text[end + 5:]
+          # Find "## [title](url) ⭐️ X/10" lines
+          headlines = re.findall(
+              r'^##\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
+              text, re.MULTILINE,
+          )
+          # Keep 8+ only and dedup by URL while keeping score order
+          seen = set()
+          top = []
+          for title, url, score in headlines:
+              try:
+                  s = float(score)
+              except ValueError:
+                  continue
+              if s < 8.0:
+                  continue
+              if url in seen:
+                  continue
+              seen.add(url)
+              top.append((s, title.strip(), url.strip()))
+          top.sort(reverse=True)
+          top = top[:12]  # cap the list
+
+          print(f"Found {len(top)} 8+ story(ies)", file=sys.stderr)
+          payload = {
+              "date": os.environ.get("DATE_OVERRIDE") or os.environ.get("DATE_INPUT") or "",
+              "count": len(top),
+              "headlines": [{"title": t, "url": u, "score": s} for s, t, u in top],
+          }
+          print(json.dumps(payload, ensure_ascii=False))
+          PY
+          HEADLINES_JSON=$(python3 - "$POST" <<'PY'
+          import os, re, sys, json
+          path = sys.argv[1]
+          text = open(path, encoding="utf-8").read()
+          if text.startswith("---\n"):
+              end = text.find("\n---\n", 4)
+              if end != -1:
+                  text = text[end + 5:]
+          headlines = re.findall(
+              r'^##\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
+              text, re.MULTILINE,
+          )
+          seen, top = set(), []
+          for title, url, score in headlines:
+              try: s = float(score)
+              except ValueError: continue
+              if s < 8.0: continue
+              if url in seen: continue
+              seen.add(url)
+              top.append((s, title.strip(), url.strip()))
+          top.sort(reverse=True)
+          top = top[:12]
+          date_input = os.environ.get("DATE_INPUT", "").strip()
+          date = date_input or "$(date +'%Y-%m-%d')"
+          pages_base = os.environ.get("PAGES_BASE", "https://pengyinyu2009-oss.github.io/Horizon")
+          post_url = f"{pages_base}/{date[0:4]}/{date[5:7]}/{date[8:10]}/horizon-zh.html"
+          lines = [f"📅 {date}  ·  {len(top)} 条 8 分以上要事", ""]
+          for s, t, u in top:
+              lines.append(f"⭐ {s:.1f}  {t}")
+              lines.append(f"   {u}")
+          lines += ["", "📖 完整简报:", post_url, "", "🏠 首页:", f"{pages_base}/"]
+          print(json.dumps({"date": date, "post_url": post_url, "pages": pages_base, "lines": lines, "headlines": top}, ensure_ascii=False))
+          PY
+          )
+
+          # Save parsed payload to the step's outputs (so a
+          # subsequent step can also log it / upload as artifact).
+          echo "$HEADLINES_JSON" > /tmp/horizon-payload.json
+          cat /tmp/horizon-payload.json
+
+      - name: Push to Ntfy.sh
+        if: env.NTFY_TOPIC != ''
+        env:
+          NTFY_SERVER: ${{ vars.NTFY_SERVER || 'https://ntfy.sh' }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_AUTH: ${{ secrets.NTFY_AUTH }}
+        run: |
+          set -eu
+          if [ -z "$NTFY_TOPIC" ]; then
+            echo "::error::NTFY_TOPIC secret is not set. Add it under repo Settings → Secrets → Actions."
+            exit 1
+          fi
+
+          DATE=$(python3 -c "import json; print(json.load(open('/tmp/horizon-payload.json'))['date'])")
+          COUNT=$(python3 -c "import json; print(json.load(open('/tmp/horizon-payload.json'))['count'])")
+          POST_URL=$(python3 -c "import json; print(json.load(open('/tmp/horizon-payload.json'))['post_url'])")
+          BODY=$(python3 -c "import json; print('\n'.join(json.load(open('/tmp/horizon-payload.json'))['lines']))")
+
+          TITLE="🌅 Horizon 每日速递 ${DATE} · ${COUNT} 条 8+"
+          HEADERS=(
+            -H "Title: ${TITLE}"
+            -H "Priority: high"
+            -H "Tags: newspaper,robot"
+            -H "Click: ${POST_URL}"
+          )
+          if [ -n "$NTFY_AUTH" ]; then
+            HEADERS+=(-H "Authorization: Bearer ${NTFY_AUTH}")
+          fi
+
+          echo "Posting ${COUNT} headlines to ${NTFY_SERVER}/${NTFY_TOPIC}"
+          curl -fsS -X POST \
+            "${HEADERS[@]}" \
+            --data-binary "${BODY}" \
+            "${NTFY_SERVER}/${NTFY_TOPIC}"
+          echo ""
+          echo "✅ Notification pushed to Ntfy.sh/${NTFY_TOPIC}"
