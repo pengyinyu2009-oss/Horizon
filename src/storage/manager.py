@@ -118,8 +118,14 @@ class StorageManager:
         static page, so site.posts filters (e.g. ``where: "lang", "zh"``)
         in index.md silently drop them and the digest list shows
         "No posts yet".
+
+        The filename MUST start with ``YYYY-MM-DD-`` because GitHub Pages
+        ships Jekyll 3, which only recognises a file as a post when the
+        basename begins with a date. A leading ``horizon-`` prefix
+        (e.g. ``horizon-2026-06-17-zh.md``) gets silently skipped and
+        site.posts ends up empty even when front matter is correct.
         """
-        filename = f"horizon-{date}-{language}.md"
+        filename = f"{date}-horizon-{language}.md"
         filepath = self.summaries_dir / filename
 
         # Strip the leading H1 ("# Horizon 每日速递 - YYYY-MM-DD" or
