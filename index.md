@@ -15,33 +15,39 @@ title: Home
 - [信息源采集器](scrapers) — Horizon 如何从 GitHub、Hacker News、RSS、Reddit 采集内容
 - [评分系统](scoring) — 基于 AI 的内容分析与 0-10 评分体系
 
-{% assign now_zh = site.time %}
-{% assign this_month_zh = now_zh | date: "%Y-%m" %}
-{% assign two_months_ago_zh = now_zh | minus: 5184000 %}
-{% assign two_years_ago_zh = now_zh | minus: 63072000 %}
+{% assign this_month_zh = site.time | date: "%Y-%m" %}
+{% assign two_months_ago_zh = site.time | minus: 5184000 %}
+{% assign two_years_ago_zh = site.time | minus: 63072000 %}
 
 ## 每日速递 <a class="rss-icon" href="{{ '/feed-zh.xml' | relative_url }}" aria-label="订阅中文"><svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"></path></svg></a>
 
-{% assign daily_zh = site.posts | where: "lang", "zh" | where: "period", "daily" | where_exp: "post", "post.date | date: '%Y-%m' == this_month_zh" | sort: "date" | reverse %}
-{% assign daily_zh_count = daily_zh | size %}
-{% if daily_zh_count == 0 %}
+{% assign daily_zh_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "daily" and post.date | date: '%Y-%m' == this_month_zh %}
+    {% assign daily_zh_total = daily_zh_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if daily_zh_total == 0 %}
 *本月暂无速递*
 {% else %}
+{% assign daily_zh_shown = 0 %}
 <ul>
-{% for post in daily_zh limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "daily" and post.date | date: '%Y-%m' == this_month_zh and daily_zh_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+    {% assign daily_zh_shown = daily_zh_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if daily_zh_count > 5 %}
+{% if daily_zh_total > 5 %}
 <details>
-<summary>展开剩余 {{ daily_zh_count | minus: 5 }} 个</summary>
+<summary>展开剩余 {{ daily_zh_total | minus: 5 }} 个</summary>
 <ul>
-{% for post in daily_zh offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "daily" and post.date | date: '%Y-%m' == this_month_zh and daily_zh_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -50,26 +56,33 @@ title: Home
 
 ## 上周总览
 
-{% assign weekly_zh = site.posts | where: "lang", "zh" | where: "period", "weekly" | where_exp: "post", "post.date >= two_months_ago_zh" | sort: "date" | reverse %}
-{% assign weekly_zh_count = weekly_zh | size %}
-{% if weekly_zh_count == 0 %}
+{% assign weekly_zh_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "weekly" and post.date >= two_months_ago_zh %}
+    {% assign weekly_zh_total = weekly_zh_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if weekly_zh_total == 0 %}
 *近两个月暂无周报*
 {% else %}
+{% assign weekly_zh_shown = 0 %}
 <ul>
-{% for post in weekly_zh limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "weekly" and post.date >= two_months_ago_zh and weekly_zh_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+    {% assign weekly_zh_shown = weekly_zh_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if weekly_zh_count > 5 %}
+{% if weekly_zh_total > 5 %}
 <details>
-<summary>展开剩余 {{ weekly_zh_count | minus: 5 }} 个</summary>
+<summary>展开剩余 {{ weekly_zh_total | minus: 5 }} 个</summary>
 <ul>
-{% for post in weekly_zh offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "weekly" and post.date >= two_months_ago_zh and weekly_zh_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -78,26 +91,33 @@ title: Home
 
 ## 上月总览
 
-{% assign monthly_zh = site.posts | where: "lang", "zh" | where: "period", "monthly" | where_exp: "post", "post.date >= two_years_ago_zh" | sort: "date" | reverse %}
-{% assign monthly_zh_count = monthly_zh | size %}
-{% if monthly_zh_count == 0 %}
+{% assign monthly_zh_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "monthly" and post.date >= two_years_ago_zh %}
+    {% assign monthly_zh_total = monthly_zh_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if monthly_zh_total == 0 %}
 *近两年暂无月报*
 {% else %}
+{% assign monthly_zh_shown = 0 %}
 <ul>
-{% for post in monthly_zh limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "monthly" and post.date >= two_years_ago_zh and monthly_zh_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a></li>
+    {% assign monthly_zh_shown = monthly_zh_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if monthly_zh_count > 5 %}
+{% if monthly_zh_total > 5 %}
 <details>
-<summary>展开剩余 {{ monthly_zh_count | minus: 5 }} 个</summary>
+<summary>展开剩余 {{ monthly_zh_total | minus: 5 }} 个</summary>
 <ul>
-{% for post in monthly_zh offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "monthly" and post.date >= two_years_ago_zh and monthly_zh_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -106,26 +126,33 @@ title: Home
 
 ## 本年总览
 
-{% assign yearly_zh = site.posts | where: "lang", "zh" | where: "period", "yearly" | sort: "date" | reverse %}
-{% assign yearly_zh_count = yearly_zh | size %}
-{% if yearly_zh_count == 0 %}
+{% assign yearly_zh_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "yearly" %}
+    {% assign yearly_zh_total = yearly_zh_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if yearly_zh_total == 0 %}
 *暂无年报*
 {% else %}
+{% assign yearly_zh_shown = 0 %}
 <ul>
-{% for post in yearly_zh limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "yearly" and yearly_zh_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a></li>
+    {% assign yearly_zh_shown = yearly_zh_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if yearly_zh_count > 5 %}
+{% if yearly_zh_total > 5 %}
 <details>
-<summary>展开剩余 {{ yearly_zh_count | minus: 5 }} 个</summary>
+<summary>展开剩余 {{ yearly_zh_total | minus: 5 }} 个</summary>
 <ul>
-{% for post in yearly_zh offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "zh" and post.period == "yearly" and yearly_zh_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -144,33 +171,39 @@ Welcome to [Horizon](https://github.com/thysrael/Horizon), an AI-driven informat
 - [Source Scrapers](scrapers) — How Horizon collects content from GitHub, Hacker News, RSS, and Reddit
 - [Scoring System](scoring) — AI-based content analysis and the 0-10 scoring scale
 
-{% assign now_en = site.time %}
-{% assign this_month_en = now_en | date: "%Y-%m" %}
-{% assign two_months_ago_en = now_en | minus: 5184000 %}
-{% assign two_years_ago_en = now_en | minus: 63072000 %}
+{% assign this_month_en = site.time | date: "%Y-%m" %}
+{% assign two_months_ago_en = site.time | minus: 5184000 %}
+{% assign two_years_ago_en = site.time | minus: 63072000 %}
 
 ## Daily Digest <a class="rss-icon" href="{{ '/feed-en.xml' | relative_url }}" aria-label="Subscribe English"><svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"></path></svg></a>
 
-{% assign daily_en = site.posts | where: "lang", "en" | where: "period", "daily" | where_exp: "post", "post.date | date: '%Y-%m' == this_month_en" | sort: "date" | reverse %}
-{% assign daily_en_count = daily_en | size %}
-{% if daily_en_count == 0 %}
+{% assign daily_en_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "daily" and post.date | date: '%Y-%m' == this_month_en %}
+    {% assign daily_en_total = daily_en_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if daily_en_total == 0 %}
 *No digests this month*
 {% else %}
+{% assign daily_en_shown = 0 %}
 <ul>
-{% for post in daily_en limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "daily" and post.date | date: '%Y-%m' == this_month_en and daily_en_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+    {% assign daily_en_shown = daily_en_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if daily_en_count > 5 %}
+{% if daily_en_total > 5 %}
 <details>
-<summary>Show {{ daily_en_count | minus: 5 }} more</summary>
+<summary>Show {{ daily_en_total | minus: 5 }} more</summary>
 <ul>
-{% for post in daily_en offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "daily" and post.date | date: '%Y-%m' == this_month_en and daily_en_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -179,26 +212,33 @@ Welcome to [Horizon](https://github.com/thysrael/Horizon), an AI-driven informat
 
 ## Weekly Digest
 
-{% assign weekly_en = site.posts | where: "lang", "en" | where: "period", "weekly" | where_exp: "post", "post.date >= two_months_ago_en" | sort: "date" | reverse %}
-{% assign weekly_en_count = weekly_en | size %}
-{% if weekly_en_count == 0 %}
+{% assign weekly_en_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "weekly" and post.date >= two_months_ago_en %}
+    {% assign weekly_en_total = weekly_en_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if weekly_en_total == 0 %}
 *No weekly digests in the past 2 months*
 {% else %}
+{% assign weekly_en_shown = 0 %}
 <ul>
-{% for post in weekly_en limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "weekly" and post.date >= two_months_ago_en and weekly_en_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+    {% assign weekly_en_shown = weekly_en_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if weekly_en_count > 5 %}
+{% if weekly_en_total > 5 %}
 <details>
-<summary>Show {{ weekly_en_count | minus: 5 }} more</summary>
+<summary>Show {{ weekly_en_total | minus: 5 }} more</summary>
 <ul>
-{% for post in weekly_en offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "weekly" and post.date >= two_months_ago_en and weekly_en_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m-%d" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -207,26 +247,33 @@ Welcome to [Horizon](https://github.com/thysrael/Horizon), an AI-driven informat
 
 ## Monthly Digest
 
-{% assign monthly_en = site.posts | where: "lang", "en" | where: "period", "monthly" | where_exp: "post", "post.date >= two_years_ago_en" | sort: "date" | reverse %}
-{% assign monthly_en_count = monthly_en | size %}
-{% if monthly_en_count == 0 %}
+{% assign monthly_en_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "monthly" and post.date >= two_years_ago_en %}
+    {% assign monthly_en_total = monthly_en_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if monthly_en_total == 0 %}
 *No monthly digests in the past 2 years*
 {% else %}
+{% assign monthly_en_shown = 0 %}
 <ul>
-{% for post in monthly_en limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "monthly" and post.date >= two_years_ago_en and monthly_en_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a></li>
+    {% assign monthly_en_shown = monthly_en_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if monthly_en_count > 5 %}
+{% if monthly_en_total > 5 %}
 <details>
-<summary>Show {{ monthly_en_count | minus: 5 }} more</summary>
+<summary>Show {{ monthly_en_total | minus: 5 }} more</summary>
 <ul>
-{% for post in monthly_en offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "monthly" and post.date >= two_years_ago_en and monthly_en_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y-%m" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
@@ -235,26 +282,33 @@ Welcome to [Horizon](https://github.com/thysrael/Horizon), an AI-driven informat
 
 ## Yearly Digest
 
-{% assign yearly_en = site.posts | where: "lang", "en" | where: "period", "yearly" | sort: "date" | reverse %}
-{% assign yearly_en_count = yearly_en | size %}
-{% if yearly_en_count == 0 %}
+{% assign yearly_en_total = 0 %}
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "yearly" %}
+    {% assign yearly_en_total = yearly_en_total | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if yearly_en_total == 0 %}
 *No yearly digests yet*
 {% else %}
+{% assign yearly_en_shown = 0 %}
 <ul>
-{% for post in yearly_en limit:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "yearly" and yearly_en_shown < 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a></li>
+    {% assign yearly_en_shown = yearly_en_shown | plus: 1 %}
+  {% endif %}
 {% endfor %}
 </ul>
-{% if yearly_en_count > 5 %}
+{% if yearly_en_total > 5 %}
 <details>
-<summary>Show {{ yearly_en_count | minus: 5 }} more</summary>
+<summary>Show {{ yearly_en_total | minus: 5 }} more</summary>
 <ul>
-{% for post in yearly_en offset:5 %}
-  <li>
-    <a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a>
-  </li>
+{% for post in site.posts reversed %}
+  {% if post.lang == "en" and post.period == "yearly" and yearly_en_shown >= 5 %}
+    <li><a href="{{ post.url | relative_url }}">{{ post.period_id | default: post.date | date: "%Y" }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
 </details>
