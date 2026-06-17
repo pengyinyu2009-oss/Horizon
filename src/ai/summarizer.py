@@ -11,7 +11,7 @@ import json
 import re
 from typing import List, Dict, Optional, Tuple
 
-from ..models import ContentItem
+from ..models import ContentItem, Story
 
 
 _CJK = r"[\u4e00-\u9fff\u3400-\u4dbf]"
@@ -453,72 +453,141 @@ class DailySummarizer:
 # --- Roll-up summarisers (weekly / monthly / yearly) ---------------------
 
 
-class _RollupSummarizerBase:
-    """Shared logic for weekly / monthly / yearly roll-ups.
+def _ai_followup_for_story(
+    ai_client,
+    story: Story,
+    related_news: List[dict],
+    language: str,
+) -> str:
+    """Call the AI to write a 'Follow-up & impact' block for a Story.
 
-    Each tier refetches the relevant time window, runs the same
-    analysis pipeline as the daily run, and then asks the AI one more
-    time to write a "Follow-up & Impact" paragraph for every item above
-    the report threshold. The top N by score get a headline call-out
-    block at the top of the report.
+    Unlike the previous (self-contained) design, this prompt is
+    grounded in the *related* HN/Reddit discussion the roll-up just
+    fetched. The AI is asked to combine the original story with the
+    community reaction into one short paragraph.
+    """
+    if not ai_client:
+        return ""
+    related_lines = []
+    for r in related_news[:5]:
+        title = r.get("title", "")
+        url = r.get("url", "")
+        score = r.get("score", 0)
+        comments = r.get("num_comments", 0)
+        related_lines.append(f"- [{title}]({url}) (score={score}, comments={comments})")
+    related_text = "\n".join(related_lines) if related_lines else "(no related discussion found)"
+
+    if language == "zh":
+        system = (
+            "你是一位资深科技/产业分析师，正在做一份滚动回顾报告。\n"
+            "你的任务是基于原始新闻 + 社区讨论，写一段 200-300 字的"
+            "'后续与影响'，包含：\n"
+            "- 社区/行业反应（HN、Reddit 等讨论透露了什么信号）\n"
+            "- 中长期影响（对从业者、用户、生态）\n"
+            "- 值得持续观察的点\n\n"
+            "要求：直接、结论性观点，不分小标题，不重复原新闻已有内容。"
+        )
+        user = (
+            f"原新闻:\n"
+            f"标题: {story.title}\n"
+            f"链接: {story.url}\n"
+            f"摘要: {story.score} 分 — {story.summary}\n\n"
+            f"社区讨论 (HN + Reddit):\n{related_text}\n\n"
+            f"请写 '后续与影响' 段落。"
+        )
+    else:
+        system = (
+            "You are a senior tech/industry analyst preparing a "
+            "retrospective. Write a 200-300 word 'Follow-up & Impact' "
+            "block that combines the original story with the community "
+            "discussion into one tight paragraph. Cover: community/"
+            "industry reaction, medium- and long-term consequences, and "
+            "what to keep tracking. No sub-headings, no preamble."
+        )
+        user = (
+            f"Original story:\n"
+            f"Title: {story.title}\n"
+            f"URL: {story.url}\n"
+            f"Score: {story.score} — {story.summary}\n\n"
+            f"Community discussion (HN + Reddit):\n{related_text}\n\n"
+            f"Write the Follow-up & Impact paragraph now."
+        )
+    try:
+        response = ai_client.complete(
+            system=system,
+            user=user,
+            temperature=0.4,
+        )
+        return (response or "").strip()
+    except Exception:
+        return ""
+
+
+class _RollupSummarizerBase:
+    """Chain-mode roll-up for weekly / monthly / yearly.
+
+    Each tier reads the *previous* tier's already-published reports
+    (daily → weekly → monthly → yearly) instead of re-fetching the raw
+    source stream. For every story above the threshold, it calls
+    ``search.search_related_for_stories`` to fetch related HN/Reddit
+    discussion, then asks the AI to combine the original story with
+    the community reaction into a tight follow-up paragraph.
     """
 
-    period: str = ""  # subclass sets: "weekly" / "monthly" / "yearly"
+    period: str = ""
 
-    def __init__(self, ai_client=None):
-        # ai_client is optional so unit tests can construct without one
+    def __init__(self, ai_client=None, http_client=None):
         self.ai_client = ai_client
-
-    async def _ai_followup(
-        self, item: ContentItem, language: str
-    ) -> str:
-        """Call the AI for a follow-up paragraph. Empty string on failure."""
-        if not self.ai_client:
-            return ""
-        system, user = _format_followup_prompt(item, language)
-        try:
-            response = await self.ai_client.complete(
-                system=system,
-                user=user,
-                temperature=0.4,
-            )
-            return (response or "").strip()
-        except Exception:
-            return ""
+        # ``http_client`` is an optional httpx.AsyncClient; the
+        # orchestrator will inject one if not provided.
+        self.http_client = http_client
 
     async def generate_report(
         self,
-        items: List[ContentItem],
+        stories: List[Story],
         period_id: str,
-        total_fetched: int,
         language: str,
         threshold: float,
         report_threshold: float,
         top_n_report: int,
         lookback_label: str,
+        related_by_index: Optional[Dict[int, List[dict]]] = None,
     ) -> str:
-        """Build the roll-up markdown.
+        """Build the roll-up markdown from previously-published stories.
 
         Args:
-            items: Already-analyzed ContentItems from the lookback window.
-            period_id: Display id for the report (e.g. ``2026-W25``,
-                ``2026-06``, ``2026``).
-            total_fetched: Total items the daily-equivalent pass picked up.
+            stories: Stories already extracted from the previous tier's
+                report markdown (e.g. daily 8+ for weekly).
+            period_id: ``2026-W25`` / ``2026-06`` / ``2026``.
             language: ``en`` / ``zh``.
             threshold: Minimum score to appear in the TOC.
             report_threshold: Minimum score for the headline call-out.
-            top_n_report: How many top items get a full follow-up block.
-            lookback_label: Human-readable span used in the intro
-                (e.g. ``7 days`` / ``5 weeks`` / ``12 months``).
+            top_n_report: How many top callouts to write up in full.
+            lookback_label: Human-readable span for the intro.
+            related_by_index: Optional pre-fetched map of
+                ``{story_index: [related]}``. If None, the summariser
+                will call ``search.search_related_for_stories`` itself.
         """
         labels = ROLLUP_LABELS[self.period][language]
         selected = sorted(
-            [it for it in items if (it.ai_score or 0) >= threshold],
-            key=lambda x: x.ai_score or 0,
+            [s for s in stories if s.score >= threshold],
+            key=lambda x: x.score,
             reverse=True,
         )
         if not selected:
-            return self._empty_report(period_id, total_fetched, labels, language, threshold)
+            return self._empty_report(period_id, labels, language, threshold)
+
+        # Web search: prefer the caller-supplied map, otherwise fetch
+        # here so unit tests can drive the summariser without HTTP.
+        if related_by_index is None:
+            from .search import search_related_for_stories
+            import httpx as _httpx
+            client = self.http_client or _httpx.AsyncClient(timeout=30.0)
+            try:
+                related_by_index = await search_related_for_stories(selected, client)
+            finally:
+                if self.http_client is None:
+                    await client.aclose()
 
         n = len(selected)
         intro = labels["intro"].format(
@@ -531,103 +600,127 @@ class _RollupSummarizerBase:
             "---\n\n"
         )
 
-        callout_items = [it for it in selected if (it.ai_score or 0) >= report_threshold]
-        callout_items = callout_items[: max(top_n_report, 1)]
+        callout_stories = [s for s in selected if s.score >= report_threshold]
+        callout_stories = callout_stories[: max(top_n_report, 1)]
+        # Map selected index → story so we can pull related for each
+        # callout. ``selected`` is sorted, so its indices match
+        # ``related_by_index`` keys produced by search_related_for_stories.
         callout_blocks: List[str] = []
-        if callout_items:
-            callout_intro = labels["report_intro"].format(n=len(callout_items))
+        if callout_stories:
+            callout_intro = labels["report_intro"].format(n=len(callout_stories))
             callout_blocks.append(f"## {callout_intro.lstrip('# ').strip()}\n")
-            for i, item in enumerate(callout_items, start=1):
-                followup = await self._ai_followup(item, language)
+            for i, story in enumerate(callout_stories, start=1):
+                # The related map is keyed by position in the *input*
+                # list, which here is `selected`. Find that position.
+                try:
+                    pos = selected.index(story)
+                except ValueError:
+                    pos = -1
+                related = (related_by_index or {}).get(pos, [])
+                followup = await _ai_followup_for_story(
+                    self.ai_client, story, related, language
+                )
                 callout_blocks.append(
-                    self._format_callout(item, language, i, followup, labels)
+                    self._format_callout(story, language, i, followup, related, labels)
                 )
             callout_blocks.append("\n---\n\n")
 
         toc_lines = [f"## {'索引' if language == 'zh' else 'Index'}\n"]
-        for i, item in enumerate(selected, start=1):
-            t = item.metadata.get(f"title_{language}") or item.title
-            t = str(t).replace("[", "(").replace("]", ")")
-            if language == "zh":
-                t = _pangu(t)
-            score = item.ai_score or "?"
-            toc_lines.append(f"{i}. [{t}](#{self.period}-item-{i}) \u2b50\ufe0f {score}/10")
+        for i, story in enumerate(selected, start=1):
+            t = _pangu(story.title) if language == "zh" else story.title
+            t = t.replace("[", "(").replace("]", ")")
+            toc_lines.append(
+                f"{i}. [{t}](#{self.period}-item-{i}) \u2b50\ufe0f {story.score}/10"
+            )
         toc = "\n".join(toc_lines) + "\n\n---\n\n"
 
         body_parts: List[str] = []
-        for i, item in enumerate(selected, start=1):
-            body_parts.append(self._format_brief(item, language, i))
+        for i, story in enumerate(selected, start=1):
+            related = (related_by_index or {}).get(i - 1, [])
+            body_parts.append(
+                self._format_index_entry(story, language, i, related)
+            )
         body = "".join(body_parts)
 
         return header + "".join(callout_blocks) + toc + body
 
     def _format_callout(
         self,
-        item: ContentItem,
+        story: Story,
         language: str,
         index: int,
         followup_text: str,
+        related: List[dict],
         labels: dict,
     ) -> str:
-        title = item.metadata.get(f"title_{language}") or item.title
-        title = str(title).replace("[", "(").replace("]", ")")
-        if language == "zh":
-            title = _pangu(title)
-        score = item.ai_score or "?"
-        url = str(item.url)
-        summary = (
-            item.metadata.get(f"detailed_summary_{language}")
-            or item.metadata.get("detailed_summary")
-            or item.ai_summary
-            or ""
-        )
-        if language == "zh":
-            summary = _pangu(summary)
-
-        if language == "zh":
-            source = f"来源 · {item.source_type.value}"
-            if item.published_at:
-                source += f" · {item.published_at.month}月{item.published_at.day}日"
-        else:
-            source = f"Source · {item.source_type.value}"
-            if item.published_at:
-                day = item.published_at.strftime("%d").lstrip("0")
-                source += f" · {item.published_at.strftime(f'%b {day}')}"
-        tags_str = (
-            " · ".join(f"`#{t}`" for t in item.ai_tags)
-            if item.ai_tags else ""
+        title = _pangu(story.title) if language == "zh" else story.title
+        title = title.replace("[", "(").replace("]", ")")
+        summary = _pangu(story.summary) if language == "zh" else story.summary
+        related_block = self._format_related(related, language)
+        source_line = (
+            f"[原始链接]({story.url})"
+            if story.url
+            else f"score {story.score}/10"
         )
 
         lines = [
-            f"### [{title}]({url}) \u2b50\ufe0f {score}/10",
+            f"### [{title}]({story.url}) \u2b50\ufe0f {story.score}/10",
             "",
             summary,
             "",
-            source,
+            source_line,
         ]
-        if tags_str:
-            lines += ["", tags_str]
         if followup_text:
-            head = f"**{labels['followup']}**:"
-            lines += ["", head, "", followup_text]
+            lines += ["", f"**{labels['followup']}**:", "", followup_text]
+        if related_block:
+            lines += ["", related_block]
         return "\n".join(lines) + "\n\n"
 
-    def _format_brief(self, item: ContentItem, language: str, index: int) -> str:
-        title = item.metadata.get(f"title_{language}") or item.title
-        title = str(title).replace("[", "(").replace("]", ")")
-        if language == "zh":
-            title = _pangu(title)
-        score = item.ai_score or "?"
-        url = str(item.url)
-        return (
+    def _format_index_entry(
+        self,
+        story: Story,
+        language: str,
+        index: int,
+        related: List[dict],
+    ) -> str:
+        """One-line TOC body for stories that don't get a full callout."""
+        title = _pangu(story.title) if language == "zh" else story.title
+        title = title.replace("[", "(").replace("]", ")")
+        block = (
             f'<a id="{self.period}-item-{index}"></a>\n'
-            f"- [{title}]({url}) \u2b50\ufe0f {score}/10\n"
+            f"- [{title}]({story.url}) \u2b50\ufe0f {story.score}/10"
         )
+        related_block = self._format_related(related, language, inline=True)
+        if related_block:
+            return block + "\n" + related_block + "\n"
+        return block + "\n"
+
+    @staticmethod
+    def _format_related(related: List[dict], language: str, inline: bool = False) -> str:
+        """Render the HN/Reddit related-discussion list for a story."""
+        if not related:
+            return ""
+        head = (
+            "**社区讨论**" if language == "zh" else "**Related discussion**"
+        )
+        lines: List[str] = []
+        if not inline:
+            lines.append(head + ":")
+        for r in related[:3]:
+            t = r.get("title", "").strip()
+            u = r.get("url", "").strip()
+            score = r.get("score", 0)
+            comments = r.get("num_comments", 0)
+            src = r.get("source", "")
+            line = f"- [{t}]({u}) — {src} (score {score}, {comments} comments)"
+            lines.append(line)
+        if inline:
+            return "  " + "\n  ".join(lines)
+        return "\n".join(lines)
 
     def _empty_report(
         self,
         period_id: str,
-        total_fetched: int,
         labels: dict,
         language: str,
         threshold: float,
@@ -635,7 +728,6 @@ class _RollupSummarizerBase:
         return (
             f"# {labels['title']} — {period_id}\n\n"
             f"> {labels['no_items'].format(lo=threshold)}\n\n"
-            f"_Total items scored this period: {total_fetched}._"
         )
 
 
@@ -649,3 +741,116 @@ class MonthlySummarizer(_RollupSummarizerBase):
 
 class YearlySummarizer(_RollupSummarizerBase):
     period = "yearly"
+
+
+# --- Markdown parsers for chain-mode roll-ups ------------------------------
+
+
+_DAILY_ITEM_HEADER_RE = re.compile(
+    r'^<a id="item-(\d+)"></a>\s*\n'
+    r'(?:^###\s+\*[^*]+\*\s*)?'   # optional "(简报)" / "(brief)" prefix
+    r'^#{2,3}\s+(?:\*[^*]+\*\s+)?'  # ## or ###, plus optional "*brief*" prefix
+    r'\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
+    re.MULTILINE,
+)
+
+
+def parse_daily_full_stories(markdown: str, language: str = "zh") -> List[Story]:
+    """Extract 8+ stories from a daily summary markdown blob.
+
+    The daily file layout (after the front matter is stripped) starts
+    with a TOC and then has a per-item section for every item at or
+    above ``full_threshold``. The brief-tier items (between the lower
+    ``threshold`` and ``full_threshold``) are written with a
+    "*(简报)*" / "*(brief)*" prefix; we skip those.
+
+    Returns a list of ``Story`` records. The ``summary`` field captures
+    everything between the item header and the next "---" separator.
+    """
+    body = _strip_front_matter(markdown)
+    matches = list(_DAILY_ITEM_HEADER_RE.finditer(body))
+    stories: List[Story] = []
+    for i, m in enumerate(matches):
+        title = m.group(2).strip()
+        url = m.group(3).strip()
+        try:
+            score = float(m.group(4))
+        except (TypeError, ValueError):
+            continue
+        if score < 8.0:
+            continue
+        # Brief tier items are written with a "### *（简报）* [title](url)"
+        # header on the line right before the <a id>. Detect and skip.
+        pre = body[: m.start()]
+        last_line = pre.rstrip("\n").split("\n")[-1] if pre else ""
+        if last_line.startswith("###") and (
+            "（简报）" in last_line or "(brief)" in last_line
+        ):
+            continue
+        next_start = matches[i + 1].start() if i + 1 < len(matches) else len(body)
+        section = body[m.end():next_start].strip("\n")
+        summary = section.split("\n---\n", 1)[0].strip()
+        if not summary:
+            continue
+        stories.append(
+            Story(title=title, url=url, score=score, summary=summary, source_date="")
+        )
+    return stories
+
+
+_ROLLUP_CALLOUT_HEADER_RE = re.compile(
+    r'^###\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
+    re.MULTILINE,
+)
+
+
+def parse_rollup_callouts(markdown: str, language: str = "zh") -> List[Story]:
+    """Extract callout stories from a weekly/monthly/yearly report.
+
+    Callouts in a roll-up live under the "Lead Story" / "Top N" /
+    "Top N — must-read" section, written as ``### [title](url) ⭐️ X/10``
+    followed by a summary paragraph and a "Follow-up & impact" line.
+    """
+    body = _strip_front_matter(markdown)
+    matches = list(_ROLLUP_CALLOUT_HEADER_RE.finditer(body))
+    if not matches:
+        return []
+    h2_positions = [m.start() for m in re.finditer(r"^##\s+", body, re.MULTILINE)]
+    section_end = h2_positions[1] if len(h2_positions) > 1 else len(body)
+    callouts: List[Story] = []
+    for m in matches:
+        if m.start() >= section_end:
+            break
+        title = m.group(1).strip()
+        url = m.group(2).strip()
+        try:
+            score = float(m.group(3))
+        except (TypeError, ValueError):
+            continue
+        next_match = next(
+            (nm for nm in matches if nm.start() > m.end()), None
+        )
+        section_end_this = next_match.start() if next_match else section_end
+        section = body[m.end():section_end_this].strip("\n")
+        cut_markers = ["**后续与影响**", "**Follow-up & impact**", "**Long-term impact**"]
+        for marker in cut_markers:
+            idx = section.find(marker)
+            if idx != -1:
+                section = section[:idx]
+                break
+        summary = section.strip()
+        if not summary:
+            continue
+        callouts.append(
+            Story(title=title, url=url, score=score, summary=summary, source_date="")
+        )
+    return callouts
+
+
+def _strip_front_matter(markdown: str) -> str:
+    """Strip the leading Jekyll front-matter block (if any)."""
+    if markdown.startswith("---\n"):
+        end = markdown.find("\n---\n", 4)
+        if end != -1:
+            return markdown[end + 5:]
+    return markdown

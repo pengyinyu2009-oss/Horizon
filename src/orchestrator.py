@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import httpx
 from rich.console import Console
 
-from .models import Config, ContentItem
+from .models import Config, ContentItem, Story
 from .storage.manager import StorageManager
 from .services.email import EmailManager
 from .services.webhook import WebhookNotifier
@@ -576,13 +576,25 @@ class HorizonOrchestrator:
     async def _run_rollup(
         self,
         period: str,
-        lookback_hours: int,
         lookback_label_zh: str,
         lookback_label_en: str,
         save_method_name: str,
         period_id_factory,
     ) -> None:
-        """Shared implementation for weekly / monthly / yearly reports."""
+        """Chain-mode implementation for weekly / monthly / yearly reports.
+
+        Each tier reads the *previous* tier's reports from
+        ``data/summaries/`` instead of re-fetching the source stream:
+
+        - weekly:    reads daily summaries (8+ stories)
+        - monthly:   reads weekly summaries (9+ callouts)
+        - yearly:    reads monthly summaries (9+ callouts)
+
+        For every story we call ``search.search_related_for_stories`` to
+        pull related HN/Reddit discussion, then ask the AI to combine
+        the original story with that community signal into a follow-up
+        paragraph.
+        """
         period_cfg = getattr(self.config, period, None)
         if period_cfg is None or not period_cfg.enabled:
             self.console.print(
@@ -590,56 +602,100 @@ class HorizonOrchestrator:
             )
             return
 
+        # Which prior-tier reports do we read?
+        prior_period = {"weekly": "daily", "monthly": "weekly", "yearly": "monthly"}[period]
+        lookback_count = {
+            "weekly": period_cfg.lookback_days,
+            "monthly": period_cfg.lookback_weeks,
+            "yearly": period_cfg.lookback_months,
+        }[period]
+
         self.console.print(
             f"\n[bold cyan]📅 Horizon {period} rollup — "
-            f"lookback {lookback_hours} hours[/bold cyan]\n"
-        )
-
-        since = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
-        all_items = await self.fetch_all_sources(since)
-        self.console.print(f"📥 Fetched {len(all_items)} items from all sources\n")
-        if not all_items:
-            self.console.print("[yellow]No content in lookback window; exiting.[/yellow]")
-            return
-
-        merged = self.merge_cross_source_duplicates(all_items)
-        analyzed = await self._analyze_content(merged)
-        self.console.print(f"🤖 Analyzed {len(analyzed)} items with AI\n")
-
-        threshold = period_cfg.ai_score_threshold
-        in_scope = [
-            it for it in analyzed
-            if (it.ai_score or 0) >= threshold
-        ]
-        in_scope.sort(key=lambda x: x.ai_score or 0, reverse=True)
-        self.console.print(
-            f"⭐ {len(in_scope)} items scored ≥ {threshold} (period {period})\n"
+            f"reading the last {lookback_count} {prior_period} reports[/bold cyan]\n"
         )
 
         languages = period_cfg.languages or self.config.ai.languages
+        # Read prior reports per-language
+        summaries_by_lang: Dict[str, List[Path]] = {}
+        for lang in languages:
+            files = self.storage.list_recent_summaries(
+                period=prior_period,
+                language=lang,
+            )
+            summaries_by_lang[lang] = files[-lookback_count:]
+            self.console.print(
+                f"   {lang}: {len(summaries_by_lang[lang])} {prior_period} report(s) to read\n"
+            )
+
+        # Per-language parse + web search + generate
+        from .ai.summarizer import (
+            parse_daily_full_stories,
+            parse_rollup_callouts,
+        )
+
         now = datetime.now(timezone.utc)
         period_id = period_id_factory(now)
         ai_client = create_ai_client(self.config.ai)
-
         summarizer_cls = {
             "weekly": WeeklySummarizer,
             "monthly": MonthlySummarizer,
             "yearly": YearlySummarizer,
         }[period]
 
+        import httpx as _httpx
+
         for lang in languages:
-            summarizer = summarizer_cls(ai_client=ai_client)
-            lookback_label = lookback_label_zh if lang == "zh" else lookback_label_en
-            report = await summarizer.generate_report(
-                items=in_scope,
-                period_id=period_id,
-                total_fetched=len(all_items),
-                language=lang,
-                threshold=threshold,
-                report_threshold=period_cfg.ai_score_report_threshold,
-                top_n_report=period_cfg.top_n_report,
-                lookback_label=lookback_label,
+            files = summaries_by_lang.get(lang, [])
+            if not files:
+                self.console.print(
+                    f"[yellow]No {prior_period} reports for {lang}; skipping.[/yellow]"
+                )
+                continue
+
+            # Parse stories from each prior report
+            all_stories: List[Story] = []
+            for f in files:
+                md = f.read_text(encoding="utf-8")
+                if prior_period == "daily":
+                    stories = parse_daily_full_stories(md, lang)
+                else:
+                    stories = parse_rollup_callouts(md, lang)
+                for s in stories:
+                    # Tag the source date from the filename (YYYY-MM-DD-...)
+                    s.source_date = f.stem.split("-horizon-")[0]
+                all_stories.extend(stories)
+            self.console.print(
+                f"   {lang}: parsed {len(all_stories)} story(ies) from {len(files)} prior report(s)\n"
             )
+
+            if not all_stories:
+                self.console.print(
+                    f"[yellow]No stories above threshold for {lang}; skipping.[/yellow]"
+                )
+                continue
+
+            # Web search: one AsyncClient shared across calls
+            async with _httpx.AsyncClient(timeout=30.0) as client:
+                from .search import search_related_for_stories
+                related = await search_related_for_stories(all_stories, client)
+                self.console.print(
+                    f"   {lang}: web search done ({sum(len(v) for v in related.values())} related stories)\n"
+                )
+
+                summarizer = summarizer_cls(ai_client=ai_client, http_client=client)
+                lookback_label = lookback_label_zh if lang == "zh" else lookback_label_en
+                report = await summarizer.generate_report(
+                    stories=all_stories,
+                    period_id=period_id,
+                    language=lang,
+                    threshold=period_cfg.ai_score_threshold,
+                    report_threshold=period_cfg.ai_score_report_threshold,
+                    top_n_report=period_cfg.top_n_report,
+                    lookback_label=lookback_label,
+                    related_by_index=related,
+                )
+
             save_method = getattr(self.storage, save_method_name)
             saved = save_method(period_id, report, language=lang)
             self.console.print(f"💾 Saved {period} {lang.upper()} report to: {saved}\n")
@@ -682,7 +738,6 @@ class HorizonOrchestrator:
             return
         await self._run_rollup(
             period="weekly",
-            lookback_hours=cfg.lookback_days * 24,
             lookback_label_zh=f"{cfg.lookback_days} 天",
             lookback_label_en=f"{cfg.lookback_days} days",
             save_method_name="save_weekly_summary",
@@ -697,7 +752,6 @@ class HorizonOrchestrator:
             return
         await self._run_rollup(
             period="monthly",
-            lookback_hours=cfg.lookback_weeks * 7 * 24,
             lookback_label_zh=f"{cfg.lookback_weeks} 周",
             lookback_label_en=f"{cfg.lookback_weeks} weeks",
             save_method_name="save_monthly_summary",
@@ -712,7 +766,6 @@ class HorizonOrchestrator:
             return
         await self._run_rollup(
             period="yearly",
-            lookback_hours=cfg.lookback_months * 30 * 24,
             lookback_label_zh=f"{cfg.lookback_months} 个月",
             lookback_label_en=f"{cfg.lookback_months} months",
             save_method_name="save_yearly_summary",

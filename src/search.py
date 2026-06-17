@@ -5,7 +5,7 @@ from typing import List, Dict
 
 import httpx
 
-from .models import ContentItem
+from .models import ContentItem, Story
 
 HN_SEARCH_URL = "https://hn.algolia.com/api/v1/search"
 REDDIT_SEARCH_URL = "https://www.reddit.com/search.json"
@@ -103,4 +103,44 @@ async def search_related(
             continue
         item_id, related = result
         mapping[item_id] = related
+    return mapping
+
+
+async def search_related_for_stories(
+    stories: List[Story], client: httpx.AsyncClient
+) -> Dict[int, List[dict]]:
+    """Search HN + Reddit for each story by title.
+
+    Same as ``search_related`` but takes lightweight ``Story`` records
+    (extracted from a previous roll-up's markdown) instead of
+    ``ContentItem``s. The mapping is keyed by the story's *position* in
+    the input list so the caller can easily stitch results back into
+    the original ordering.
+    """
+    async def _search_for_story(idx: int, story: Story) -> tuple:
+        query = story.title
+        hn_results, reddit_results = await asyncio.gather(
+            search_hn(query, client),
+            search_reddit(query, client),
+            return_exceptions=True,
+        )
+        if isinstance(hn_results, Exception):
+            hn_results = []
+        if isinstance(reddit_results, Exception):
+            reddit_results = []
+        item_url = (story.url or "").rstrip("/")
+        related = [
+            r for r in (hn_results + reddit_results)
+            if r["url"].rstrip("/") != item_url
+        ]
+        return idx, related
+
+    tasks = [_search_for_story(i, s) for i, s in enumerate(stories)]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    mapping: Dict[int, List[dict]] = {}
+    for result in results:
+        if isinstance(result, Exception):
+            continue
+        idx, related = result
+        mapping[idx] = related
     return mapping

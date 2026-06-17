@@ -1,9 +1,26 @@
 """Core data models for Horizon."""
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional, List, Dict, Any, Union
 from pydantic import BaseModel, HttpUrl, Field, field_validator
+
+
+@dataclass
+class Story:
+    """Lightweight story record extracted from a daily/weekly/monthly summary.
+
+    Used by the roll-up pipeline (weekly / monthly / yearly) to pass
+    items between the markdown parser and the AI summariser without
+    pulling in the full ContentItem + AI-analysis baggage.
+    """
+
+    title: str
+    url: str
+    score: float
+    summary: str
+    source_date: str  # YYYY-MM-DD when this story appeared in a digest
 
 
 class SourceType(str, Enum):
