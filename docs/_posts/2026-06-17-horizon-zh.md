@@ -7,200 +7,132 @@ period: daily
 period_id: 2026-06-17
 ---
 
-> 从 45 条内容中筛选出 18 条重要资讯。
+> 从 23 条内容中筛选出 12 条重要资讯。
 
-其中 **11 条 8 分以上**展开详细简报，其余 7 条仅列于索引。
+其中 **6 条 8 分以上**展开详细简报，其余 6 条仅列于索引。
 
 ---
 
 1. [Epic Games announces Lore version control system](#item-1) ⭐️ 8.0/10
-2. [GLM-5.2 is the new leading open weights model on Artificial Analysis](#item-2) ⭐️ 8.0/10
-3. [Sixty percent of US consumers say 'AI' in brand messaging is a turnoff](#item-3) ⭐️ 8.0/10
-4. [RFC 10008: The new HTTP Query Method](#item-4) ⭐️ 8.0/10
-5. [AI demands more engineering discipline. Not less](#item-5) ⭐️ 8.0/10
-6. [GrapheneOS has been ported to Android 17](#item-6) ⭐️ 8.0/10
-7. [The Fable 5 Export Controls Harm US Cyber Defense](#item-7) ⭐️ 8.0/10
-8. [Next-Latent Prediction Transformers (R)](#item-8) ⭐️ 8.0/10
-9. [What is Speculative Decoding? (trending on paperswithco.de) (R)](#item-9) ⭐️ 8.0/10
-10. [I built a leakage-clean verifier for robot manipulation, is this useful? Am I solving a non-problem? (D)](#item-10) ⭐️ 8.0/10
-11. [quicktok: a faster tokenizer (exact and byte-identical with tiktoken) (P)](#item-11) ⭐️ 8.0/10
-12. [Volkswagen started blocking GrapheneOS users](#item-12) ⭐️ 7.0/10
-13. [Want your images back? That'll be $5](#item-13) ⭐️ 7.0/10
-14. [MicroUI – A tiny, portable, immediate-mode UI library written in ANSI C](#item-14) ⭐️ 7.0/10
-15. [Hacker News but for Independent Blogs](#item-15) ⭐️ 7.0/10
-16. [datasette 1.0a34](#item-16) ⭐️ 7.0/10
-17. [Quoting Georgi Gerganov](#item-17) ⭐️ 7.0/10
-18. [Open weights are not enough: we need open training frameworks for research and better algorithms (P)](#item-18) ⭐️ 7.0/10
+2. [Sixty percent of US consumers say 'AI' in brand messaging is a turnoff](#item-2) ⭐️ 8.0/10
+3. [RFC 10008: The new HTTP Query Method](#item-3) ⭐️ 8.0/10
+4. [AI demands more engineering discipline. Not less](#item-4) ⭐️ 8.0/10
+5. [Next-Latent Prediction Transformers (R)](#item-5) ⭐️ 8.0/10
+6. [What is Speculative Decoding? (trending on paperswithco.de) (R)](#item-6) ⭐️ 8.0/10
+7. [GLM-5.2 is the new leading open weights model on Artificial Analysis](#item-7) ⭐️ 7.0/10
+8. [Want your images back? That'll be $5](#item-8) ⭐️ 7.0/10
+9. [MicroUI – A tiny, portable, immediate-mode UI library written in ANSI C](#item-9) ⭐️ 7.0/10
+10. [Volkswagen started blocking GrapheneOS users](#item-10) ⭐️ 7.0/10
+11. [Hacker News but for independent blogs](#item-11) ⭐️ 7.0/10
+12. [datasette 1.0a34](#item-12) ⭐️ 7.0/10
 
 ---
 
 <a id="item-1"></a>
 ## [Epic Games announces Lore version control system](https://lore.org/) ⭐️ 8.0/10
 
-Epic Games announces Lore, a version control system designed for game development, competing with Perforce by addressing Git's shortcomings with large binary files and exclusive locks.
+Epic Games announces Lore, a version control system designed for game development, competing with Perforce rather than Git.
 
 hackernews · regnerba · 6月17日 14:30 · [社区讨论](https://news.ycombinator.com/item?id=48571081)
 
-**标签**: `#version control`, `#game development`, `#Epic Games`, `#Perforce`, `#binary files`
+**标签**: `#version control`, `#game development`, `#Epic Games`, `#Perforce`
 
 ---
 
 <a id="item-2"></a>
-## [GLM-5.2 is the new leading open weights model on Artificial Analysis](https://artificialanalysis.ai/articles/glm-5-2-is-the-new-leading-open-weights-model-on-the-artificial-analysis-intelligence-index) ⭐️ 8.0/10
+## [Sixty percent of US consumers say 'AI' in brand messaging is a turnoff](https://wpvip.com/future-of-the-web-2026/) ⭐️ 8.0/10
 
-GLM-5.2 achieves top ranking among open-weight models on Artificial Analysis, nearing frontier performance but with noted reasoning inefficiency.
+A survey finds 60% of US consumers are turned off by 'AI' in brand messaging, supported by community anecdotes of failed AI implementations.
 
-hackernews · himata4113 · 6月17日 09:12 · [社区讨论](https://news.ycombinator.com/item?id=48567759)
+hackernews · thm · 6月17日 12:11 · [社区讨论](https://news.ycombinator.com/item?id=48569278)
 
-**标签**: `#LLM`, `#open-source`, `#benchmark`, `#AI`, `#GLM`
+**标签**: `#AI`, `#consumer sentiment`, `#branding`, `#UX`, `#tech industry`
 
 ---
 
 <a id="item-3"></a>
-## [Sixty percent of US consumers say 'AI' in brand messaging is a turnoff](https://wpvip.com/future-of-the-web-2026/) ⭐️ 8.0/10
+## [RFC 10008: The new HTTP Query Method](https://www.rfc-editor.org/info/rfc10008/) ⭐️ 8.0/10
 
-Survey shows 60% of US consumers are turned off by 'AI' in brand messaging, with community discussion reinforcing that AI features often worsen user experience and are seen as marketing gimmicks rather than genuine benefits.
+A new HTTP QUERY method is proposed for idempotent requests with request bodies, enabling better caching and streaming use cases.
 
-hackernews · thm · 6月17日 12:11 · [社区讨论](https://news.ycombinator.com/item?id=48569278)
+hackernews · schappim · 6月17日 10:51 · [社区讨论](https://news.ycombinator.com/item?id=48568502)
 
-**标签**: `#AI`, `#consumer sentiment`, `#marketing`, `#user experience`, `#tech industry`
+**标签**: `#HTTP`, `#RFC`, `#web standards`, `#API design`, `#caching`
 
 ---
 
 <a id="item-4"></a>
-## [RFC 10008: The new HTTP Query Method](https://www.rfc-editor.org/info/rfc10008/) ⭐️ 8.0/10
+## [AI demands more engineering discipline. Not less](https://charitydotwtf.substack.com/p/ai-demands-more-engineering-discipline) ⭐️ 8.0/10
 
-RFC 10008 introduces the HTTP QUERY method as a safe, idempotent alternative to GET and POST for requests with bodies, aiming to improve caching and form handling.
+AI tools like LLMs amplify the need for rigorous engineering practices, as they produce plausible but often shallow code that obscures true understanding.
 
-hackernews · schappim · 6月17日 10:51 · [社区讨论](https://news.ycombinator.com/item?id=48568502)
+hackernews · BerislavLopac · 6月17日 14:20 · [社区讨论](https://news.ycombinator.com/item?id=48570948)
 
-**标签**: `#HTTP`, `#RFC`, `#Web Standards`, `#Caching`, `#Idempotency`
+**标签**: `#AI`, `#software engineering`, `#code quality`, `#LLM`, `#engineering discipline`
 
 ---
 
 <a id="item-5"></a>
-## [AI demands more engineering discipline. Not less](https://charitydotwtf.substack.com/p/ai-demands-more-engineering-discipline) ⭐️ 8.0/10
+## [Next-Latent Prediction Transformers (R)](https://www.reddit.com/r/MachineLearning/comments/1u84mio/nextlatent_prediction_transformers_r/) ⭐️ 8.0/10
 
-AI tools like LLMs amplify the need for rigorous engineering practices, not less, as they produce plausible but often shallow code that obscures understanding.
+Microsoft Research proposes Next-Latent Prediction (NextLat), a self-supervised method that trains transformers to predict their next latent state, improving representation learning, data efficiency, and inference speed.
 
-hackernews · BerislavLopac · 6月17日 14:20 · [社区讨论](https://news.ycombinator.com/item?id=48570948)
+reddit · r/MachineLearning · /u/jayden_teoh_ · 6月17日 08:44
 
-**标签**: `#AI`, `#software engineering`, `#code quality`, `#engineering discipline`
+**标签**: `#transformers`, `#self-supervised learning`, `#world models`, `#inference acceleration`, `#representation learning`
 
 ---
 
 <a id="item-6"></a>
-## [GrapheneOS has been ported to Android 17](https://discuss.grapheneos.org/d/36469-grapheneos-has-been-ported-to-android-17-and-official-releases-are-coming-soon) ⭐️ 8.0/10
+## [What is Speculative Decoding? (trending on paperswithco.de) (R)](https://www.reddit.com/r/MachineLearning/comments/1u83kzt/what_is_speculative_decoding_trending_on/) ⭐️ 8.0/10
 
-GrapheneOS has been ported to Android 17, with official releases imminent, marking a key update for privacy-conscious users.
+Speculative decoding accelerates LLM inference by using a fast draft model to propose tokens that a larger model verifies in parallel, without quality loss.
 
-hackernews · Cider9986 · 6月16日 20:34 · [社区讨论](https://news.ycombinator.com/item?id=48561654)
+reddit · r/MachineLearning · /u/NielsRogge · 6月17日 07:41
 
-**标签**: `#GrapheneOS`, `#Android`, `#privacy`, `#mobile OS`, `#security`
+**标签**: `#speculative decoding`, `#LLM inference`, `#optimization`, `#SGLang`, `#vLLM`
 
 ---
 
 <a id="item-7"></a>
-## [The Fable 5 Export Controls Harm US Cyber Defense](https://simonwillison.net/2026/Jun/16/fable-5-export-controls/#atom-everything) ⭐️ 8.0/10
+### *（简报）* [GLM-5.2 is the new leading open weights model on Artificial Analysis](https://artificialanalysis.ai/articles/glm-5-2-is-the-new-leading-open-weights-model-on-the-artificial-analysis-intelligence-index) ⭐️ 7.0/10
 
-Export controls on AI models like Claude Fable 5 inadvertently harm US cyber defense by preventing models from fixing security vulnerabilities.
-
-rss · Simon Willison · 6月16日 05:20
-
-**标签**: `#AI policy`, `#cybersecurity`, `#export controls`, `#AI safety`, `#open source`
+GLM-5.2 achieves top ranking among open weights models on Artificial Analysis, nearing frontier performance but with noted reasoning inefficiency.
 
 ---
 
 <a id="item-8"></a>
-## [Next-Latent Prediction Transformers (R)](https://www.reddit.com/r/MachineLearning/comments/1u84mio/nextlatent_prediction_transformers_r/) ⭐️ 8.0/10
+### *（简报）* [Want your images back? That'll be $5](https://www.lutr.dev/want-your-images-back-sure-that-ll-be-5-dollars) ⭐️ 7.0/10
 
-Next-Latent Prediction trains transformers to predict their own latent states, enabling compact world models and faster inference via self-speculative decoding.
-
-reddit · r/MachineLearning · /u/jayden_teoh_ · 6月17日 08:44
-
-**标签**: `#transformers`, `#self-supervised learning`, `#representation learning`, `#inference acceleration`, `#world models`
+Photobucket demands $5 subscription to download previously uploaded images before account deletion, drawing criticism for holding user data hostage.
 
 ---
 
 <a id="item-9"></a>
-## [What is Speculative Decoding? (trending on paperswithco.de) (R)](https://www.reddit.com/r/MachineLearning/comments/1u83kzt/what_is_speculative_decoding_trending_on/) ⭐️ 8.0/10
+### *（简报）* [MicroUI – A tiny, portable, immediate-mode UI library written in ANSI C](https://github.com/rxi/microui) ⭐️ 7.0/10
 
-Speculative decoding accelerates LLM inference by using a fast draft model to propose tokens that a larger model verifies in parallel, enabling multiple tokens per step without quality loss.
-
-reddit · r/MachineLearning · /u/NielsRogge · 6月17日 07:41
-
-**标签**: `#LLM inference`, `#speculative decoding`, `#optimization`, `#SGLang`, `#vLLM`
+MicroUI is a tiny, portable immediate-mode GUI library in ANSI C, praised for minimalism but noted as somewhat abandoned with a pointer alignment bug.
 
 ---
 
 <a id="item-10"></a>
-## [I built a leakage-clean verifier for robot manipulation, is this useful? Am I solving a non-problem? (D)](https://www.reddit.com/r/MachineLearning/comments/1u7hxem/i_built_a_leakageclean_verifier_for_robot/) ⭐️ 8.0/10
+### *（简报）* [Volkswagen started blocking GrapheneOS users](https://discuss.grapheneos.org/d/35949-volkswagen-app?page=3) ⭐️ 7.0/10
 
-Proposes a leakage-free verifier for robot manipulation tasks using object-centric graph matching to prevent policy authors from biasing success metrics.
-
-reddit · r/MachineLearning · /u/Alexpplay · 6月16日 16:10
-
-**标签**: `#robotics`, `#benchmarking`, `#evaluation`, `#object-centric`, `#verification`
+Volkswagen blocks GrapheneOS users from using their app and API, citing Play Integrity requirements, sparking debate on device exclusion and corporate control.
 
 ---
 
 <a id="item-11"></a>
-## [quicktok: a faster tokenizer (exact and byte-identical with tiktoken) (P)](https://www.reddit.com/r/MachineLearning/comments/1u73c5r/quicktok_a_faster_tokenizer_exact_and/) ⭐️ 8.0/10
+### *（简报）* [Hacker News but for independent blogs](https://bubbles.town/) ⭐️ 7.0/10
 
-quicktok is a faster C++ BPE tokenizer that is byte-identical to tiktoken, achieving 2-11x speedup through data structure optimizations.
-
-reddit · r/MachineLearning · /u/_casa_nova_ · 6月16日 04:24
-
-**标签**: `#tokenization`, `#BPE`, `#performance`, `#open-source`, `#NLP`
+Bubbles is a curated aggregator of independent blogs, offering a refreshing alternative to social media and HN, with features like Briefings and Mastodon-based accounts.
 
 ---
 
 <a id="item-12"></a>
-### *（简报）* [Volkswagen started blocking GrapheneOS users](https://discuss.grapheneos.org/d/35949-volkswagen-app?page=3) ⭐️ 7.0/10
-
-Volkswagen blocks GrapheneOS users from using their app by requiring Play Integrity certification, sparking debate on corporate control and user privacy.
-
----
-
-<a id="item-13"></a>
-### *（简报）* [Want your images back? That'll be $5](https://www.lutr.dev/want-your-images-back-sure-that-ll-be-5-dollars) ⭐️ 7.0/10
-
-Photobucket charges $5 to download your own images before account deletion, sparking debate on data portability and corporate ethics.
-
----
-
-<a id="item-14"></a>
-### *（简报）* [MicroUI – A tiny, portable, immediate-mode UI library written in ANSI C](https://github.com/rxi/microui) ⭐️ 7.0/10
-
-MicroUI is a minimal, portable immediate-mode GUI library in ANSI C, praised for simplicity but noted as abandonware with a pointer alignment bug.
-
----
-
-<a id="item-15"></a>
-### *（简报）* [Hacker News but for Independent Blogs](https://bubbles.town/) ⭐️ 7.0/10
-
-Bubbles is a new curated aggregator for independent blogs, offering a refreshing alternative to mainstream social media and HN.
-
----
-
-<a id="item-16"></a>
 ### *（简报）* [datasette 1.0a34](https://simonwillison.net/2026/Jun/16/datasette/#atom-everything) ⭐️ 7.0/10
 
-Datasette 1.0a34 introduces insert, edit, and delete row functionality in the UI, a major feature inspired by Datasette Agent.
-
----
-
-<a id="item-17"></a>
-### *（简报）* [Quoting Georgi Gerganov](https://simonwillison.net/2026/Jun/16/georgi-gerganov/#atom-everything) ⭐️ 7.0/10
-
-Georgi Gerganov attests to the effectiveness of Qwen3.6-27B as a local coding model, sharing his daily usage and a lightweight setup.
-
----
-
-<a id="item-18"></a>
-### *（简报）* [Open weights are not enough: we need open training frameworks for research and better algorithms (P)](https://www.reddit.com/r/MachineLearning/comments/1u6p7k3/open_weights_are_not_enough_we_need_open_training/) ⭐️ 7.0/10
-
-Advocates for open training frameworks beyond open weights, introducing FeynRL for transparent and modifiable RL post-training of LLMs, VLMs, and agents.
+Datasette 1.0a34 introduces insert, edit, and delete row capabilities directly in the user interface.
 
 ---
 
