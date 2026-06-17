@@ -4,12 +4,43 @@ import json
 import os
 import re
 import shutil
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, List
 
 from pydantic import ValidationError
 
 from ..models import Config
+
+
+def _period_id_to_iso_date(period: str, period_id: str) -> str:
+    """Map a human-readable period id to a real ISO date for Jekyll.
+
+    daily    2026-06-17            → 2026-06-17
+    weekly   2026-W25              → 2026-06-15 (Monday of that week)
+    monthly  2026-06               → 2026-06-01
+    yearly   2026                   → 2026-01-01
+
+    The returned date is the *first* day of the period, so date-based
+    string comparisons in the Jekyll index (``post.date >= cutoff``)
+    work the obvious way.
+    """
+    if period == "daily":
+        return period_id
+    if period == "monthly":
+        return f"{period_id}-01"
+    if period == "yearly":
+        return f"{period_id}-01-01"
+    if period == "weekly":
+        # ISO 8601: week 1 contains Jan 4. Monday of week 1 = jan4 -
+        # jan4.weekday(). Then add (week-1) weeks.
+        year_str, _, week_str = period_id.partition("-W")
+        year, week = int(year_str), int(week_str)
+        jan4 = date(year, 1, 4)
+        week1_monday = jan4 - timedelta(days=jan4.weekday())
+        target = week1_monday + timedelta(weeks=week - 1)
+        return target.strftime("%Y-%m-%d")
+    raise ValueError(f"unknown period: {period}")
 
 
 # Matches ${VAR_NAME} in string config values. Names follow env-var rules
@@ -265,6 +296,11 @@ class StorageManager:
         All four pass through the same front-matter + H1 strip logic so
         downstream tooling (the Pages deploy step, the home-page Jekyll
         template, and ``list_recent_summaries``) sees a consistent shape.
+
+        The Jekyll ``date:`` field is normalised to a real ISO date so
+        that ``where_exp: "post.date >= ..."`` filters on the home page
+        can do string comparisons. ``period_id`` still carries the
+        human-readable id (``2026-W25`` / ``2026-06`` / ``2026``).
         """
         filepath = self.summaries_dir / filename
 
@@ -282,12 +318,13 @@ class StorageManager:
             "yearly": "Horizon Yearly",
         }
         title = f"{period_titles[period]}: {period_id} ({language.upper()})"
+        iso_date = _period_id_to_iso_date(period, period_id)
 
         front_matter = (
             "---\n"
             "layout: default\n"
             f'title: "{title}"\n'
-            f"date: {period_id}\n"
+            f"date: {iso_date}\n"
             f"lang: {language}\n"
             f"period: {period}\n"
             f"period_id: {period_id}\n"
