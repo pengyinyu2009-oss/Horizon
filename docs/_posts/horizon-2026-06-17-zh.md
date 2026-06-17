@@ -1,4 +1,9 @@
-# Horizon 每日速递 - 2026-06-17
+---
+layout: default
+title: "Horizon Summary: 2026-06-17 (ZH)"
+date: 2026-06-17
+lang: zh
+---
 
 > 从 47 条内容中筛选出 30 条重要资讯。
 
