@@ -109,11 +109,40 @@ class StorageManager:
         return self.config_path
 
     def save_daily_summary(self, date: str, markdown: str, language: str = "en") -> Path:
+        """Save daily summary to data/summaries/ with Jekyll front matter.
+
+        The summary markdown is wrapped with a YAML front matter block so
+        that downstream tooling (e.g. the GitHub Pages deploy step that
+        copies these files into docs/_posts/) gets a valid Jekyll post
+        out of the box. Without front matter Jekyll treats the file as a
+        static page, so site.posts filters (e.g. ``where: "lang", "zh"``)
+        in index.md silently drop them and the digest list shows
+        "No posts yet".
+        """
         filename = f"horizon-{date}-{language}.md"
         filepath = self.summaries_dir / filename
 
+        # Strip the leading H1 ("# Horizon 每日速递 - YYYY-MM-DD" or
+        # "# Horizon Daily Digest - YYYY-MM-DD") because the Jekyll
+        # `title:` from front matter renders as the page heading.
+        content = markdown
+        first_line = content.strip().split("\n", 1)[0]
+        if first_line.startswith("# "):
+            parts = content.split("\n", 1)
+            if len(parts) > 1:
+                content = parts[1].lstrip("\n")
+
+        front_matter = (
+            "---\n"
+            "layout: default\n"
+            f'title: "Horizon Summary: {date} ({language.upper()})"\n'
+            f"date: {date}\n"
+            f"lang: {language}\n"
+            "---\n\n"
+        )
+
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write(markdown)
+            f.write(front_matter + content)
 
         return filepath
 
