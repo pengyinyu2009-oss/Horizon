@@ -602,13 +602,19 @@ class HorizonOrchestrator:
             )
             return
 
-        # Which prior-tier reports do we read?
+        # Which prior-tier reports do we read? Pick the lookback count
+        # for *this* period only — accessing fields that don't exist on
+        # the current period's config (e.g. ``lookback_weeks`` on a
+        # WeeklyConfig) raises AttributeError, so the lookup has to
+        # happen via an if/elif rather than a dict literal whose
+        # values are eagerly evaluated.
         prior_period = {"weekly": "daily", "monthly": "weekly", "yearly": "monthly"}[period]
-        lookback_count = {
-            "weekly": period_cfg.lookback_days,
-            "monthly": period_cfg.lookback_weeks,
-            "yearly": period_cfg.lookback_months,
-        }[period]
+        if period == "weekly":
+            lookback_count = period_cfg.lookback_days
+        elif period == "monthly":
+            lookback_count = period_cfg.lookback_weeks
+        else:  # yearly
+            lookback_count = period_cfg.lookback_months
 
         self.console.print(
             f"\n[bold cyan]📅 Horizon {period} rollup — "
