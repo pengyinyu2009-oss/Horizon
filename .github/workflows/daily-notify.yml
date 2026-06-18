@@ -114,21 +114,22 @@ jobs:
           result = f"daily-summary {date} 已生成"
 
           # hiboard payload: outer {"data": {...}}, msgContent list
-          msg_id = f"horizon-daily-{date}"
-          payload = {
-              "data": {
-                  "authCode": os.environ["HIBOARD_AUTH_CODE"],
-                  "msgContent": [
-                      {
-                          "msgId": msg_id,
-                          "scheduleTaskId": "horizon-daily",
-                          "summary": summary,
-                          "result": result,
-                          "content": content,
-                      }
-                  ],
-              }
-          }
+msg_id = f"horizon-daily-{date}"
+           payload = {
+               "data": {
+                   "authCode": os.environ["HIBOARD_AUTH_CODE"],
+                   "source": "horizon",
+                   "msgContent": [
+                       {
+                           "msgId": msg_id,
+                           "scheduleTaskId": "horizon-daily",
+                           "summary": summary,
+                           "result": result,
+                           "content": content,
+                       }
+                   ],
+               }
+           }
           json.dump(payload, sys.stdout, ensure_ascii=False)
           PY
 
