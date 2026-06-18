@@ -2,8 +2,7 @@ name: Daily Notify (Hiboard)
 
 # Runs ~10 minutes after daily-summary. Reads the just-deployed
 # daily post from master, extracts the 8+ story headlines, and
-# pushes a notification to hiboard (华为负一屏) via the same
-# payload shape that today-task's TaskPusher().push() uses.
+# pushes a notification to hiboard (华为负一屏).
 on:
   schedule:
     - cron: '10 0 * * *'  # 08:10 Asia/Shanghai every day
@@ -45,95 +44,15 @@ jobs:
 
           if [ -z "$HIBOARD_AUTH_CODE" ]; then
             echo "::error::HIBOARD_AUTH_CODE secret is not set."
-            echo "::error::Get the code from your phone: 负一屏 → 我的 → 动态管理 → 关联账号 → Claw智能体."
-            echo "::error::Then add it under repo Settings → Secrets → Actions as HIBOARD_AUTH_CODE."
             exit 1
           fi
 
-          # 1. Parse 8+ headlines from the daily post.
-          python3 - "$POST" > /tmp/horizon-payload.json <<'PY'
-          import os, re, sys, json
-          from datetime import datetime
+          # Build the payload via the external script so YAML / shell heredoc /
+          # Python indentation are all decoupled. (Earlier inline-heredoc versions
+          # of this step kept breaking under YAML 1.2 / Python Module-scope
+          # indentation rules — see git history of daily-notify.yml.)
+          python3 .github/scripts/build_hiboard_payload.py "$POST" > /tmp/horizon-payload.json
 
-          path = sys.argv[1]
-          date_input = os.environ.get("DATE_INPUT", "").strip()
-          date = date_input or datetime.now().strftime("%Y-%m-%d")
-          pages_base = os.environ.get("PAGES_BASE", "https://pengyinyu2009-oss.github.io/Horizon")
-          post_url = f"{pages_base}/{date[0:4]}/{date[5:7]}/{date[8:10]}/horizon-zh.html"
-          home_url = f"{pages_base}/"
-
-          text = open(path, encoding="utf-8").read()
-          if text.startswith("---\n"):
-              end = text.find("\n---\n", 4)
-              if end != -1:
-                  text = text[end + 5:]
-
-          # Headlines with score in 8+; keep the top 12.
-          headlines = re.findall(
-              r'^##\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
-              text, re.MULTILINE,
-          )
-          seen, top = set(), []
-          for title, url, score in headlines:
-              try:
-                  s = float(score)
-              except ValueError:
-                  continue
-              if s < 8.0:
-                  continue
-              if url in seen:
-                  continue
-              seen.add(url)
-              top.append((s, title.strip(), url.strip()))
-          top.sort(reverse=True)
-          top = top[:12]
-
-          # hiboard expects a markdown body in the `content` field.
-          # Mirror the same shape the today-task skill uses for the
-          # mavis→hiboard end-to-end path so notifications look
-          # identical regardless of which side initiated them.
-          lines = [
-              f"## 🌅 Horizon 每日速递 · {date}",
-              "",
-              f"**{len(top)} 条 8 分以上要事**",
-              "",
-          ]
-          for s, t, u in top:
-              lines.append(f"- ⭐ **{s:.1f}** [{t}]({u})")
-          lines += [
-              "",
-              "---",
-              "",
-              f"📖 [完整简报]({post_url})",
-              "",
-              f"🏠 [首页]({home_url})",
-          ]
-          content = "\n".join(lines)
-
-          summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
-          result = f"daily-summary {date} 已生成"
-
-          # hiboard payload: outer {"data": {...}}, msgContent list
-           msg_id = f"horizon-daily-{date}"
-           payload = {
-               "source": "horizon",
-               "data": {
-                   "authCode": os.environ["HIBOARD_AUTH_CODE"],
-                   "msgContent": [
-                       {
-                           "msgId": msg_id,
-                           "scheduleTaskId": "horizon-daily",
-                           "summary": summary,
-                           "result": result,
-                           "content": content,
-                       }
-                   ],
-               }
-           }
-           json.dump(payload, sys.stdout, ensure_ascii=False)
-          PY
-
-          # 2. Send to hiboard
           PAYLOAD=$(cat /tmp/horizon-payload.json)
           TRACE_ID="horizon-daily-$(date +'%Y%m%d%H%M%S')"
           echo "POSTing ${#PAYLOAD} bytes to ${HIBOARD_URL} (x-trace-id: ${TRACE_ID})"
@@ -154,14 +73,9 @@ jobs:
             exit 1
           fi
 
-          # The hiboard business status lives under .code (string
-          # "0000000000" = success). Treat any other value as a
-          # hard failure so the workflow surfaces it.
-          if command -v jq >/dev/null 2>&1; then
-            CODE=$(jq -r '.code // .data.code // ""' /tmp/hiboard-resp.json)
-          else
-            CODE=$(python3 -c "import json; d=json.load(open('/tmp/hiboard-resp.json')); print(d.get('code') or d.get('data',{}).get('code',''))")
-          fi
+          # Business success code is "0000000000" (string). Anything else is
+          # a failure and we surface it.
+          CODE=$(python3 -c "import json; d=json.load(open('/tmp/hiboard-resp.json')); print(d.get('code') or d.get('data',{}).get('code',''))")
           if [ "$CODE" != "0000000000" ] && [ "$CODE" != "0" ] && [ "$CODE" != "200" ] && [ -n "$CODE" ]; then
             echo "::error::hiboard business error code=$CODE"
             cat /tmp/hiboard-resp.json
