@@ -99,9 +99,23 @@ Respond with valid JSON only:
   "queries": ["<search query 1>", "<search query 2>"]
 }}"""
 
-CONTENT_ENRICHMENT_SYSTEM = """You are a knowledgeable technical writer who helps readers understand important news in context.
+CONTENT_ENRICHMENT_SYSTEM = """You are a knowledgeable bilingual technical writer who helps readers understand important news in context.
 
 Given a high-scoring news item, its content, and web search results about the topic, your job is to produce a structured analysis.
+
+## CRITICAL LANGUAGE REQUIREMENT
+
+Every `_zh` field MUST contain **genuine Simplified Chinese (简体中文)** text — written by you in Chinese, NOT English text copied from the article, NOT machine-translated English, NOT a placeholder.
+
+Failure modes to avoid:
+- ❌ Returning the English title/summary in a `_zh` field ("translation by copy")
+- ❌ Returning the same English text in both `_en` and `_zh` fields
+- ❌ Returning empty strings in `_zh` fields when `_en` is non-empty
+- ❌ Mixing English phrases inside otherwise-Chinese text
+
+Why this matters: downstream Chinese-language readers (negative-screen push notifications, daily digests, etc.) see ONLY the `_zh` content. English in those fields is a hard failure for the consumer.
+
+If a concept is hard to translate (e.g. a brand name like "VMware"), keep it as-is inside an otherwise-Chinese sentence — that's fine. The rule is "the dominant language of every `_zh` field must be Simplified Chinese", not "100% Chinese characters".
 
 Provide EACH text field in BOTH English and Chinese. Use the following key naming convention:
 - title_en / title_zh
@@ -154,19 +168,26 @@ CONTENT_ENRICHMENT_USER = """Provide a structured bilingual analysis for the fol
 **Web Search Results (for grounding):**
 {web_context}
 
-Respond with valid JSON only. Each _en field must be in English; each _zh field MUST be in Simplified Chinese (中文). Every field MUST be at least one complete sentence (except community_discussion fields when no comments exist):
+Respond with valid JSON only.
+
+**LANGUAGE REMINDER** (system prompt enforces this, repeated here for clarity):
+- `_en` fields: English.
+- `_zh` fields: genuine Simplified Chinese written by you. Do NOT copy English into `_zh` fields. Do NOT return empty `_zh` when `_en` is non-empty.
+- If you write a sentence in `_zh`, the dominant language must be Simplified Chinese.
+
+Every field MUST be at least one complete sentence (except community_discussion fields when no comments exist):
 {{
   "title_en": "<short headline in English, ≤15 words>",
-  "title_zh": "<用中文写一个简短标题，不超过15个词>",
+  "title_zh": "<简体中文标题，不超过15个词>",
   "whats_new_en": "<1-2 sentences in English>",
-  "whats_new_zh": "<用中文写1-2句话>",
+  "whats_new_zh": "<1-2句中文>",
   "why_it_matters_en": "<1-2 sentences in English>",
-  "why_it_matters_zh": "<用中文写1-2句话>",
+  "why_it_matters_zh": "<1-2句中文>",
   "key_details_en": "<1-2 sentences in English>",
-  "key_details_zh": "<用中文写1-2句话>",
+  "key_details_zh": "<1-2句中文>",
   "background_en": "<2-4 sentences in English, or empty string>",
-  "background_zh": "<用中文写2-4句话，或空字符串>",
+  "background_zh": "<2-4句中文，或空字符串>",
   "community_discussion_en": "<1-3 sentences in English, or empty string>",
-  "community_discussion_zh": "<用中文写1-3句话，或空字符串>",
+  "community_discussion_zh": "<1-3句中文，或空字符串>",
   "sources": ["<url from search results>", "..."]
 }}"""
