@@ -93,16 +93,18 @@ def main():
     result = f"daily-summary {date} 已生成"
 
     payload = {
-        "source": "horizon",
         "data": {
             "authCode": os.environ["HIBOARD_AUTH_CODE"],
             "msgContent": [
                 {
                     "msgId": f"horizon-daily-{date}",
                     "scheduleTaskId": "horizon-daily",
+                    "scheduleTaskName": "Horizon 每日速递",
                     "summary": summary,
                     "result": result,
                     "content": content,
+                    "taskFinishTime": int(datetime.now().timestamp()),
+                    "source": "horizon",
                 }
             ],
         },
