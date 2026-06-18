@@ -113,7 +113,7 @@ jobs:
           summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
           result = f"daily-summary {date} 已生成"
 
-# hiboard payload: outer {"data": {...}}, msgContent list
+          # hiboard payload: outer {"data": {...}}, msgContent list
            msg_id = f"horizon-daily-{date}"
            payload = {
                "source": "horizon",
@@ -131,7 +131,7 @@ jobs:
                }
            }
            json.dump(payload, sys.stdout, ensure_ascii=False)
-           PY
+          PY
 
           # 2. Send to hiboard
           PAYLOAD=$(cat /tmp/horizon-payload.json)
