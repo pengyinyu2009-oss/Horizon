@@ -139,6 +139,7 @@ jobs:
           HTTP_STATUS=$(curl -sS -o /tmp/hiboard-resp.json -w "%{http_code}" \
             -X POST \
             -H "Content-Type: application/json; charset=utf-8" \
+            -H "User-Agent: OpenClaw-TaskPusher/2.0" \
             -H "x-trace-id: ${TRACE_ID}" \
             --data-binary "$PAYLOAD" \
             "$HIBOARD_URL")
