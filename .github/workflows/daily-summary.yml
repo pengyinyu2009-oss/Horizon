@@ -56,13 +56,13 @@ jobs:
           # Refresh static site assets (config, css, includes) from main
           # but DO NOT rm -rf docs/ — that wipes out historical
           # _posts/ files accumulated by previous daily runs.
-          git checkout main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
+          git checkout -f main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
           mkdir -p docs/_posts
           # Bring forward any _posts that already exist on master (from
           # earlier runs) and overlay today's freshly-written summary
           # on top. ``cp -n`` would skip writes — we want to overwrite
           # today's file, so use plain cp.
-          git checkout master -- docs/_posts 2>/dev/null || true
+          git checkout -f master -- docs/_posts 2>/dev/null || true
           cp data/summaries/*.md docs/_posts/ || true
           git add -f docs/
           if git diff --cached --quiet; then
@@ -98,9 +98,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout master
           git pull origin master || true
-          git checkout main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
+          git checkout -f main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
           mkdir -p docs/_posts
-          git checkout master -- docs/_posts 2>/dev/null || true
+          git checkout -f master -- docs/_posts 2>/dev/null || true
           cp data/summaries/*.md docs/_posts/ || true
           git add -f docs/
           if git diff --cached --quiet; then
@@ -135,9 +135,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout master
           git pull origin master || true
-          git checkout main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
+          git checkout -f main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
           mkdir -p docs/_posts
-          git checkout master -- docs/_posts 2>/dev/null || true
+          git checkout -f master -- docs/_posts 2>/dev/null || true
           cp data/summaries/*.md docs/_posts/ || true
           git add -f docs/
           if git diff --cached --quiet; then
@@ -172,9 +172,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout master
           git pull origin master || true
-          git checkout main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
+          git checkout -f main -- docs/_config.yml docs/_includes docs/assets .github/scripts 2>/dev/null || true
           mkdir -p docs/_posts
-          git checkout master -- docs/_posts 2>/dev/null || true
+          git checkout -f master -- docs/_posts 2>/dev/null || true
           cp data/summaries/*.md docs/_posts/ || true
           git add -f docs/
           if git diff --cached --quiet; then
