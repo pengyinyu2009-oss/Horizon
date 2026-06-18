@@ -134,10 +134,12 @@ jobs:
 
           # 2. Send to hiboard
           PAYLOAD=$(cat /tmp/horizon-payload.json)
-          echo "POSTing ${#PAYLOAD} bytes to ${HIBOARD_URL}"
+          TRACE_ID="horizon-daily-$(date +'%Y%m%d%H%M%S')"
+          echo "POSTing ${#PAYLOAD} bytes to ${HIBOARD_URL} (x-trace-id: ${TRACE_ID})"
           HTTP_STATUS=$(curl -sS -o /tmp/hiboard-resp.json -w "%{http_code}" \
             -X POST \
             -H "Content-Type: application/json; charset=utf-8" \
+            -H "x-trace-id: ${TRACE_ID}" \
             --data-binary "$PAYLOAD" \
             "$HIBOARD_URL")
 
