@@ -128,8 +128,14 @@ class HorizonOrchestrator:
                 self.console.print(f"      • {source_key}: {count}")
             self.console.print("")
 
-            # 6. Search related stories + enrich with background knowledge (2nd AI pass)
-            # skipped: enrich blocked by sandbox network; go direct to summarize
+            # 6. Search related stories + enrich with background knowledge (2nd AI pass).
+            # The enrich step produces per-language title_zh, background_zh,
+            # community_discussion_zh metadata that the summarizer uses for the
+            # zh post. Skipping it (the original setup) means the zh post falls
+            # back to English item.title and English ai_summary for everything —
+            # which makes the entire zh post effectively English.
+            await self._enrich_important_items(important_items)
+            self.console.print(f"📚 Enriched {len(important_items)} items\n")
 
             # 7. Generate and save daily summaries for each configured language
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
