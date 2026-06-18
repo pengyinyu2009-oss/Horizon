@@ -54,7 +54,19 @@ def main():
         re.MULTILINE,
     )
 
+    # CJK Unified Ideographs (basic block + ext A); matches any Chinese / Japanese
+    # kanji / Korean hanja character. We only push a headline if its title
+    # contains at least one such character — otherwise the zh-version post
+    # would still surface an English headline (since AI enrichment's
+    # `_translate_item` fallback silently no-ops on parse failure), which the
+    # user explicitly does not want on the 负一屏 推送 channel.
+    _CJK_RE = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf]")
+
+    def has_cjk(title: str) -> bool:
+        return bool(_CJK_RE.search(title))
+
     seen, top = set(), []
+    skipped = 0
     for title, url, score in headlines:
         try:
             s = float(score)
@@ -63,6 +75,9 @@ def main():
         if s < 8.0:
             continue
         if url in seen:
+            continue
+        if not has_cjk(title):
+            skipped += 1
             continue
         seen.add(url)
         top.append((s, title.strip(), url.strip()))
@@ -90,7 +105,12 @@ def main():
     content = "\n".join(lines)
 
     summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
-    result = f"daily-summary {date} 已生成"
+    if skipped and not top:
+        result = f"{date} 暂无中文标题要事（{skipped} 条仅英文标题已跳过）"
+    elif skipped:
+        result = f"daily-summary {date} 已生成（{skipped} 条英文标题已跳过）"
+    else:
+        result = f"daily-summary {date} 已生成"
 
     payload = {
         "data": {
