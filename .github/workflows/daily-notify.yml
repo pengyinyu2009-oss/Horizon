@@ -5,8 +5,15 @@ name: Daily Notify (Hiboard)
 # pushes a notification to hiboard (华为负一屏).
 on:
   schedule:
-    - cron: '10 0 * * *'  # 08:10 Asia/Shanghai every day
-      timezone: 'Asia/Shanghai'
+    - cron: '20 0 * * *'  # Daily at 08:20 Asia/Shanghai (= UTC 00:20). The
+                            # previous `10 0 * * *` + `timezone: Asia/Shanghai`
+                            # was unreliable — GitHub Actions schedule events
+                            # are sometimes delayed by 2+ hours, and the
+                            # timezone field does not consistently shift the
+                            # cron evaluation in practice. Removing the
+                            # timezone field and writing the cron directly in
+                            # UTC (the default for on.schedule) gives a
+                            # predictable 08:00 / 08:20 Beijing trigger.
   workflow_dispatch:
     inputs:
       date:
