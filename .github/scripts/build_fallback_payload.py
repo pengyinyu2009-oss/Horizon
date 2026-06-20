@@ -46,7 +46,7 @@ def failure_payload(date: str, posts_dir: Path) -> dict:
     recent_str = "\n".join(recent[-3:]) if recent else "  (空)"
     summary = f"\u274c Horizon 日报 {date} 兜底失败"
     content = (
-        f"\u4eca\u65e5\u65e5\u62a5\u7f3a\u5931\u4e14 9:30 \u515c\u5e95\u8865\u655d\u672a\u6210\u529f,"
+        f"\u4eca\u65e5\u65e5\u62a5\u7f3a\u5931\u4e14 9:30 \u515c\u5e95\u8865\u6551\u672a\u6210\u529f,"
         f"\u8bf7\u68c0\u67e5 daily-summary workflow\u3002\n\n"
         f"\u6700\u8fd1 _posts:\n{recent_str}"
     )
@@ -72,7 +72,7 @@ def failure_payload(date: str, posts_dir: Path) -> dict:
 def rescued_payload(envelope: dict) -> dict:
     """Take a successful build_hiboard_payload.py envelope and mark it as rescued."""
     item = envelope["data"]["msgContent"][0]
-    item["summary"] = "\u26a0\ufe0f " + item["summary"] + " \u00b7 \u515c\u5e95\u8865\u655d"
+    item["summary"] = "\u26a0\ufe0f " + item["summary"] + " \u00b7 \u515c\u5e95\u8865\u6551"
     item["scheduleTaskId"] = "horizon-fallback"
     item["scheduleTaskName"] = "Horizon 兜底推送"
     item["source"] = "horizon-fallback"
