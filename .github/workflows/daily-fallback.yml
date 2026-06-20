@@ -22,7 +22,7 @@ jobs:
   fallback:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # needed to commit state/hiboard-pushed/${date}.json
       actions: write  # needed to dispatch another workflow via GITHUB_TOKEN
 
     steps:
@@ -139,14 +139,45 @@ jobs:
           echo "Final payload:"
           cat /tmp/horizon-fallback-payload.json
 
-      - name: Push fallback notification to hiboard
+      - name: Check if today's digest was already pushed
+        id: dedup
         env:
+          DATE_INPUT: ${{ inputs.date }}
+        run: |
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          fi
+          STATE_PATH="state/hiboard-pushed/${DATE}.json"
+          echo "date=$DATE"
+          echo "state_path=$STATE_PATH"
+          if [ -f "$STATE_PATH" ]; then
+            echo "already_pushed=true" >> "$GITHUB_OUTPUT"
+            echo "STATE FOUND -- already pushed at:"
+            cat "$STATE_PATH"
+            echo ""
+            echo "Skipping push."
+          else
+            echo "already_pushed=false" >> "$GITHUB_OUTPUT"
+            echo "No state file -- proceeding with push."
+          fi
+
+      - name: Push fallback notification to hiboard
+        if: steps.dedup.outputs.already_pushed != 'true'
+        env:
+          DATE_INPUT: ${{ inputs.date }}
           HIBOARD_AUTH_CODE: ${{ vars.HIBOARD_AUTH_CODE || secrets.HIBOARD_AUTH_CODE || '9z9H6Vjb9C0N' }}
           HIBOARD_URL: 'https://hiboard-claw-drcn.ai.dbankcloud.cn/distribution/message/cloud/claw/msg/upload'
         run: |
           if [ -z "$HIBOARD_AUTH_CODE" ]; then
             echo "::error::HIBOARD_AUTH_CODE not set"
             exit 1
+          fi
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           fi
           PAYLOAD=$(cat /tmp/horizon-fallback-payload.json)
           TRACE_ID="horizon-fallback-$(date +'%Y%m%d%H%M%S')"
@@ -167,6 +198,35 @@ jobs:
           CODE=$(python3 -c "import json; d=json.load(open('/tmp/hiboard-resp.json')); print(d.get('code') or d.get('data',{}).get('code',''))")
           if [ "$CODE" != "0000000000" ] && [ "$CODE" != "0" ] && [ "$CODE" != "200" ] && [ -n "$CODE" ]; then
             echo "::error::hiboard business error code=$CODE"
+            cat /tmp/hiboard-resp.json
             exit 1
+          fi
+          mkdir -p "state/hiboard-pushed"
+          python3 - <<PY
+          import json
+          with open('/tmp/horizon-fallback-payload.json') as f:
+              payload = json.load(f)
+          item = payload['data']['msgContent'][0]
+          with open('state/hiboard-pushed/${DATE}.json', 'w') as f:
+              json.dump({
+                  'date': '${DATE}',
+                  'msgId': item['msgId'],
+                  'summary': item['summary'],
+                  'traceId': '${TRACE_ID}',
+                  'pushedAt': '$(date -u +'%Y-%m-%dT%H:%M:%SZ')',
+                  'via': 'fallback',
+              }, f, ensure_ascii=False, indent=2)
+          print('Wrote state/hiboard-pushed/${DATE}.json')
+          PY
+          cat "state/hiboard-pushed/${DATE}.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "state/hiboard-pushed/${DATE}.json"
+          if git diff --cached --quiet; then
+            echo "No state change to commit"
+          else
+            git commit -m "hiboard: record fallback push for ${DATE}"
+            git push origin master
+            echo "State file committed and pushed to master"
           fi
           echo "Fallback notification pushed (status=${{ steps.payload.outputs.status }})"
