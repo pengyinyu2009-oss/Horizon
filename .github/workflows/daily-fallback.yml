@@ -1,0 +1,201 @@
+name: Daily Fallback Check
+
+# 兜底:如果 GitHub Actions 的 schedule 漏掉了当天的 8:00 / 8:20 触发,
+# 9:30 北京时间这个 workflow 自动补救。
+#
+# 策略:
+#   1. 拉 master 分支,看 docs/_posts/<今日>-horizon-zh.md 是否存在
+#   2. 不存在 → 自动触发 daily-summary 补救
+#   3. 无论是否存在,都推一条 hiboard 通知,告诉你今天的状态
+#      - 存在:"✅ 今日日报已生成 (7 条 8+)"
+#      - 不存在:"⚠️ 今日日报漏跑,正在补救..."
+#
+# 这样即使 GitHub Actions schedule 完全坏掉,你也能在 9:30 之前收到推送,
+# 而不是等到第二天才发现。
+
+on:
+  schedule:
+    - cron: '30 1 * * *'  # Daily at 09:30 Asia/Shanghai (= UTC 01:30)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to check (YYYY-MM-DD). Default: today Beijing.'
+        required: false
+
+jobs:
+  fallback:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write  # needed to trigger another workflow
+
+    steps:
+      - name: Checkout master to inspect today's _posts
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Determine Beijing date and check if post exists
+        id: check
+        env:
+          DATE_INPUT: ${{ inputs.date }}
+        run: |
+          # Default: today in Asia/Shanghai. Allow override for testing.
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          fi
+          POST="docs/_posts/${DATE}-horizon-zh.md"
+          echo "date=$DATE"
+          echo "post_path=$POST"
+          if [ -f "$POST" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            # Count lines of `## ` markdown headings as a rough "story count" proxy
+            STORIES=$(grep -c '^## ' "$POST" 2>/dev/null || echo "0")
+            echo "stories=$STORIES" >> "$GITHUB_OUTPUT"
+            echo "✅ Today's daily post exists: $POST ($STORIES stories)"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "stories=0" >> "$GITHUB_OUTPUT"
+            echo "⚠️ Today's daily post MISSING: $POST"
+            echo "Available recent posts:"
+            ls -la docs/_posts/ 2>&1 | tail -8
+          fi
+
+      - name: Trigger daily-summary as a rescue run if post is missing
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚨 Triggering rescue run of daily-summary..."
+          HTTP_STATUS=$(curl -sS -o /tmp/dispatch-resp.json -w "%{http_code}" \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/daily-summary.yml/dispatches" \
+            -d '{"ref":"main"}')
+          echo "Dispatch HTTP status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "204" ]; then
+            echo "::error::Failed to trigger daily-summary: $HTTP_STATUS"
+            cat /tmp/dispatch-resp.json
+            exit 1
+          fi
+
+      - name: Wait for rescue run to deploy to master
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Poll the daily-summary run for up to 4 minutes until it finishes.
+          # Most runs take ~2 min, so 4 min gives margin.
+          REPO="${{ github.repository }}"
+          echo "Waiting for rescue daily-summary run to complete..."
+          for i in {1..24}; do
+            sleep 10
+            RUN_INFO=$(curl -sS \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/daily-summary.yml/runs?per_page=1")
+            RUN_STATUS=$(echo "$RUN_INFO" | python3 -c "import json,sys; d=json.load(sys.stdin); r=d['workflow_runs'][0]; print(f\"{r['status']}|{r.get('conclusion','')}\")")
+            echo "[$i/24] latest daily-summary run: $RUN_STATUS"
+            if [[ "$RUN_STATUS" == completed* ]]; then
+              echo "Rescue run completed: $RUN_STATUS"
+              break
+            fi
+          done
+
+      - name: Re-check master after rescue
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Build fallback notification payload
+        id: payload
+        env:
+          DATE_INPUT: ${{ inputs.date }}
+        run: |
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          fi
+          POST="docs/_posts/${DATE}-horizon-zh.md"
+          if [ -f "$POST" ]; then
+            STORIES=$(grep -c '^## ' "$POST" 2>/dev/null || echo "0")
+            PAGES_BASE='https://pengyinyu2009-oss.github.io/Horizon'
+            SUMMARY=$(python3 -c "
+import sys, re
+with open('$POST', 'r', encoding='utf-8') as f:
+    text = f.read()
+# Strip front matter
+parts = text.split('---', 2)
+if len(parts) >= 3:
+    text = parts[2]
+# Extract first 7 H2 + first sentence of each
+hits = re.findall(r'^##\s+(.+?)$\n(.*?)(?=\n##\s|\Z)', text, re.MULTILINE | re.DOTALL)
+out = []
+for title, body in hits[:7]:
+    title = title.strip()
+    # first non-empty line of body
+    first = next((ln.strip() for ln in body.splitlines() if ln.strip()), '')
+    out.append((title, first))
+import json
+print(json.dumps(out, ensure_ascii=False))
+")
+            cat > /tmp/payload.json <<EOF
+{
+  "summary": "📅 Horizon 日报 $DATE · 兜底确认 · ${STORIES} 条",
+  "content": "今日日报已生成(${STORIES} 条),GitHub Actions 早 8:00 自动 schedule 漏跑,9:30 兜底检查触发,已补生成。\n\n简报链接:${PAGES_BASE}/${DATE}-horizon-zh\n完整首页:${PAGES_BASE}/",
+  "stories": $SUMMARY
+}
+EOF
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            cat > /tmp/payload.json <<EOF
+{
+  "summary": "⚠️ Horizon 日报 $DATE · 兜底补救失败",
+  "content": "今日日报缺失且 9:30 兜底补救未成功,请检查 daily-summary workflow。\n\n最新 _posts 文件:\n$(ls -1 docs/_posts/ 2>/dev/null | tail -3 | sed 's/^/  /' || echo '  (空)')",
+  "stories": []
+}
+EOF
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+          cat /tmp/payload.json
+
+      - name: Push fallback notification to hiboard
+        env:
+          HIBOARD_AUTH_CODE: ${{ vars.HIBOARD_AUTH_CODE || secrets.HIBOARD_AUTH_CODE || '9z9H6Vjb9C0N' }}
+          HIBOARD_URL: 'https://hiboard-claw-drcn.ai.dbankcloud.cn/distribution/message/cloud/claw/msg/upload'
+        run: |
+          if [ -z "$HIBOARD_AUTH_CODE" ]; then
+            echo "::error::HIBOARD_AUTH_CODE not set"
+            exit 1
+          fi
+          PAYLOAD=$(cat /tmp/payload.json)
+          TRACE_ID="horizon-fallback-$(date +'%Y%m%d%H%M%S')"
+          HTTP_STATUS=$(curl -sS -o /tmp/hiboard-resp.json -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -H "User-Agent: OpenClaw-TaskPusher/2.0" \
+            -H "x-trace-id: ${TRACE_ID}" \
+            --data-binary "$PAYLOAD" \
+            "$HIBOARD_URL")
+          echo "Hiboard HTTP $HTTP_STATUS:"
+          cat /tmp/hiboard-resp.json
+          echo ""
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::error::hiboard returned HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          CODE=$(python3 -c "import json; d=json.load(open('/tmp/hiboard-resp.json')); print(d.get('code') or d.get('data',{}).get('code',''))")
+          if [ "$CODE" != "0000000000" ] && [ "$CODE" != "0" ] && [ "$CODE" != "200" ] && [ -n "$CODE" ]; then
+            echo "::error::hiboard business error code=$CODE"
+            exit 1
+          fi
+          echo "✅ Fallback notification pushed to hiboard (code=$CODE, status=${{ steps.payload.outputs.status }})"
