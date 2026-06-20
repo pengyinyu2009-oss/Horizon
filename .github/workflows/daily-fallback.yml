@@ -124,6 +124,7 @@ jobs:
         env:
           DATE_INPUT: ${{ inputs.date }}
           PAGES_BASE: 'https://pengyinyu2009-oss.github.io/Horizon'
+          HIBOARD_AUTH_CODE: ${{ vars.HIBOARD_AUTH_CODE || secrets.HIBOARD_AUTH_CODE || '9z9H6Vjb9C0N' }}
         run: |
           if [ -n "$DATE_INPUT" ]; then
             DATE="$DATE_INPUT"
