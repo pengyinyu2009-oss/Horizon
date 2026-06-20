@@ -1,22 +1,31 @@
 name: Daily Horizon Summary
 
+# Reliability note: GitHub Actions' built-in `on: schedule` is unreliable.
+# Empirically a single `0 0 * * *` cron can fire 18h late, twice in one
+# day, or be skipped entirely. The fix is to fire every 5 minutes and use
+# a time-window + state-dedup gate at the start of the job:
+#   - Outside the 23:50–00:10 UTC window (= 07:50–08:10 Beijing) the job
+#     exits immediately. GHA still wakes the runner but the run is a few
+#     seconds of bash, well within free-plan minutes (~150 min/month).
+#   - Inside the window, if today's `docs/_posts/YYYY-MM-DD-horizon-zh.md`
+#     already exists on master, the job exits. This handles the case
+#     where multiple */5 triggers in the window all wake up before any
+#     single run finishes deploying.
+# The first run that survives both checks is the one that actually
+# generates the post. External cron services (cron-job.org, etc.) and
+# the separate daily-fallback workflow are no longer needed.
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Daily at 08:00 Asia/Shanghai (= UTC 00:00).
-                          # The previous version used `timezone: 'Asia/Shanghai'`
-                          # which in practice did NOT shift the cron evaluation
-                          # — the workflow was firing around UTC 18:00 (= Beijing
-                          # 02:00 the next day), about 18h late. Drop the
-                          # timezone field and write the cron directly in UTC
-                          # (GitHub Actions' default for on.schedule). This gives
-                          # a deterministic 08:00 Beijing trigger, modulo the
-                          # usual GitHub Actions schedule delay of a few minutes.
-    - cron: '0 0 * * 1'  # Weekly: every Monday 00:00 Asia/Shanghai
+    - cron: '*/5 * * * *'  # Every 5 minutes. Window + state dedup inside
+                            # the job filters down to a single 8:00 BJT
+                            # run per day (plus the silent 23h55m).
+    - cron: '0 0 * * 1'    # Weekly: every Monday 00:00 Asia/Shanghai
       timezone: 'Asia/Shanghai'
-    - cron: '0 0 1 * *'  # Monthly: 1st of each month 00:00 Asia/Shanghai
+    - cron: '0 0 1 * *'    # Monthly: 1st of each month 00:00 Asia/Shanghai
       timezone: 'Asia/Shanghai'
     - cron: '0 0 31 12 *'  # Yearly: Dec 31 00:00 Asia/Shanghai
       timezone: 'Asia/Shanghai'
@@ -29,6 +38,29 @@ jobs:
       contents: write
 
     steps:
+      - name: Window + state dedup (skip if outside 07:50–08:10 BJT or today's post already exists)
+        run: |
+          # Cron */5 fires 288x/day. Filter down to the 7:50–8:10 Beijing
+          # window (23:50–00:10 UTC). Inside the window, skip if today's
+          # post is already on master — that means a previous */5 trigger
+          # in the same window already finished.
+          BJT_NOW=$(TZ=Asia/Shanghai date +'%H%M')
+          echo "BJT_NOW=$BJT_NOW (window: 0750–0810)"
+          if [ "$BJT_NOW" -lt "0750" ] || [ "$BJT_NOW" -gt "0810" ]; then
+            echo "Outside 07:50–08:10 Beijing window, skipping."
+            exit 0
+          fi
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          POST="docs/_posts/${DATE}-horizon-zh.md"
+          echo "DATE=$DATE POST=$POST"
+          git fetch origin master --depth=1
+          if git show "origin/master:${POST}" > /dev/null 2>&1; then
+            echo "Today's post already on master, skipping."
+            git show "origin/master:${POST}" | head -3
+            exit 0
+          fi
+          echo "In window and no existing post — proceeding with daily run."
+
       - name: Checkout main
         uses: actions/checkout@v6
         with:

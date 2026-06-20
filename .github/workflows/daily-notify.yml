@@ -8,24 +8,17 @@ name: Daily Notify (Hiboard)
 # on master. If a previous run already pushed today's digest, this run
 # is a no-op. State is committed back to master on successful push.
 #
-# Why: GitHub Actions' built-in schedule is unreliable — it can fire
-# the same cron twice for one day, or be delayed by hours, producing
-# duplicate hiboard pushes. The cron job on cron-job.org is the
-# real-time trigger; this workflow + the state file is the dedup layer.
+# Reliability: this workflow fires every 5 minutes. A time-window
+# filter (08:10–08:30 Beijing) inside the job gates down to a single
+# intended run per day, and the hiboard state-file dedup catches the
+# case where two triggers in the window both wake up before any
+# single run finishes pushing. No external cron service needed.
 
 on:
   schedule:
-    - cron: '20 0 * * *'  # Daily at 08:20 Asia/Shanghai (= UTC 00:20). The
-                            # previous `10 0 * * *` + `timezone: Asia/Shanghai`
-                            # was unreliable — GitHub Actions schedule events
-                            # are sometimes delayed by 2+ hours, and the
-                            # timezone field does not consistently shift the
-                            # cron evaluation in practice. Removing the
-                            # timezone field and writing the cron directly in
-                            # UTC (the default for on.schedule) gives a
-                            # predictable 08:00 / 08:20 Beijing trigger.
-                            # (cron-job.org is the authoritative 7:55 / 8:15
-                            # trigger; this GitHub schedule is the backup.)
+    - cron: '*/5 * * * *'  # Every 5 minutes. Window + state dedup inside
+                            # the job filters down to a single 8:15 BJT
+                            # run per day (plus the silent 23h55m).
   workflow_dispatch:
     inputs:
       date:
@@ -47,6 +40,19 @@ jobs:
       contents: write  # needed to commit state/hiboard-pushed/${date}.json
 
     steps:
+      - name: Window filter (skip if outside 08:10–08:30 BJT)
+        run: |
+          # Cron */5 fires 288x/day. Filter down to the 8:10–8:30 Beijing
+          # window (00:10–00:30 UTC) so we only attempt to push during the
+          # intended time slot. The state-file dedup below is the
+          # authoritative guard against duplicate pushes.
+          BJT_NOW=$(TZ=Asia/Shanghai date +'%H%M')
+          echo "BJT_NOW=$BJT_NOW (window: 0810–0830)"
+          if [ "$BJT_NOW" -lt "0810" ] || [ "$BJT_NOW" -gt "0830" ]; then
+            echo "Outside 08:10–08:30 Beijing window, skipping."
+            exit 0
+          fi
+
       - name: Checkout master for the just-deployed post + state file
         uses: actions/checkout@v6
         with:
