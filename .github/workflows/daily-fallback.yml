@@ -4,15 +4,10 @@ name: Daily Fallback Check
 # 9:30 北京时间这个 workflow 自动补救。
 #
 # 策略:
-#   1. 拉 master 分支,看 docs/_posts/<今日>-horizon-zh.md 是否存在
-#   2. 不存在 → 自动触发 daily-summary 补救
-#   3. 推一条 hiboard 通知,告诉你今天的状态
-#      - 存在:"✅ 今日日报已生成 (N 条)"
-#      - 补救成功:"⚠️ 兜底补救成功 (N 条)"
-#      - 补救失败:"❌ 兜底失败"
-#
-# 这样即使 GitHub Actions schedule 完全坏掉,你也能在 9:30 之前收到推送,
-# 而不是等到第二天才发现。
+#   1. 拉 main 分支(workflow / scripts 在 main 上)
+#   2. 通过 git show 读 master 上的 docs/_posts/<今日>-horizon-zh.md
+#   3. 不存在 → 自动触发 daily-summary 补救
+#   4. 推一条 hiboard 通知,告诉你今天的状态
 
 on:
   schedule:
@@ -31,13 +26,13 @@ jobs:
       actions: write  # needed to dispatch another workflow via GITHUB_TOKEN
 
     steps:
-      - name: Checkout master to inspect today's _posts
+      - name: Checkout main (this workflow's scripts live here)
         uses: actions/checkout@v6
         with:
-          ref: master
+          ref: main
           fetch-depth: 0
 
-      - name: Determine Beijing date and check if post exists
+      - name: Determine Beijing date and check if master has today's post
         id: check
         env:
           DATE_INPUT: ${{ inputs.date }}
@@ -47,20 +42,21 @@ jobs:
           else
             DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           fi
-          POST="docs/_posts/${DATE}-horizon-zh.md"
+          POST_PATH="docs/_posts/${DATE}-horizon-zh.md"
           echo "date=$DATE"
-          echo "post_path=$POST"
-          if [ -f "$POST" ]; then
+          echo "post_path=$POST_PATH"
+          # Try to fetch the post from origin/master into a temp file
+          if git show "origin/master:${POST_PATH}" > "/tmp/daily-post.md" 2>/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            STORIES=$(grep -c '^## ' "$POST" 2>/dev/null || echo "0")
+            STORIES=$(grep -c '^## ' "/tmp/daily-post.md" 2>/dev/null || echo "0")
             echo "stories=$STORIES" >> "$GITHUB_OUTPUT"
-            echo "OK: today's daily post exists ($STORIES stories)"
+            echo "OK: today's daily post exists on master ($STORIES stories)"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
             echo "stories=0" >> "$GITHUB_OUTPUT"
-            echo "MISSING: today's daily post not found"
-            echo "Recent posts:"
-            ls -1 docs/_posts/ 2>&1 | tail -5
+            echo "MISSING: today's daily post not on master"
+            echo "Recent commits on master:"
+            git log --oneline origin/master -5 | sed 's/^/  /'
           fi
 
       - name: Trigger daily-summary as a rescue run if post is missing
@@ -105,12 +101,23 @@ jobs:
             fi
           done
 
-      - name: Re-check master after rescue
+      - name: Re-fetch post from master after rescue
         if: steps.check.outputs.exists == 'false'
-        uses: actions/checkout@v6
-        with:
-          ref: master
-          fetch-depth: 0
+        id: refetch
+        env:
+          DATE_INPUT: ${{ inputs.date }}
+        run: |
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          fi
+          POST_PATH="docs/_posts/${DATE}-horizon-zh.md"
+          if git show "origin/master:${POST_PATH}" > "/tmp/daily-post.md" 2>/dev/null; then
+            echo "refetched=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "refetched=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build hiboard payload via external script
         id: payload
@@ -123,9 +130,9 @@ jobs:
           else
             DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           fi
-          POST="docs/_posts/${DATE}-horizon-zh.md"
+          POST_PATH="docs/_posts/${DATE}-horizon-zh.md"
           set -o pipefail
-          STATUS=$(python3 .github/scripts/build_fallback_payload.py "$POST")
+          STATUS=$(python3 .github/scripts/build_fallback_payload.py "/tmp/daily-post.md")
           echo "build_fallback_payload.py -> $STATUS"
           echo "status=$STATUS" >> "$GITHUB_OUTPUT"
           echo "Final payload:"
