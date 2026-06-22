@@ -43,6 +43,16 @@ jobs:
       contents: write
 
     steps:
+      # Checkout must come BEFORE the gate, because the gate uses
+      # `git show origin/master:docs/...` which needs a git repo. Doing
+      # the gate first means "fatal: not a git repository" — that's
+      # exactly what bit run #49 on 2026-06-22.
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
       - name: Window + state dedup (gate via output, NOT exit 0)
         id: gate
         run: |
@@ -80,13 +90,6 @@ jobs:
           fi
           echo "should_run=true" >> "$GITHUB_OUTPUT"
           echo "In window and no existing post — proceeding with daily run."
-
-      - name: Checkout main
-        if: steps.gate.outputs.should_run == 'true'
-        uses: actions/checkout@v6
-        with:
-          ref: main
-          fetch-depth: 0
 
       - name: Set up Python
         if: steps.gate.outputs.should_run == 'true'
