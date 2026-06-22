@@ -36,30 +36,45 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    # Serialize per-day so two */5 triggers in the same window can't both
+    # race past the state-file check before either has pushed it.
+    concurrency:
+      group: daily-notify-${{ inputs.date || 'today' }}
+      cancel-in-progress: false
     permissions:
       contents: write  # needed to commit state/hiboard-pushed/${date}.json
 
     steps:
-      - name: Window filter (skip if outside 08:10–08:30 BJT)
+      - name: Window filter (gate via output, NOT exit 0)
+        id: gate
         run: |
           # Cron */5 fires 288x/day. Filter down to the 8:10–8:30 Beijing
           # window (00:10–00:30 UTC) so we only attempt to push during the
           # intended time slot. The state-file dedup below is the
           # authoritative guard against duplicate pushes.
+          #
+          # CRITICAL: do NOT use `exit 0` to "skip" — exit 0 only exits
+          # the current step, the rest of the job keeps running. Use
+          # $GITHUB_OUTPUT `should_run` + `if: steps.gate.outputs.should_run == 'true'`
+          # on every later step instead.
           BJT_NOW=$(TZ=Asia/Shanghai date +'%H%M')
           echo "BJT_NOW=$BJT_NOW (window: 0810–0830)"
           if [ "$BJT_NOW" -lt "0810" ] || [ "$BJT_NOW" -gt "0830" ]; then
             echo "Outside 08:10–08:30 Beijing window, skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
 
       - name: Checkout master for the just-deployed post + state file
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/checkout@v6
         with:
           ref: master
           fetch-depth: 0
 
       - name: Check if today's digest was already pushed
+        if: steps.gate.outputs.should_run == 'true'
         id: dedup
         env:
           DATE_INPUT: ${{ inputs.date }}
@@ -88,7 +103,7 @@ jobs:
           fi
 
       - name: Push to hiboard (华为负一屏)
-        if: steps.dedup.outputs.already_pushed != 'true'
+        if: steps.gate.outputs.should_run == 'true' && steps.dedup.outputs.already_pushed != 'true'
         env:
           DATE_INPUT: ${{ inputs.date }}
           HIBOARD_AUTH_CODE: ${{ vars.HIBOARD_AUTH_CODE || secrets.HIBOARD_AUTH_CODE || '9z9H6Vjb9C0N' }}

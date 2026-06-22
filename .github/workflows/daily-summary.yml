@@ -34,20 +34,32 @@ on:
 jobs:
   daily-summary:
     runs-on: ubuntu-latest
+    # Serialize per-day so two */5 triggers in the same window can't both
+    # run LLM generation + push the same post.
+    concurrency:
+      group: daily-summary-${{ inputs.date || github.event.head_commit.timestamp || 'live' }}
+      cancel-in-progress: false
     permissions:
       contents: write
 
     steps:
-      - name: Window + state dedup (skip if outside 07:50–08:10 BJT or today's post already exists)
+      - name: Window + state dedup (gate via output, NOT exit 0)
+        id: gate
         run: |
           # Cron */5 fires 288x/day. Filter down to the 7:50–8:10 Beijing
           # window (23:50–00:10 UTC). Inside the window, skip if today's
           # post is already on master — that means a previous */5 trigger
           # in the same window already finished.
+          #
+          # CRITICAL: do NOT use `exit 0` to "skip" — exit 0 only exits
+          # the current step, the rest of the job keeps running. Use
+          # $GITHUB_OUTPUT `should_run` + `if: steps.gate.outputs.should_run == 'true'`
+          # on every later step instead.
           BJT_NOW=$(TZ=Asia/Shanghai date +'%H%M')
           echo "BJT_NOW=$BJT_NOW (window: 0750–0810)"
           if [ "$BJT_NOW" -lt "0750" ] || [ "$BJT_NOW" -gt "0810" ]; then
             echo "Outside 07:50–08:10 Beijing window, skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
@@ -57,36 +69,45 @@ jobs:
           if git show "origin/master:${POST}" > /dev/null 2>&1; then
             echo "Today's post already on master, skipping."
             git show "origin/master:${POST}" | head -3
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
           echo "In window and no existing post — proceeding with daily run."
 
       - name: Checkout main
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
 
       - name: Set up Python
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Install uv
+        if: steps.gate.outputs.should_run == 'true'
         uses: astral-sh/setup-uv@v6
 
       - name: Install dependencies
+        if: steps.gate.outputs.should_run == 'true'
         run: uv sync
 
       - name: Prepare GitHub Actions config
+        if: steps.gate.outputs.should_run == 'true'
         run: cp data/config.github.json data/config.json
 
       - name: Run Horizon
+        if: steps.gate.outputs.should_run == 'true'
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon --hours 24
 
       - name: Deploy docs to master for Pages
+        if: steps.gate.outputs.should_run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
