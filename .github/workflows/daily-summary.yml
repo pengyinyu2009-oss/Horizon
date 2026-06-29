@@ -168,6 +168,24 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
       - run: cp data/config.github.json data/config.json
+      - name: Fetch prior reports from master → data/summaries/
+        run: |
+          # Chain-mode rollups (weekly/monthly/yearly) read prior reports from
+          # data/summaries/, but that dir is .gitignored and empty on a fresh
+          # GHA runner. Materialise master docs/_posts/ into data/summaries/
+          # so list_recent_summaries() has input.
+          #
+          # Files land with the same -horizon-zh.md suffix the storage layer
+          # already keys on, so prior daily/weekly/monthly reports all
+          # flow through the same filename matcher.
+          git fetch origin master --depth=1
+          mkdir -p data/summaries
+          for f in $(git ls-tree -r --name-only origin/master docs/_posts/); do
+            base=$(basename "$f")
+            git show "origin/master:$f" > "data/summaries/$base"
+          done
+          echo "Loaded $(ls data/summaries/ | wc -l) prior report(s) from master:"
+          ls data/summaries/ | tail -10
       - name: Run weekly roll-up
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -205,6 +223,18 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
       - run: cp data/config.github.json data/config.json
+      - name: Fetch prior reports from master → data/summaries/
+        run: |
+          # See weekly-summary job above for the full rationale. Chain-mode
+          # rollups read from data/summaries/ which is .gitignored; we
+          # materialise master docs/_posts/ into it on every rollup job.
+          git fetch origin master --depth=1
+          mkdir -p data/summaries
+          for f in $(git ls-tree -r --name-only origin/master docs/_posts/); do
+            base=$(basename "$f")
+            git show "origin/master:$f" > "data/summaries/$base"
+          done
+          echo "Loaded $(ls data/summaries/ | wc -l) prior report(s) from master"
       - name: Run monthly roll-up
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -242,6 +272,18 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
       - run: cp data/config.github.json data/config.json
+      - name: Fetch prior reports from master → data/summaries/
+        run: |
+          # See weekly-summary job above for the full rationale. Chain-mode
+          # rollups read from data/summaries/ which is .gitignored; we
+          # materialise master docs/_posts/ into it on every rollup job.
+          git fetch origin master --depth=1
+          mkdir -p data/summaries
+          for f in $(git ls-tree -r --name-only origin/master docs/_posts/); do
+            base=$(basename "$f")
+            git show "origin/master:$f" > "data/summaries/$base"
+          done
+          echo "Loaded $(ls data/summaries/ | wc -l) prior report(s) from master"
       - name: Run yearly roll-up
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
