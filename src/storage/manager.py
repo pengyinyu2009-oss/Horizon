@@ -20,6 +20,8 @@ def _period_id_to_iso_date(period: str, period_id: str) -> str:
     weekly   2026-W25              → 2026-06-15 (Monday of that week)
     monthly  2026-06               → 2026-06-01
     yearly   2026                   → 2026-01-01
+    yearly   2026-H1               → 2026-01-01 (first day of H1 window)
+    yearly   2026-H2               → 2026-07-01 (first day of H2 window)
 
     The returned date is the *first* day of the period, so date-based
     string comparisons in the Jekyll index (``post.date >= cutoff``)
@@ -30,6 +32,10 @@ def _period_id_to_iso_date(period: str, period_id: str) -> str:
     if period == "monthly":
         return f"{period_id}-01"
     if period == "yearly":
+        if "-H" in period_id:
+            year_str, _, half = period_id.partition("-H")
+            day = "01-01" if half == "1" else "07-01"
+            return f"{year_str}-{day}"
         return f"{period_id}-01-01"
     if period == "weekly":
         # ISO 8601: week 1 contains Jan 4. Monday of week 1 = jan4 -
@@ -280,7 +286,16 @@ class StorageManager:
             parts = prefix.split("-")
             return len(parts) == 2 and all(p.isdigit() for p in parts)
         if period == "yearly":
-            return prefix.isdigit() and len(prefix) == 4
+            # Either legacy ``2026`` or new half-year ``2026-H1`` / ``2026-H2``.
+            if prefix.isdigit() and len(prefix) == 4:
+                return True
+            return (
+                len(prefix) == 7
+                and prefix[:4].isdigit()
+                and prefix[4] == "-"
+                and prefix[5] == "H"
+                and prefix[6] in {"1", "2"}
+            )
         return False
 
     def _write_period_post(

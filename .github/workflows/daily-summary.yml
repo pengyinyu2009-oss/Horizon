@@ -29,13 +29,33 @@ env:
 on:
   schedule:
     - cron: '*/5 * * * *'  # Every 5 minutes. Window + state dedup inside
-                            # the job filters down to a single 8:30 BJT
-                            # run per day.
-    - cron: '0 0 * * 1'    # Weekly: every Monday 00:00 Asia/Shanghai
+                            # the job filters down to a single 8:00 BJT
+                            # run per day (plus the silent 23h55m).
+    - cron: '0 10 * * 1'   # Weekly: every Monday 10:00 Asia/Shanghai.
+                            #   10:00 BJT = 02:00 UTC. Picked to land AFTER
+                            #   the daily run finishes (08:00–09:00 window)
+                            #   so the prereq check finds all 7 daily posts
+                            #   from the previous Mon..Sun already on master.
       timezone: 'Asia/Shanghai'
-    - cron: '0 0 1 * *'    # Monthly: 1st of each month 00:00 Asia/Shanghai
+    - cron: '0 10 8 * *'   # Monthly: 8th of each month 10:00 Asia/Shanghai.
+                            #   Why the 8th (not the 1st): if the previous
+                            #   month's last ISO week spills into the new
+                            #   month (e.g. 2026-06 ends on Tue 06-30, which
+                            #   belongs to ISO week 2026-W27 starting Mon
+                            #   06-29), the monthly prereq needs that final
+                            #   weekly, and the weekly cron only fires on
+                            #   Monday. So we wait a full week into the new
+                            #   month to be safe.
       timezone: 'Asia/Shanghai'
-    - cron: '0 0 31 12 *'  # Yearly: Dec 31 00:00 Asia/Shanghai
+    - cron: '0 10 15 7 *'  # Yearly H1: 15 July 10:00 Asia/Shanghai.
+                            #   Why the 15th (not 1 July): the H1 prereq
+                            #   includes the June monthly, which now fires
+                            #   on 8 July. +1 week buffer so H1 doesn't
+                            #   race the June monthly on the same morning.
+      timezone: 'Asia/Shanghai'
+    - cron: '0 10 15 1 *'  # Yearly H2: 15 January 10:00 Asia/Shanghai.
+                            #   Same buffer: H2 needs Dec monthly, which
+                            #   fires on 8 January.
       timezone: 'Asia/Shanghai'
   workflow_dispatch:
 

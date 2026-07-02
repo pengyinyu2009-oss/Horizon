@@ -2,7 +2,7 @@
 
 import asyncio
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Dict, Optional
 from urllib.parse import urlparse
 import httpx
@@ -628,9 +628,28 @@ class HorizonOrchestrator:
         )
 
         languages = period_cfg.languages or self.config.ai.languages
-        # Read prior reports per-language
+
+        # Resolve the period_id early — we need it for the prereq check
+        # (which decides whether to proceed for each language).
+        now = datetime.now(timezone.utc)
+        period_id = period_id_factory(now)
+        self.console.print(
+            f"   target {period} id = {period_id}\n"
+        )
+
+        # Per-language prereq check + read prior reports.
+        # Prereq is the hard gate introduced on 2026-07-02: weekly requires
+        # the 7 daily reports for that ISO week, monthly requires all
+        # weekly reports touching that month, yearly requires all monthly
+        # reports in the H1/H2 half-year window. Without the gate,
+        # weekly/monthly/yearly silently skipped with "No X reports for
+        # lang; skipping." because data/summaries/ is .gitignored on
+        # fresh GHA runners.
         summaries_by_lang: Dict[str, List[Path]] = {}
         for lang in languages:
+            if not self._check_prerequisites(period, period_id, lang):
+                summaries_by_lang[lang] = []
+                continue
             files = self.storage.list_recent_summaries(
                 period=prior_period,
                 language=lang,
@@ -646,8 +665,6 @@ class HorizonOrchestrator:
             parse_rollup_callouts,
         )
 
-        now = datetime.now(timezone.utc)
-        period_id = period_id_factory(now)
         ai_client = create_ai_client(self.config.ai)
         summarizer_cls = {
             "weekly": WeeklySummarizer,
@@ -742,18 +759,124 @@ class HorizonOrchestrator:
                 f"[yellow]⚠️  Failed to deploy {period} {lang} report: {e}[/yellow]\n"
             )
 
+    # --- Prerequisite validation -----------------------------------------
+    #
+    # Each tier requires its upstream tier's reports to exist before the
+    # roll-up can produce meaningful output. Without this gate, weekly
+    # runs against an empty data/summaries/ dir and silently emits
+    # "No daily reports for zh; skipping." (orchestrator.py:665).
+    #
+    # Per user directive 2026-07-02: "当日日报出了才能出周报,当周周报
+    # 出了才能出月报,当月月报出了才能出年报". So:
+    #
+    #   weekly   ← daily for that ISO week (Mon..Sun, 7 days)
+    #   monthly  ← weekly for every ISO week that touches that calendar month
+    #   yearly   ← monthly for the half-year window (H1 = Jan..Jun, H2 = Jul..Dec)
+    #
+    # Yearly now runs twice a year (H1 on 7-1, H2 on next year 1-1) instead
+    # of once on 12-31, so the prereq only needs the months inside one half.
+
+    @staticmethod
+    def _expected_prereq_ids(period: str, period_id: str) -> List[str]:
+        """Return the upstream period_ids required for ``period``/``period_id``.
+
+        For weekly, ``period_id`` is an ISO week (``2026-W27``); the
+        prereq is the 7 daily ``YYYY-MM-DD`` ids for that week's days.
+        For monthly, ``period_id`` is ``YYYY-MM``; the prereq is every
+        ISO week id whose Mon..Sun range intersects that month.
+        For yearly, ``period_id`` is ``YYYY-H1`` or ``YYYY-H2``; the
+        prereq is the 6 monthly ids in that half.
+        """
+        if period == "weekly":
+            year_str, _, week_str = period_id.partition("-W")
+            year, week = int(year_str), int(week_str)
+            monday = date.fromisocalendar(year, week, 1)
+            return [(monday + timedelta(days=i)).isoformat() for i in range(7)]
+        if period == "monthly":
+            year, month = map(int, period_id.split("-"))
+            first = date(year, month, 1)
+            if month == 12:
+                last = date(year, 12, 31)
+            else:
+                last = date(year, month + 1, 1) - timedelta(days=1)
+            weeks: set[str] = set()
+            cur = first
+            while cur <= last:
+                iso_year, iso_week, _ = cur.isocalendar()
+                weeks.add(f"{iso_year}-W{iso_week:02d}")
+                cur += timedelta(days=1)
+            return sorted(weeks)
+        if period == "yearly":
+            year_str, _, half = period_id.partition("-")
+            if half not in {"H1", "H2"}:
+                raise ValueError(
+                    f"yearly period_id must end with -H1 or -H2, got {period_id!r}"
+                )
+            year = int(year_str)
+            months = range(1, 7) if half == "H1" else range(7, 13)
+            return [f"{year}-{m:02d}" for m in months]
+        raise ValueError(f"unknown period: {period}")
+
+    def _check_prerequisites(self, period: str, period_id: str, lang: str) -> bool:
+        """Return True iff all upstream reports for ``period``/``period_id`` exist.
+
+        On miss, prints a yellow skip line and returns False — the caller
+        (the lang loop in :meth:`_run_rollup`) is expected to ``continue``
+        so the remaining languages still get a chance. (Currently only
+        ``zh`` is configured, so this is mostly defensive.)
+        """
+        prior_period = {"weekly": "daily", "monthly": "weekly", "yearly": "monthly"}[
+            period
+        ]
+        expected = self._expected_prereq_ids(period, period_id)
+        existing = {
+            p.stem[: -len(f"-horizon-{lang}")]
+            for p in self.storage.list_recent_summaries(period=prior_period, language=lang)
+        }
+        missing = [e for e in expected if e not in existing]
+        if missing:
+            preview = ", ".join(missing[:3]) + ("..." if len(missing) > 3 else "")
+            self.console.print(
+                f"[yellow]⏭  {period} {period_id} ({lang.upper()}) skipped: "
+                f"{len(missing)}/{len(expected)} upstream {prior_period} report(s) "
+                f"missing — {preview}[/yellow]"
+            )
+            return False
+        self.console.print(
+            f"[green]✅ {period} {period_id} ({lang.upper()}) prereq: "
+            f"all {len(expected)} {prior_period} report(s) present[/green]"
+        )
+        return True
+
     async def run_weekly(self) -> None:
         """Run the weekly roll-up. Reads ``config.weekly`` for settings."""
         cfg = self.config.weekly
         if cfg is None:
             self.console.print("[yellow]weekly config missing; nothing to do.[/yellow]")
             return
+
+        def _last_iso_week_id(now: datetime) -> str:
+            """Return the ISO week id of the *most recently completed* week.
+
+            ``now`` lands on the cron day (Monday 10:00 BJT). The current
+            ISO week has only collected Mon's daily so far; the 7-day
+            prereq gate (``_check_prerequisites``) needs the previous
+            week, whose Mon..Sun range is fully covered. Falling back
+            to the previous calendar year's W52/W53 is handled implicitly
+            by ``date.fromisocalendar``'s inverse logic on ``last_sunday``.
+            """
+            today = now.date()
+            this_monday = today - timedelta(days=today.weekday())
+            last_sunday = this_monday - timedelta(days=1)
+            iso_year, iso_week, _ = last_sunday.isocalendar()
+            return f"{iso_year}-W{iso_week:02d}"
+
         await self._run_rollup(
             period="weekly",
             lookback_label_zh=f"{cfg.lookback_days} 天",
             lookback_label_en=f"{cfg.lookback_days} days",
             save_method_name="save_weekly_summary",
-            period_id_factory=lambda now: now.strftime("%G-W%V"),
+            period_id_factory=_last_iso_week_id,
         )
 
     async def run_monthly(self) -> None:
@@ -762,24 +885,43 @@ class HorizonOrchestrator:
         if cfg is None:
             self.console.print("[yellow]monthly config missing; nothing to do.[/yellow]")
             return
+
+        def _last_month_id(now: datetime) -> str:
+            """Return ``YYYY-MM`` for the *most recently completed* month."""
+            first_of_this = now.date().replace(day=1)
+            last_of_prev = first_of_this - timedelta(days=1)
+            return f"{last_of_prev.year}-{last_of_prev.month:02d}"
+
         await self._run_rollup(
             period="monthly",
             lookback_label_zh=f"{cfg.lookback_weeks} 周",
             lookback_label_en=f"{cfg.lookback_weeks} weeks",
             save_method_name="save_monthly_summary",
-            period_id_factory=lambda now: now.strftime("%Y-%m"),
+            period_id_factory=_last_month_id,
         )
 
     async def run_yearly(self) -> None:
-        """Run the yearly roll-up. Reads ``config.yearly`` for settings."""
+        """Run the yearly roll-up. Reads ``config.yearly`` for settings.
+
+        Yearly now runs twice a year (per user directive 2026-07-02):
+        H1 covers Jan..Jun and ships on 7-1; H2 covers Jul..Dec and
+        ships on next-year 1-1. The half is decided by ``now.month``
+        at trigger time. ``_expected_prereq_ids`` enforces that all
+        monthly reports in the corresponding 6-month window exist.
+        """
         cfg = self.config.yearly
         if cfg is None:
             self.console.print("[yellow]yearly config missing; nothing to do.[/yellow]")
             return
+
+        def _half_year_id(now: datetime) -> str:
+            half = "H1" if now.month <= 6 else "H2"
+            return f"{now.year}-{half}"
+
         await self._run_rollup(
             period="yearly",
             lookback_label_zh=f"{cfg.lookback_months} 个月",
             lookback_label_en=f"{cfg.lookback_months} months",
             save_method_name="save_yearly_summary",
-            period_id_factory=lambda now: now.strftime("%Y"),
+            period_id_factory=_half_year_id,
         )
