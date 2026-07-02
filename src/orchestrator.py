@@ -915,8 +915,26 @@ class HorizonOrchestrator:
             return
 
         def _half_year_id(now: datetime) -> str:
-            half = "H1" if now.month <= 6 else "H2"
-            return f"{now.year}-{half}"
+            """Resolve the half-year id from the *trigger context*:
+
+            - 7-1 .. 7-15 cron fires yearly for H1 of the just-completed
+              Jan..Jun window. ``now.month`` lands in {7}, year stays.
+            - 1-1 .. 1-15 cron fires yearly for H2 of the year that just
+              ended (Jul..Dec). ``now.month`` is 1 but the year has rolled
+              over by 1, so we decrement.
+
+            Manual ``workflow_dispatch`` triggers in any other month fall
+            back to a best-effort guess (last completed half).
+            """
+            if now.month == 7:
+                return f"{now.year}-H1"
+            if now.month == 1:
+                return f"{now.year - 1}-H2"
+            # Manual triggers outside the scheduled window: pick the most
+            # recent completed half.
+            if now.month <= 6:
+                return f"{now.year - 1}-H1"
+            return f"{now.year}-H1"
 
         await self._run_rollup(
             period="yearly",
