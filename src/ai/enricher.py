@@ -185,8 +185,13 @@ class ContentEnricher:
             web_context=web_context or "No web search results available.",
         )
 
+        # A per-config prompt override (if present) wins over the
+        # hardcoded default system prompt.
+        config = getattr(self.client, "config", None)
+        prompt_overrides = getattr(config, "prompt_overrides", None) or {}
+        system_prompt = prompt_overrides.get("enrichment_system") or CONTENT_ENRICHMENT_SYSTEM
         response = await self.client.complete(
-            system=CONTENT_ENRICHMENT_SYSTEM,
+            system=system_prompt,
             user=user_prompt,
         )
 
@@ -205,13 +210,19 @@ class ContentEnricher:
                 val = result[f"title_{lang}"]
                 item.metadata[f"title_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
 
-            parts = []
-            for field in ("whats_new", "why_it_matters", "key_details"):
-                text = result.get(f"{field}_{lang}", "").strip()
-                if text:
-                    parts.append(text)
-            if parts:
-                item.metadata[f"detailed_summary_{lang}"] = " ".join(parts)
+            # A prompt that returns a ready-made detailed_summary (e.g.
+            # the OSHW edition's custom layout) wins over composed parts.
+            direct_summary = result.get(f"detailed_summary_{lang}")
+            if isinstance(direct_summary, str) and direct_summary.strip():
+                item.metadata[f"detailed_summary_{lang}"] = direct_summary.strip()
+            else:
+                parts = []
+                for field in ("whats_new", "why_it_matters", "key_details"):
+                    text = result.get(f"{field}_{lang}", "").strip()
+                    if text:
+                        parts.append(text)
+                if parts:
+                    item.metadata[f"detailed_summary_{lang}"] = " ".join(parts)
 
             if result.get(f"background_{lang}"):
                 val = result[f"background_{lang}"]
