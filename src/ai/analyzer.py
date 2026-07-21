@@ -139,9 +139,13 @@ class ContentAnalyzer:
             discussion_section=discussion_section
         )
 
-        # Get AI completion
+        # Get AI completion. A per-config prompt override (if present)
+        # wins over the hardcoded default system prompt.
+        config = getattr(self.client, "config", None)
+        prompt_overrides = getattr(config, "prompt_overrides", None) or {}
+        system_prompt = prompt_overrides.get("analysis_system") or CONTENT_ANALYSIS_SYSTEM
         response = await self.client.complete(
-            system=CONTENT_ANALYSIS_SYSTEM,
+            system=system_prompt,
             user=user_prompt,
         )
 
