@@ -143,6 +143,49 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon --hours 24
 
+      - name: Run Horizon (EE edition)
+        if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          cp data/config.ee.json data/config.json
+          DATE=$(date -u +'%Y-%m-%d')
+          cp "data/summaries/${DATE}-horizon-zh.md" "/tmp/${DATE}-horizon-zh.md.bak" || true
+          uv run horizon --hours 24
+          mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-ee-zh.md"
+
+      - name: Run Horizon (embedded edition)
+        if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          cp data/config.embedded.json data/config.json
+          uv run horizon --hours 24
+          DATE=$(date -u +'%Y-%m-%d')
+          mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-embedded-zh.md"
+
+      - name: Run Horizon (OSHW edition)
+        if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          cp data/config.oshw.json data/config.json
+          uv run horizon --hours 24
+          DATE=$(date -u +'%Y-%m-%d')
+          mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-oshw-zh.md"
+          cp "/tmp/${DATE}-horizon-zh.md.bak" "data/summaries/${DATE}-horizon-zh.md" || true
+
+      - name: Append OSHW observations
+        if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          uv run python scripts/append_observations.py --date $(date -u +'%Y-%m-%d')
+
       - name: Deploy docs to master for Pages
         if: steps.gate.outputs.should_run == 'true'
         run: |
