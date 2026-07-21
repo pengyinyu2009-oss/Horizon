@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "ai": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "temperature": 0.3,
+    "max_tokens": 4096,
+    "throttle_sec": 0,
+    "analysis_concurrency": 1,
+    "enrichment_concurrency": 1,
+    "languages": [
+      "zh"
+    ],
+    "prompt_overrides": {
+      "analysis_system": "You are an expert content curator helping filter important technical and academic information.\n\nScore content on a 0-10 scale based on importance and relevance:\n\n**9-10: Groundbreaking** - Major breakthroughs, paradigm shifts, or highly significant announcements\n- New major version releases of widely-used technologies\n- Significant research breakthroughs\n- Important industry-changing announcements\n\n**7-8: High Value** - Important developments worth immediate attention\n- Interesting technical deep-dives\n- Novel approaches to known problems\n- Insightful analysis or commentary\n- Valuable tools or libraries\n\n**5-6: Interesting** - Worth knowing but not urgent\n- Incremental improvements\n- Useful tutorials\n- Moderate community interest\n\n**3-4: Low Priority** - Generic or routine content\n- Minor updates\n- Common knowledge\n- Overly promotional content\n\n**0-2: Noise** - Not relevant or low quality\n- Spam or purely promotional\n- Off-topic content\n- Trivial updates\n\nConsider:\n- Technical depth and novelty\n- Potential impact on the field\n- Quality of writing/presentation\n- Relevance to power electronics, electrical engineering, embedded systems, hardware engineering, 以及与工程师日常工作相关的技术和行业动态\n- Community discussion quality: insightful comments, diverse viewpoints, and debates increase value\n- Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance\n"
+    }
+  },
+  "sources": {
+    "github": [
+      {
+        "type": "user_events",
+        "username": "torvalds",
+        "enabled": false
+      },
+      {
+        "type": "repo_releases",
+        "owner": "astral-sh",
+        "repo": "uv",
+        "enabled": false
+      }
+    ],
+    "hackernews": {
+      "enabled": true,
+      "fetch_top_stories": 20,
+      "min_score": 150
+    },
+    "rss": [
+      {
+        "name": "Hackaday",
+        "url": "https://hackaday.com/feed/",
+        "enabled": true,
+        "category": "embedded"
+      }
+    ],
+    "reddit": {
+      "enabled": true,
+      "subreddits": [
+        {
+          "subreddit": "embedded",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 15,
+          "min_score": 10
+        },
+        {
+          "subreddit": "robotics",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 15,
+          "min_score": 10
+        }
+      ],
+      "users": [],
+      "fetch_comments": 5
+    },
+    "twitter": {
+      "enabled": false
+    },
+    "openbb": {
+      "enabled": false
+    },
+    "ossinsight": {
+      "enabled": false
+    }
+  },
+  "filtering": {
+    "ai_score_threshold": 6.0,
+    "ai_score_full_threshold": 7.0,
+    "time_window_hours": 48
+  },
+  "email": {
+    "enabled": false,
+    "smtp_server": "smtp.example.com",
+    "smtp_port": 465,
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "email_address": "placeholder@example.com",
+    "sender_name": "Horizon Daily",
+    "subscribe_keyword": "SUBSCRIBE",
+    "unsubscribe_keyword": "UNSUBSCRIBE"
+  },
+  "webhook": {
+    "enabled": false
+  },
+  "weekly": {
+    "enabled": true,
+    "ai_score_threshold": 8.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 1,
+    "lookback_days": 7,
+    "languages": [
+      "zh"
+    ]
+  },
+  "monthly": {
+    "enabled": true,
+    "ai_score_threshold": 9.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 3,
+    "lookback_weeks": 5,
+    "languages": [
+      "zh"
+    ]
+  },
+  "yearly": {
+    "enabled": true,
+    "ai_score_threshold": 9.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 10,
+    "lookback_months": 12,
+    "languages": [
+      "zh"
+    ]
+  }
+}
