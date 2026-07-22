@@ -112,12 +112,16 @@ def main():
     else:
         result = f"daily-summary {date} 已生成"
 
+    # msgId 必须每次推送唯一：华为侧按 msgId 去重，同一天重推（force）
+    # 若 msgId 不变会被当成重复卡片丢弃，手机上看不到更新。
+    msg_id = f"horizon-daily-{date}-{datetime.now().strftime('%H%M%S')}"
+
     payload = {
         "data": {
             "authCode": os.environ["HIBOARD_AUTH_CODE"],
             "msgContent": [
                 {
-                    "msgId": f"horizon-daily-{date}",
+                    "msgId": msg_id,
                     "scheduleTaskId": "horizon-daily",
                     "scheduleTaskName": "Horizon 每日速递",
                     "summary": summary,
