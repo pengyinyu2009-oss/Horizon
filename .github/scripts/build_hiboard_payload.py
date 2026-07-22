@@ -114,10 +114,13 @@ def main():
         lines.append(f"{s:.1f} 分｜{t}")
     lines += [
         "",
-        "📖 完整简报（点下方链接看全文）：",
+        "📖 完整简报（点链接看全文）：",
     ]
+    # NOTE: hiboard 卡片不支持 markdown 链接语法 —— [文字](url) 会显示成
+    # 纯文本且不可点击。平台只把裸 URL 自动识别为超链接，所以这里必须
+    # 输出纯文本 URL（之前「完整报告」可点就是这个机制）。
     for label, url in section_links:
-        lines.append(f"[{label}]({url})")
+        lines.append(f"{label} {url}")
     content = "\n".join(lines)
 
     summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
