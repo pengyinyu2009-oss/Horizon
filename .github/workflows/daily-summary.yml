@@ -199,6 +199,16 @@ jobs:
         run: |
           uv run python scripts/append_observations.py --date $(date -u +'%Y-%m-%d')
 
+      - name: Append EE/Embedded daily knowledge card
+        if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          DATE=$(date -u +'%Y-%m-%d')
+          uv run python scripts/append_knowledge.py --edition ee --date "$DATE"
+          uv run python scripts/append_knowledge.py --edition embedded --date "$DATE"
+
       - name: Deploy docs to master for Pages
         if: steps.gate.outputs.should_run == 'true'
         run: |
