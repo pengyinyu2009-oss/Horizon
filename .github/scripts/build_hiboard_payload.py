@@ -32,7 +32,7 @@ def main():
     pages_base = os.environ.get(
         "PAGES_BASE", "https://pengyinyu2009-oss.github.io/Horizon"
     )
-    post_url = f"{pages_base}/#/{date}-horizon-zh"
+    post_url = f"{pages_base}/reports-html/{date}-horizon-zh.html"
     home_url = f"{pages_base}/"
 
     with open(post_path, encoding="utf-8") as f:
