@@ -58,6 +58,15 @@ on:
                             #   fires on 8 January.
       timezone: 'Asia/Shanghai'
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Bypass state dedup and regenerate today even if the post already exists on master.'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   daily-summary:
@@ -111,10 +120,14 @@ jobs:
           echo "DATE=$DATE POST=$POST"
           git fetch origin master --depth=1
           if git show "origin/master:${POST}" > /dev/null 2>&1; then
-            echo "Today's post already on master, skipping."
-            git show "origin/master:${POST}" | head -3
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            if [ "${{ inputs.force }}" = "true" ]; then
+              echo "force=true — today's post exists on master, but regenerating anyway (operator override)."
+            else
+              echo "Today's post already on master, skipping."
+              git show "origin/master:${POST}" | head -3
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
           fi
           echo "should_run=true" >> "$GITHUB_OUTPUT"
           echo "In window and no existing post — proceeding with daily run."
