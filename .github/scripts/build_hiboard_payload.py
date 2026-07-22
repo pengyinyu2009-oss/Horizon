@@ -32,9 +32,6 @@ def main():
     pages_base = os.environ.get(
         "PAGES_BASE", "https://pengyinyu2009-oss.github.io/Horizon"
     )
-    post_url = f"{pages_base}/reports-html/{date}-horizon-zh.html"
-    home_url = f"{pages_base}/"
-
     with open(post_path, encoding="utf-8") as f:
         text = f.read()
 
@@ -43,6 +40,29 @@ def main():
         end = text.find("\n---\n", 4)
         if end != -1:
             text = text[end + 5:]
+
+    # Section pages live as sibling posts in the same directory:
+    #   {date}-horizon-zh.md (main), {date}-ee-zh.md, {date}-embedded-zh.md,
+    #   {date}-oshw-zh.md. Sections other than horizon may be absent on days
+    # their pipeline produced nothing (e.g. ee skips days with no ≥6.0
+    # items), so only link the ones that actually exist. Each links to the
+    # no-JS static HTML mirror (reports-html/) so the 负一屏 webview can
+    # open it directly.
+    sections = [
+        ("horizon", "📰 每日总览"),
+        ("ee", "⚡ 电源/EE"),
+        ("embedded", "🔩 嵌入式"),
+        ("oshw", "🔥 GitHub热榜"),
+    ]
+    post_dir = os.path.dirname(post_path)
+    section_links = []
+    for slug, label in sections:
+        if slug == "horizon" or os.path.exists(
+            os.path.join(post_dir, f"{date}-{slug}-zh.md")
+        ):
+            section_links.append(
+                (label, f"{pages_base}/reports-html/{date}-{slug}-zh.html")
+            )
 
     # Pull out headlines in the form:
     #   ## [title](url) ⭐ 8.5/10
@@ -94,8 +114,10 @@ def main():
         lines.append(f"{s:.1f} 分｜{t}")
     lines += [
         "",
-        f"📖 完整简报: {post_url}",
+        "📖 完整简报（点下方链接看全文）：",
     ]
+    for label, url in section_links:
+        lines.append(f"[{label}]({url})")
     content = "\n".join(lines)
 
     summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
