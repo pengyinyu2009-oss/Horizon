@@ -31,7 +31,7 @@
       }
     ],
     "hackernews": {
-      "enabled": true,
+      "enabled": false,
       "fetch_top_stories": 20,
       "min_score": 150
     },
