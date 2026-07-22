@@ -32,9 +32,7 @@ def main():
     pages_base = os.environ.get(
         "PAGES_BASE", "https://pengyinyu2009-oss.github.io/Horizon"
     )
-    post_url = (
-        f"{pages_base}/{date[0:4]}/{date[5:7]}/{date[8:10]}/horizon-zh.html"
-    )
+    post_url = f"{pages_base}/#/{date}-horizon-zh"
     home_url = f"{pages_base}/"
 
     with open(post_path, encoding="utf-8") as f:
@@ -87,20 +85,16 @@ def main():
 
     # Build the markdown body that hiboard will display.
     lines = [
-        f"## 🌅 Horizon 每日速递 · {date}",
+        f"🌅 Horizon 每日速递 · {date}",
         "",
-        f"**{len(top)} 条 8 分以上要事**",
+        f"{len(top)} 条 8 分以上要事：",
         "",
     ]
     for s, t, u in top:
-        lines.append(f"- ⭐ **{s:.1f}** [{t}]({u})")
+        lines.append(f"{s:.1f} 分｜{t}")
     lines += [
         "",
-        "---",
-        "",
-        f"📖 [完整简报]({post_url})",
-        "",
-        f"🏠 [首页]({home_url})",
+        f"📖 完整简报: {post_url}",
     ]
     content = "\n".join(lines)
 
