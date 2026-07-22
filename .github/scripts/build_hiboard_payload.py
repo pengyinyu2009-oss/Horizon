@@ -32,9 +32,6 @@ def main():
     pages_base = os.environ.get(
         "PAGES_BASE", "https://pengyinyu2009-oss.github.io/Horizon"
     )
-    post_url = f"{pages_base}/reports-html/{date}-horizon-zh.html"
-    home_url = f"{pages_base}/"
-
     with open(post_path, encoding="utf-8") as f:
         text = f.read()
 
@@ -43,6 +40,11 @@ def main():
         end = text.find("\n---\n", 4)
         if end != -1:
             text = text[end + 5:]
+
+    # 完整简报为「一天一页」的合并静态页：总览/电源EE/嵌入式/GitHub热榜
+    # 全部在 {date}.html 里，顶部锚点导航切换（2026-07-22 起由 4 个独立
+    # 分版页合并而来，避免页面太多）。负一屏卡片只放这一个链接。
+    digest_url = f"{pages_base}/reports-html/{date}.html"
 
     # Pull out headlines in the form:
     #   ## [title](url) ⭐ 8.5/10
@@ -94,7 +96,11 @@ def main():
         lines.append(f"{s:.1f} 分｜{t}")
     lines += [
         "",
-        f"📖 完整简报: {post_url}",
+        "📖 今日完整简报（总览/电源EE/嵌入式/GitHub热榜，一页看全）：",
+        # NOTE: hiboard 卡片不支持 markdown 链接语法 —— [文字](url) 会显示成
+        # 纯文本且不可点击。平台只把裸 URL 自动识别为超链接，所以这里必须
+        # 输出纯文本 URL。
+        digest_url,
     ]
     content = "\n".join(lines)
 
@@ -106,12 +112,16 @@ def main():
     else:
         result = f"daily-summary {date} 已生成"
 
+    # msgId 必须每次推送唯一：华为侧按 msgId 去重，同一天重推（force）
+    # 若 msgId 不变会被当成重复卡片丢弃，手机上看不到更新。
+    msg_id = f"horizon-daily-{date}-{datetime.now().strftime('%H%M%S')}"
+
     payload = {
         "data": {
             "authCode": os.environ["HIBOARD_AUTH_CODE"],
             "msgContent": [
                 {
-                    "msgId": f"horizon-daily-{date}",
+                    "msgId": msg_id,
                     "scheduleTaskId": "horizon-daily",
                     "scheduleTaskName": "Horizon 每日速递",
                     "summary": summary,
