@@ -41,28 +41,10 @@ def main():
         if end != -1:
             text = text[end + 5:]
 
-    # Section pages live as sibling posts in the same directory:
-    #   {date}-horizon-zh.md (main), {date}-ee-zh.md, {date}-embedded-zh.md,
-    #   {date}-oshw-zh.md. Sections other than horizon may be absent on days
-    # their pipeline produced nothing (e.g. ee skips days with no ≥6.0
-    # items), so only link the ones that actually exist. Each links to the
-    # no-JS static HTML mirror (reports-html/) so the 负一屏 webview can
-    # open it directly.
-    sections = [
-        ("horizon", "📰 每日总览"),
-        ("ee", "⚡ 电源/EE"),
-        ("embedded", "🔩 嵌入式"),
-        ("oshw", "🔥 GitHub热榜"),
-    ]
-    post_dir = os.path.dirname(post_path)
-    section_links = []
-    for slug, label in sections:
-        if slug == "horizon" or os.path.exists(
-            os.path.join(post_dir, f"{date}-{slug}-zh.md")
-        ):
-            section_links.append(
-                (label, f"{pages_base}/reports-html/{date}-{slug}-zh.html")
-            )
+    # 完整简报为「一天一页」的合并静态页：总览/电源EE/嵌入式/GitHub热榜
+    # 全部在 {date}.html 里，顶部锚点导航切换（2026-07-22 起由 4 个独立
+    # 分版页合并而来，避免页面太多）。负一屏卡片只放这一个链接。
+    digest_url = f"{pages_base}/reports-html/{date}.html"
 
     # Pull out headlines in the form:
     #   ## [title](url) ⭐ 8.5/10
@@ -114,13 +96,12 @@ def main():
         lines.append(f"{s:.1f} 分｜{t}")
     lines += [
         "",
-        "📖 完整简报（点链接看全文）：",
+        "📖 今日完整简报（总览/电源EE/嵌入式/GitHub热榜，一页看全）：",
+        # NOTE: hiboard 卡片不支持 markdown 链接语法 —— [文字](url) 会显示成
+        # 纯文本且不可点击。平台只把裸 URL 自动识别为超链接，所以这里必须
+        # 输出纯文本 URL。
+        digest_url,
     ]
-    # NOTE: hiboard 卡片不支持 markdown 链接语法 —— [文字](url) 会显示成
-    # 纯文本且不可点击。平台只把裸 URL 自动识别为超链接，所以这里必须
-    # 输出纯文本 URL（之前「完整报告」可点就是这个机制）。
-    for label, url in section_links:
-        lines.append(f"{label} {url}")
     content = "\n".join(lines)
 
     summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
