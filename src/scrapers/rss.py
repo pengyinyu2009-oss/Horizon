@@ -82,6 +82,12 @@ class RSSScraper(BaseScraper):
             for entry in feed.entries:
                 # Parse published date
                 published_at = self._parse_date(entry)
+                if not published_at:
+                    # Some feeds (e.g. GitHubTrendingRSS) only put a date on
+                    # the feed itself, not on entries. Fall back to the
+                    # feed-level date so those entries aren't silently
+                    # dropped.
+                    published_at = self._parse_date(feed.feed)
                 if not published_at or published_at < since:
                     continue
 
