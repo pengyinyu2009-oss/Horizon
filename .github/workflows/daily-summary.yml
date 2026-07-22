@@ -94,13 +94,13 @@ jobs:
           # $GITHUB_OUTPUT `should_run` + `if: steps.gate.outputs.should_run == 'true'`
           # on every later step instead.
           BJT_NOW=$(TZ=Asia/Shanghai date +'%H%M')
-          echo "BJT_NOW=$BJT_NOW (window: 0800–0900), trigger=${{ github.event_name }}"
+          echo "BJT_NOW=$BJT_NOW (window: 0800–1100), trigger=${{ github.event_name }}"
           # Manual triggers (workflow_dispatch) bypass the time window —
           # operator wants to run NOW, even outside 9:00 BJT.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "workflow_dispatch — bypassing time-window gate."
           else
-            if [ "$BJT_NOW" -lt "0800" ] || [ "$BJT_NOW" -gt "0900" ]; then
+            if [ "$BJT_NOW" -lt "0800" ] || [ "$BJT_NOW" -gt "1100" ]; then
               echo "Outside 08:00–09:00 Beijing window, skipping."
               echo "should_run=false" >> "$GITHUB_OUTPUT"
               exit 0
