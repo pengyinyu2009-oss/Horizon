@@ -22,12 +22,13 @@ NEW_WEEKLY_RE = re.compile(r"^(\d{4})-W(\d{1,2})-周榜-zh$")
 NEW_MONTHLY_RE = re.compile(r"^(\d{4})-(\d{2})-月榜-zh$")
 NEW_YEARLY_RE = re.compile(r"^(\d{4})-年榜-zh$")
 
-NAV_ORDER_NEW = ["global", "ai", "embedded", "finance"]
+NAV_ORDER_NEW = ["global", "ai", "embedded", "finance", "github"]
 NAV_LABELS_NEW = {
     "global": "🌍 全球资讯",
     "ai": "🤖 AI 科技",
     "embedded": "🔧 嵌入式/开源硬件",
     "finance": "💰 财经/加密",
+    "github": "🔥 GitHub 热榜",
 }
 
 # === 旧格式(2026-07-22 之前,1 天 4 文件)===
@@ -171,32 +172,36 @@ for old in DST.glob("*.html"):
 
 count = 0
 
-# === 新格式日报:一天一页,4 榜单吸顶导航 ===
+# === 新格式日报:一天一页,4 榜单吸顶导航(输出文件名 = md stem,sidebar 链接直接命中) ===
 new_dates = sorted(new_daily)
 all_old_dates = sorted(old_daily)
 all_period_dates = sorted(new_daily) + all_old_dates  # 给 daynav 找"前后一天"用
 
 for i, date in enumerate(new_dates):
     body = render_md(new_daily[date])
+    md_stem = new_daily[date].stem  # "2026-07-23-榜单汇总-zh"
 
     # 4 榜单吸顶导航(锚点 sec-global/ai/embedded/finance)
     nav_items = [f'<a href="#sec-{s}">{NAV_LABELS_NEW[s]}</a>' for s in NAV_ORDER_NEW]
     nav = f'<nav class="secnav">{"".join(nav_items)}</nav>'
 
-    # 底部:同格式前后天 + 周期报
+    # 底部:同格式前后天(按 stem)+ 周期报
     foot = ['<div class="daynav">']
+    prev_stem = new_daily[new_dates[i-1]].stem if i > 0 else None
+    next_stem = new_daily[new_dates[i+1]].stem if i < len(new_dates) - 1 else None
     foot.append(
-        f'<a href="{new_dates[i-1]}.html">← {new_dates[i-1]}</a>' if i > 0 else "<span></span>"
+        f'<a href="{prev_stem}.html">← {new_dates[i-1]}</a>' if prev_stem else "<span></span>"
     )
     if period:
         latest_period = sorted(period)[-1]
         foot.append(f'<a href="{latest_period}.html">{period_label(latest_period)}</a>')
     foot.append(
-        f'<a href="{new_dates[i+1]}.html">{new_dates[i+1]} →</a>' if i < len(new_dates) - 1 else "<span></span>"
+        f'<a href="{next_stem}.html">{new_dates[i+1]} →</a>' if next_stem else "<span></span>"
     )
     foot.append("</div>")
 
-    (DST / f"{date}.html").write_text(
+    # 输出文件名 = md stem(保持原名,sidebar 链接直接命中)
+    (DST / f"{md_stem}.html").write_text(
         TEMPLATE.format(title=f"{date} 4 榜单速览", nav=nav, body=body, footer="".join(foot)),
         encoding="utf-8",
     )
@@ -242,7 +247,7 @@ for date, secs in old_daily.items():
             REDIRECT.format(target=f"{date}.html#{s}"), encoding="utf-8"
         )
 
-# === 周期报:独立页(周报/月报/年报) ===
+# === 周期报:独立页(周报/月报/年报,文件名 = md stem) ===
 for stem, md_file in sorted(period.items()):
     kind = period_kind.get(stem, "other")
     body = render_md(md_file)
