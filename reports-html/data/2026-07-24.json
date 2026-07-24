@@ -3,13 +3,14 @@
     "date": "2026-07-24",
     "purpose": "Horizon 日报改版验收样张 · 4 大榜单 × 13 条 = 65 条 · 零 JS · 双分数 · 4 字段",
     "schema_version": "1.0",
-    "sources_fusion": "全球资讯板块已融合 koala73/worldmonitor v2.10.0 的 8 个地区分组 35 条 RSS 信源 (data/worldmonitor_sources.json)"
+    "sources_fusion": "全球资讯板块已融合 koala73/worldmonitor v2.10.0 的 8 个地区分组 35 条 RSS 信源 (data/worldmonitor_sources.json)",
+    "deprecation_warning": "⚠ ISS-026 标记：此 JSON 由早期 RD 手工构造（65 条），非 data/summaries/ 真实采集汇总。grounding_policy 字段反映该事实。请用 reports-html/data/2026-07-23.json 作为真实样张。",
+    "grounding_policy": "NOT_GROUNDED_人工构造",
+    "replacement_sample": "reports-html/data/2026-07-23.json (100% 血缘溯源)"
   },
-
   "date": "2026-07-24",
   "page_title": "Horizon 日报 · 2026-07-24（周五）",
   "page_desc": "全球资讯 · AI 科技 · 嵌入式/开源硬件 · 财经/加密 · GitHub 热榜 · 4 大榜单一页到底。",
-
   "intro": {
     "headline": "4 大榜单，一页到底。 每个榜单 10 条排名 + 3 条精选 = 13 条，每条 4 字段（概要 / 对中国影响 / 对我影响 / 我的判断）。",
     "window_start": "2026-07-15",
@@ -17,7 +18,6 @@
     "source_count": 47,
     "secondary_count": 6
   },
-
   "boards": [
     {
       "anchor": "global",
@@ -215,7 +215,6 @@
         }
       ]
     },
-
     {
       "anchor": "ai",
       "icon": "🤖",
@@ -425,7 +424,6 @@
         }
       ]
     },
-
     {
       "anchor": "embedded",
       "icon": "🔌",
@@ -634,7 +632,6 @@
         }
       ]
     },
-
     {
       "anchor": "finance",
       "icon": "💰",
@@ -843,7 +840,6 @@
         }
       ]
     },
-
     {
       "anchor": "github",
       "icon": "🐙",

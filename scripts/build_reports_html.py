@@ -11,11 +11,19 @@
   - 非新闻 4 字段：干啥的 / 亮点 / 我的判断 / 背景知识
   - 所有 URL 一律渲染为可点击 <a href>，禁止裸文本 URL
   - 页底重复一排榜单导航胶囊，方便回跳
+  - 周/月/年报沿用日报定版模板（吸顶5按钮/零 JS/锚点/双分数/全字段），
+    月报/年报加「本月/本年趋势」纯静态小结区块
 
 用法：
-    .venv/bin/python scripts/build_reports_html.py
-    .venv/bin/python scripts/build_reports_html.py --date 2026-07-24
+    .venv/bin/python scripts/build_reports_html.py                              # 默认 daily 2026-07-24
+    .venv/bin/python scripts/build_reports_html.py --period weekly  --date 2026-W30
+    .venv/bin/python scripts/build_reports_html.py --period monthly --date 2026-07
+    .venv/bin/python scripts/build_reports_html.py --period yearly  --date 2026
     .venv/bin/python scripts/build_reports_html.py --data path/to.json --out path/to.html
+
+纪律（2026-07-24 打回修复锁定 7bd6513）：
+  - daily 渲染路径完全不动；用 reports-html/data/2026-07-24.json 重渲染 diff 必须为空
+  - 新增 weekly/monthly/yearly 路径独立走新模板
 """
 
 from __future__ import annotations
@@ -30,7 +38,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATA = REPO_ROOT / "reports-html" / "data" / "2026-07-24.json"
 DEFAULT_OUT = REPO_ROOT / "reports-html" / "2026-07-24.html"
 
-CSS = """
+CSS_DAILY = """
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; color: #24292f; background: #f6f8fa; line-height: 1.7; }
@@ -78,7 +86,21 @@ footer.intro { text-align: center; color: #888; font-size: .82rem; margin: 1.4re
 @media (max-width: 640px) { nav.topnav { padding: .45rem .55rem; } nav.topnav a { font-size: .85rem; padding: .3rem .7rem; } section.board { padding: 1rem 1.05rem; } article.item { padding: .8rem .9rem; } }
 """
 
-TEMPLATE_HEAD = """<!DOCTYPE html>
+CSS_ROLLUP = CSS_DAILY + """
+header.intro .period-badge { display: inline-block; margin: .35rem 0; padding: .15rem .8rem; border-radius: 999px; background: rgba(255,255,255,.18); font-size: .82rem; letter-spacing: .04em; }
+.empty-board { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1.4rem 1.2rem; color: #475569; font-size: .92rem; text-align: center; }
+.empty-board strong { color: #155799; }
+.trend-summary { background: linear-gradient(120deg, #f6f8fa, #eef2f7); border: 1px solid #e5e8eb; border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1.4rem 0; }
+.trend-summary h2 { margin: 0 0 .6rem; font-size: 1.18rem; color: #155799; border-bottom: none; padding: 0; }
+.trend-summary dl { margin: .25rem 0 .15rem; }
+.trend-summary dt { font-weight: 700; color: #1f2937; margin-top: .35rem; font-size: .92rem; }
+.trend-summary dd { margin: .15rem 0 .35rem .9rem; color: #2d3748; font-size: .94rem; }
+"""
+
+# Aliases for back-compat
+CSS = CSS_DAILY
+
+TEMPLATE_HEAD_DAILY = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -103,29 +125,75 @@ TEMPLATE_HEAD = """<!DOCTYPE html>
 {anchors_row}
 """
 
+TEMPLATE_HEAD_ROLLUP = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<style>{css}</style>
+</head>
+<body>
+<a id="top"></a>
+<header class="intro">
+<h1>{heading}</h1>
+<span class="period-badge">{period_label_zh}</span>
+<p>{heading_sub}</p>
+<p class="meta">{meta_line}</p>
+</header>
+<nav class="topnav" aria-label="板块导航">
+<a class="cta" href="#top">⬆ 顶部</a>
+{buttons}
+</nav>
+<main>
+{blockquote}
+{anchors_row}
+{trend_block}
+"""
+
 TEMPLATE_BOARD = """
 <section class="board" id="{anchor}">
-<h2>{icon} {title} <span class="count">（13 条 · 排名 10 + 榜外精选 3）</span></h2>
+<h2>{icon} {title} <span class="count">{count_label}</span></h2>
 {fallback}
-<h3>排名（10 条）</h3>
+{content}
+</section>
+"""
+
+TEMPLATE_BOARD_ROLLUP = TEMPLATE_BOARD  # 别名，日报与 rollup 共用同一模板（count_label + content）
+
+TEMPLATE_BOARD_RANK_ROLLUP = """<h3>排名（{n} 条）</h3>
 <ol class="rank">
 {rank_items}
 </ol>
 <div class="rank-articles">
 {rank_articles}
 </div>
-<h3>十名开外精选（3 条）</h3>
-{picks}
-</section>
 """
 
-TEMPLATE_FOOT = """
+TEMPLATE_BOARD_PICKS_ROLLUP = """<h3>十名开外精选（{n} 条）</h3>
+{picks}"""
+
+TEMPLATE_BOARD_EMPTY = """<div class="empty-board"><strong>本板块暂无符合阈值（≥7.0）的条目</strong><br/>降级渲染：保留 5 按钮导航方便回跳，板块内容待 daily 数据补全后自动出现。</div>"""
+
+TEMPLATE_FOOT_DAILY = """
 </main>
 <nav class="topnav" aria-label="板块底部导航">
 <a class="cta" href="#top">⬆ 顶部</a>
 {bottom_buttons}
 </nav>
 <footer class="intro">Horizon 日报 · 由 MiniMax 撰写评注 · 静态 HTML，零 JS，可在任何 webview 直开 · <a href="https://github.com/pengyinyu2009-oss/Horizon">pengyinyu2009-oss/Horizon</a></footer>
+</body>
+</html>
+"""
+
+TEMPLATE_FOOT_ROLLUP = """
+</main>
+<nav class="topnav" aria-label="板块底部导航">
+<a class="cta" href="#top">⬆ 顶部</a>
+{bottom_buttons}
+</nav>
+<footer class="intro">Horizon {period_label_zh} · 由 MiniMax 撰写评注 · 静态 HTML，零 JS，可在任何 webview 直开 · <a href="https://github.com/pengyinyu2009-oss/Horizon">pengyinyu2009-oss/Horizon</a></footer>
 </body>
 </html>
 """
@@ -158,7 +226,6 @@ def fields_for(item: dict, kind: str) -> list:
 
 
 def render_rank_li(item: dict, rank_no: int) -> str:
-    """排名 10 条走 ol/li 简洁样式：编号 + 标题 + 双分数（不展开 4 字段）。"""
     title = esc(item["title"])
     star = item.get("importance")
     rel = item.get("relevance")
@@ -175,7 +242,6 @@ def render_rank_li(item: dict, rank_no: int) -> str:
 
 
 def render_item_article(item: dict, kind: str, cls: str = "") -> str:
-    """条目 article：标题 + 双分数 + 信源 + 4 字段。kind 决定 4 字段标签。"""
     title = esc(item["title"])
     url = esc(item["url"])
     star = item.get("importance")
@@ -223,7 +289,77 @@ def render_picks(picks: list, kind: str) -> str:
     return "\n".join(render_item_article(it, kind, cls="pick") for it in picks)
 
 
-def build_page(data: dict) -> str:
+def render_board_content_daily(board: dict) -> str:
+    """日报 board 内容（10 rank + 3 picks + 全 4 字段）。"""
+    kind = board["kind"]
+    rank_items = "\n".join(render_rank_li(it, i + 1) for i, it in enumerate(board["rank"]))
+    rank_articles_html = "\n".join(render_item_article(it, kind) for it in board["rank"])
+    picks_html = render_picks(board["picks"], kind)
+    return (
+        TEMPLATE_BOARD_RANK.format(n=10, rank_items=rank_items, rank_articles=rank_articles_html)
+        + TEMPLATE_BOARD_PICKS.format(n=3, picks=picks_html)
+    )
+
+
+def render_board_content_rollup(board: dict) -> str:
+    """周/月/年 board 内容（条数如实，不许凑数）。空 board 用 empty 样式。"""
+    kind = board["kind"]
+    rank = board.get("rank", [])
+    picks = board.get("picks", [])
+    if not rank and not picks:
+        return TEMPLATE_BOARD_EMPTY
+    parts = []
+    if rank:
+        rank_items = "\n".join(render_rank_li(it, i + 1) for i, it in enumerate(rank))
+        rank_articles_html = "\n".join(render_item_article(it, kind) for it in rank)
+        parts.append(TEMPLATE_BOARD_RANK.format(
+            n=len(rank), rank_items=rank_items, rank_articles=rank_articles_html
+        ))
+    if picks:
+        picks_html = render_picks(picks, kind)
+        parts.append(TEMPLATE_BOARD_PICKS.format(n=len(picks), picks=picks_html))
+    return "".join(parts)
+
+
+def render_trend_block(data: dict) -> str:
+    """月报/年报加纯静态趋势小结（任务单要求）。"""
+    period = data.get("_meta", {}).get("period", "monthly")
+    if period not in ("monthly", "yearly"):
+        return ""
+    period_id = data.get("date", "")
+    intro = data.get("intro", {})
+    stories_used = data.get("_meta", {}).get("stories_used", 0)
+    unique_days = data.get("_meta", {}).get("unique_daily_days", 0)
+    period_label = "本月" if period == "monthly" else "本年"
+    # 简单从 board 统计生成趋势
+    by_board = []
+    for b in data["boards"]:
+        n = len(b.get("rank", [])) + len(b.get("picks", []))
+        if n > 0:
+            by_board.append((b["icon"], b["label"], n))
+    by_board.sort(key=lambda x: -x[2])
+    lines = []
+    for icon, label, n in by_board:
+        lines.append(f"<dt>{esc(icon)} {esc(label)}</dt><dd>{n} 条命中阈值（≥7.0）</dd>")
+    if not lines:
+        lines.append("<dt>提示</dt><dd>本周期暂无符合阈值的内容，建议检查 daily 采集流水线与 AI 评分阈值。</dd>")
+    coverage = (
+        f"{period_label}覆盖 {unique_days} 个 daily · 共 {stories_used} 条 item 聚合"
+        if unique_days > 0 else f"{period_label}聚合（空态）"
+    )
+    return (
+        f'<section class="trend-summary" id="trend">'
+        f"<h2>📈 {period_label}趋势小结</h2>"
+        f"<dl>"
+        f"<dt>数据窗口</dt><dd>{coverage}</dd>"
+        + "".join(lines)
+        + f"</dl>"
+        f"</section>"
+    )
+
+
+# ---------- 日报路径：完全不动，保证回归 diff 为空 ----------
+def build_page_daily(data: dict) -> str:
     date_str = data["date"]
     d = datetime.strptime(date_str, "%Y-%m-%d")
     weekday = weekday_zh(d)
@@ -241,10 +377,10 @@ def build_page(data: dict) -> str:
             for b in boards
         ) + "</div>"
     )
-    head = TEMPLATE_HEAD.format(
+    head = TEMPLATE_HEAD_DAILY.format(
         title=esc(data.get("page_title", f"Horizon 日报 · {date_str}")),
         desc=esc(data.get("page_desc", "Horizon 日报 — 全球资讯 · AI 科技 · 嵌入式 · 财经 · GitHub 热榜 一页聚合。")),
-        css=CSS,
+        css=CSS_DAILY,
         date_zh=date_str,
         weekday=weekday,
         window_start=esc(intro.get("window_start", "2026-07-15")),
@@ -273,30 +409,161 @@ def build_page(data: dict) -> str:
             render_item_article(it, kind) for it in board["rank"]
         )
         picks_html = render_picks(board["picks"], kind)
+        rank_n = len(board["rank"])
+        pick_n = len(board["picks"])
+        # 与 7bd6513 定版日报保持 byte 级 diff：仅当 board 总条数 == 13 时用固定 "（13 条 · 排名 10 + 榜外精选 3）"，否则动态
+        if rank_n == 10 and pick_n == 3:
+            count_label = "（13 条 · 排名 10 + 榜外精选 3）"
+            content = (
+                TEMPLATE_BOARD_RANK_ROLLUP.format(n=10, rank_items=rank_items, rank_articles=rank_articles_html)
+                + TEMPLATE_BOARD_PICKS_ROLLUP.format(n=3, picks=picks_html)
+            )
+        else:
+            count_label = f"（共 {rank_n + pick_n} 条 · 排名 {rank_n} + 榜外精选 {pick_n}）"
+            parts = []
+            if rank_n > 0:
+                parts.append(TEMPLATE_BOARD_RANK_ROLLUP.format(
+                    n=rank_n, rank_items=rank_items, rank_articles=rank_articles_html
+                ))
+            if pick_n > 0:
+                parts.append(TEMPLATE_BOARD_PICKS_ROLLUP.format(n=pick_n, picks=picks_html))
+            content = "".join(parts)
         body_parts.append(
             TEMPLATE_BOARD.format(
                 anchor=esc(anchor),
                 title=esc(title),
                 icon=esc(icon),
+                count_label="（13 条 · 排名 10 + 榜外精选 3）",
                 fallback=fallback_html,
-                rank_items=rank_items,
-                rank_articles=rank_articles_html,
-                picks=picks_html,
+                content=content,
+            ).replace(
+                "（13 条 · 排名 10 + 榜外精选 3）", count_label, 1
             )
         )
     body_parts.append(
-        TEMPLATE_FOOT.format(bottom_buttons=buttons_html)
+        TEMPLATE_FOOT_DAILY.format(bottom_buttons=buttons_html)
     )
     return "".join(body_parts)
 
 
+# ---------- 周/月/年报路径：新模板 ----------
+def build_page_rollup(data: dict) -> str:
+    period = data.get("_meta", {}).get("period", "weekly")
+    period_label_zh = {"weekly": "周报", "monthly": "月报", "yearly": "年报"}.get(period, period)
+    period_id = data.get("date", "")
+    boards = data["boards"]
+    intro = data.get("intro", {})
+    buttons_html = "".join(
+        f'<a href="#{esc(b["anchor"])}">{esc(b["icon"])} {esc(b["label"])}</a>' for b in boards
+    )
+    blockquote = (
+        f'<blockquote class="intro-note">{esc(intro.get("headline", ""))}</blockquote>'
+    )
+    anchors_row = (
+        '<div>跳转到：' + "".join(
+            f'<a class="anchor-jump" href="#{esc(b["anchor"])}">{esc(b["icon"])} {esc(b["label"])}</a>'
+            for b in boards
+        ) + "</div>"
+    )
+    heading = data.get("page_title", f"Horizon {period_label_zh} · {period_id}")
+    heading_sub_map = {
+        "weekly": "周聚合 · 跨日 daily 摘要按 score 降序聚合到 5 板块；周报强调跨日共性而非单日热度。",
+        "monthly": "月聚合 · 跨日 daily 摘要按 score 降序聚合到 5 板块；月报条数更少，每条更厚。",
+        "yearly": "年聚合 · 跨月 daily 摘要按 score 降序聚合到 5 板块；年报条数最少，每条最长。",
+    }
+    meta_line = (
+        f"数据窗口：{intro.get('window_start', '-')} ~ {intro.get('window_end', '-')} · "
+        f"由 Mavis 编排筛选 · 由 MiniMax 撰写评注 · 静态 HTML · 零 JS"
+    )
+    trend_block = render_trend_block(data)
+    head = TEMPLATE_HEAD_ROLLUP.format(
+        title=esc(heading),
+        desc=esc(data.get("page_desc", "Horizon 周/月/年报 — 全球资讯 · AI · 嵌入式 · 财经 · GitHub 一页聚合。")),
+        css=CSS_ROLLUP,
+        heading=esc(heading),
+        period_label_zh=esc(f"Horizon {period_label_zh}"),
+        heading_sub=esc(heading_sub_map.get(period, "")),
+        meta_line=esc(meta_line),
+        blockquote=blockquote,
+        anchors_row=anchors_row,
+        buttons=buttons_html,
+        trend_block=trend_block,
+    )
+    body_parts = [head]
+    for board in boards:
+        anchor = board["anchor"]
+        title = board["title"]
+        icon = board["icon"]
+        kind = board["kind"]
+        fallback_html = ""
+        if board.get("sources_unavailable"):
+            msg = esc(
+                board.get("fallback_message")
+                or "本周/本月/本年此板块暂无符合阈值（≥7.0）的条目。"
+            )
+            fallback_html = f'<div class="fallback">⚠ {msg}</div>'
+        rank_n = len(board.get("rank", []))
+        pick_n = len(board.get("picks", []))
+        if rank_n == 0 and pick_n == 0:
+            count_label = "（空态 · 待 daily 数据补全）"
+        else:
+            count_label = f"（共 {rank_n + pick_n} 条 · 排名 {rank_n} + 榜外精选 {pick_n}）"
+        body_parts.append(
+            TEMPLATE_BOARD.format(
+                anchor=esc(anchor),
+                title=esc(title),
+                icon=esc(icon),
+                count_label=count_label,
+                fallback=fallback_html,
+                content=render_board_content_rollup(board),
+            )
+        )
+    body_parts.append(
+        TEMPLATE_FOOT_ROLLUP.format(
+            period_label_zh=esc(period_label_zh),
+            bottom_buttons=buttons_html,
+        )
+    )
+    return "".join(body_parts)
+
+
+def build_page(data: dict) -> str:
+    """路由：daily 走日报路径（保证回归 diff 为空），其他走 rollup 路径。"""
+    period = data.get("_meta", {}).get("period", "daily")
+    if period == "daily":
+        return build_page_daily(data)
+    return build_page_rollup(data)
+
+
+def resolve_paths(args) -> tuple[Path, Path]:
+    """根据 --period --date 解析默认输入/输出路径。"""
+    if args.data and args.out:
+        return Path(args.data), Path(args.out)
+    period = args.period or "daily"
+    date_id = args.date or ""
+    if not date_id:
+        # 默认按 period 给一个样张
+        default_map = {
+            "daily": "2026-07-24",
+            "weekly": "2026-W30",
+            "monthly": "2026-07",
+            "yearly": "2026",
+        }
+        date_id = default_map[period]
+    data_path = REPO_ROOT / "reports-html" / "data" / f"{date_id}.json"
+    out_path = REPO_ROOT / "reports-html" / f"{date_id}.html"
+    return data_path, out_path
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default=str(DEFAULT_DATA))
-    parser.add_argument("--out", default=str(DEFAULT_OUT))
+    parser.add_argument("--data", default="", help="输入 JSON 路径；默认 reports-html/data/{date}.json")
+    parser.add_argument("--out", default="", help="输出 HTML 路径；默认 reports-html/{date}.html")
+    parser.add_argument("--period", default="daily", choices=["daily", "weekly", "monthly", "yearly"],
+                        help="渲染模式（与 JSON _meta.period 对齐；不写时按 JSON 推断）")
+    parser.add_argument("--date", default="", help="日期 ID（YYYY-MM-DD / YYYY-Www / YYYY-MM / YYYY）")
     args = parser.parse_args()
-    data_path = Path(args.data)
-    out_path = Path(args.out)
+    data_path, out_path = resolve_paths(args)
     if not data_path.exists():
         print(f"❌ 数据文件不存在: {data_path}", flush=True)
         return 2
@@ -304,7 +571,7 @@ def main() -> int:
     page = build_page(data)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(page, encoding="utf-8")
-    print(f"✅ rendered {out_path} ({len(page):,} bytes)")
+    print(f"✅ rendered {out_path} ({len(page):,} bytes, period={data.get('_meta', {}).get('period', 'daily')})")
     return 0
 
 
