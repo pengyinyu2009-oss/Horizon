@@ -57,6 +57,7 @@ ol.rank li .score { font-size: .82rem; color: #6a737d; font-weight: normal; marg
 ol.rank li .rel { font-size: .78rem; color: #9a3412; margin-left: .25rem; }
 article.item { background: #fafbfc; border: 1px solid #eaecef; border-radius: 8px; padding: 1rem 1.15rem .7rem; margin: .85rem 0; }
 article.item.pick { background: #fffbf0; border-color: #fde68a; }
+.rank-articles { margin: .8rem 0 1.2rem; }
 article.item h3 { font-size: 1.05rem; margin: 0 0 .35rem; line-height: 1.45; }
 article.item h3 a { color: #0f2d52; text-decoration: none; }
 article.item h3 a:hover { text-decoration: underline; }
@@ -110,6 +111,9 @@ TEMPLATE_BOARD = """
 <ol class="rank">
 {rank_items}
 </ol>
+<div class="rank-articles">
+{rank_articles}
+</div>
 <h3>十名开外精选（3 条）</h3>
 {picks}
 </section>
@@ -265,6 +269,9 @@ def build_page(data: dict) -> str:
             )
             fallback_html = f'<div class="fallback">⚠ {msg}</div>'
         rank_items = "\n".join(render_rank_li(it, i + 1) for i, it in enumerate(board["rank"]))
+        rank_articles_html = "\n".join(
+            render_item_article(it, kind) for it in board["rank"]
+        )
         picks_html = render_picks(board["picks"], kind)
         body_parts.append(
             TEMPLATE_BOARD.format(
@@ -273,6 +280,7 @@ def build_page(data: dict) -> str:
                 icon=esc(icon),
                 fallback=fallback_html,
                 rank_items=rank_items,
+                rank_articles=rank_articles_html,
                 picks=picks_html,
             )
         )
