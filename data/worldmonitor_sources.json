@@ -1,0 +1,88 @@
+{
+  "_comment": "World Monitor 信源融合表（A 方案）。来源：https://github.com/koala73/worldmonitor/blob/main/src/config/feeds.ts。我们只取数据层（RSS URLs + 地区分类），不复制整个前端。本表被 RSSScraper 视为 category='global-news' 的信源组，专供「全球资讯」板块使用。信源不可用时，render 层会标注'今日信源不可用'并继续生成。",
+  "_version": "2026-07-24",
+  "_upstream": "koala73/worldmonitor",
+  "_upstream_version": "v2.10.0",
+  "regions": {
+    "americas": {
+      "label": "美洲",
+      "sources": [
+        { "name": "Reuters US",        "url": "https://news.google.com/rss/search?q=site:reuters.com+US&hl=en-US&gl=US&ceid=US:en", "tier": 1 },
+        { "name": "NPR News",          "url": "https://feeds.npr.org/1001/rss.xml",                                       "tier": 1 },
+        { "name": "AP News",           "url": "https://news.google.com/rss/search?q=site:apnews.com&hl=en-US&gl=US&ceid=US:en","tier": 1 },
+        { "name": "Politico",          "url": "https://rss.politico.com/politics-news.xml",                                "tier": 2 },
+        { "name": "Axios",             "url": "https://api.axios.com/feed/",                                              "tier": 2 },
+        { "name": "Wall Street Journal","url": "https://feeds.content.dowjones.io/public/rss/RSSUSnews",                   "tier": 1 }
+      ]
+    },
+    "europe": {
+      "label": "欧洲",
+      "sources": [
+        { "name": "BBC World",         "url": "https://feeds.bbci.co.uk/news/world/rss.xml",                               "tier": 1 },
+        { "name": "Guardian World",    "url": "https://www.theguardian.com/world/rss",                                     "tier": 1 },
+        { "name": "France 24",         "url": "https://www.france24.com/en/rss",                                           "tier": 1 },
+        { "name": "EuroNews",          "url": "https://www.euronews.com/rss?format=xml",                                   "tier": 2 },
+        { "name": "DW News",           "url": "https://rss.dw.com/xml/rss-en-all",                                          "tier": 1 },
+        { "name": "Le Monde",          "url": "https://www.lemonde.fr/en/rss/une.xml",                                     "tier": 1 },
+        { "name": "Der Spiegel",       "url": "https://www.spiegel.de/schlagzeilen/tops/index.rss",                       "tier": 2 }
+      ]
+    },
+    "middleeast": {
+      "label": "中东",
+      "sources": [
+        { "name": "Al Jazeera",        "url": "https://www.aljazeera.com/xml/rss/all.xml",                                  "tier": 1 },
+        { "name": "BBC Middle East",   "url": "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml",                   "tier": 1 },
+        { "name": "Iran International","url": "https://news.google.com/rss/search?q=site:iranintl.com+when:2d&hl=en-US&gl=US&ceid=US:en", "tier": 2 },
+        { "name": "Haaretz",           "url": "https://news.google.com/rss/search?q=site:haaretz.com+when:7d&hl=en-US&gl=US&ceid=US:en", "tier": 2 },
+        { "name": "Jerusalem Post",    "url": "https://www.jpost.com/rss/rssfeedsheadlines.aspx",                          "tier": 2 }
+      ]
+    },
+    "asia": {
+      "label": "亚太",
+      "sources": [
+        { "name": "BBC Asia",          "url": "https://feeds.bbci.co.uk/news/world/asia/rss.xml",                           "tier": 1 },
+        { "name": "The Diplomat",      "url": "https://thediplomat.com/feed/",                                             "tier": 2 },
+        { "name": "South China Morning Post","url": "https://www.scmp.com/rss/91/feed/",                                     "tier": 1 },
+        { "name": "Nikkei Asia",       "url": "https://news.google.com/rss/search?q=site:asia.nikkei.com+when:3d&hl=en-US&gl=US&ceid=US:en", "tier": 1 },
+        { "name": "Xinhua",            "url": "https://news.google.com/rss/search?q=site:xinhuanet.com+OR+Xinhua+when:1d&hl=en-US&gl=US&ceid=US:en", "tier": 1 },
+        { "name": "The Hindu",         "url": "https://www.thehindu.com/news/national/feeder/default.rss",                  "tier": 2 }
+      ]
+    },
+    "latam": {
+      "label": "拉美",
+      "sources": [
+        { "name": "BBC Latin America", "url": "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml",                 "tier": 2 },
+        { "name": "Reuters LatAm",     "url": "https://news.google.com/rss/search?q=site:reuters.com+(Brazil+OR+Mexico+OR+Argentina)+when:3d&hl=en-US&gl=US&ceid=US:en", "tier": 1 }
+      ]
+    },
+    "africa": {
+      "label": "非洲",
+      "sources": [
+        { "name": "BBC Africa",        "url": "https://feeds.bbci.co.uk/news/world/africa/rss.xml",                        "tier": 2 },
+        { "name": "Africa News",       "url": "https://news.google.com/rss/search?q=(Africa+OR+Nigeria+OR+Kenya+OR+%22South+Africa%22+OR+Ethiopia)+when:2d&hl=en-US&gl=US&ceid=US:en", "tier": 2 }
+      ]
+    },
+    "thinktanks": {
+      "label": "智库/分析",
+      "sources": [
+        { "name": "Foreign Policy",    "url": "https://foreignpolicy.com/feed/",                                            "tier": 1 },
+        { "name": "Atlantic Council",  "url": "https://www.atlanticcouncil.org/feed/",                                      "tier": 1 },
+        { "name": "Crisis Group",      "url": "https://www.crisisgroup.org/rss",                                           "tier": 1 },
+        { "name": "Brookings",         "url": "https://news.google.com/rss/search?q=site:brookings.edu+when:7d&hl=en-US&gl=US&ceid=US:en", "tier": 2 }
+      ]
+    },
+    "un_orgs": {
+      "label": "联合国/政府",
+      "sources": [
+        { "name": "UN News",           "url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml",                  "tier": 1 },
+        { "name": "WHO",               "url": "https://www.who.int/rss-feeds/news-english.xml",                            "tier": 1 },
+        { "name": "IAEA",              "url": "https://www.iaea.org/feeds/topnews",                                        "tier": 1 }
+      ]
+    }
+  },
+  "summary": {
+    "total_sources": 31,
+    "total_regions": 8,
+    "fallback_message": "今日信源不可用（worldmonitor 抓取失败/超时），板块已降级渲染。"
+  }
+}

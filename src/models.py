@@ -117,6 +117,11 @@ class RSSSourceConfig(BaseModel):
     url: HttpUrl
     enabled: bool = True
     category: Optional[str] = None
+    # 2026-07-24: dashboard-aggregation group. The four published boards
+    # are "global-news" (世界资讯), "ai-tech" (AI 科技), "embedded"
+    # (嵌入式/开源硬件), "finance" (财经/加密). A source without a group
+    # stays in the legacy single-board digest (Horizon 1.0 behaviour).
+    group: Optional[str] = None
 
 
 class RedditSubredditConfig(BaseModel):

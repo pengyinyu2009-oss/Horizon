@@ -112,6 +112,8 @@ class RSSScraper(BaseScraper):
                     metadata={
                         "feed_name": source.name,
                         "category": source.category,
+                        # 2026-07-24: 透传 group 字段供新版分榜路由使用
+                        "group": source.group,
                         "tags": [tag.term for tag in entry.get("tags", [])],
                     },
                 )
