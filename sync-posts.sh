@@ -24,7 +24,7 @@ done
 # 侧边栏:链接到 reports-html/ 下的渲染好的 .html(手机无 JS 也能看,不被 docsify 拦截)
 {
   echo "* [🏠 首页](reports-html/index.html)"
-  echo "* [📑 4 榜单导航](reports-html/index.html)"
+  echo "* [📑 5 榜单导航](reports-html/index.html)"
   echo ""
   echo "**📅 日报 / 周报(新→旧)**"
   echo ""
