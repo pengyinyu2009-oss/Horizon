@@ -1,9 +1,14 @@
 #!/bin/bash
 # Horizon 日报同步:GitHub master → 去 Jekyll front matter → 发布到 horizon.pyyaiai.com
+set -Eeuo pipefail
+
 LOG=/home/pengyinyu/Horizon-posts/sync.log
+trap 'rc=$?; echo "FAILED: $(date -Is) line=$LINENO exit=$rc" >> "$LOG"; exit "$rc"' ERR
+
 echo "===== $(date) sync =====" >> "$LOG"
 
-cd /home/pengyinyu/Horizon-posts && git pull --ff-only >> "$LOG" 2>&1
+cd /home/pengyinyu/Horizon-posts
+git pull --ff-only origin master >> "$LOG" 2>&1
 
 SRC=/home/pengyinyu/Horizon-posts/docs/_posts
 DST=/var/www/horizon-site/reports
@@ -34,14 +39,29 @@ done
   done
 } > /var/www/horizon-site/_sidebar.md
 
-echo "done: $(ls "$DST" | wc -l) reports" >> "$LOG"
-
 # 渲染静态 HTML(手机负一屏 webview 免 JS 可读)
 python3 /home/pengyinyu/Horizon-posts/render-html.py >> "$LOG" 2>&1
 
+# 渲染成功后再更新 latest，指向最新实际存在的日期页。
+ROOT=/var/www/horizon-site
+latest_html=$(
+  find "$ROOT/reports-html" -maxdepth 1 -type f -name '????-??-??.html' -printf '%f\n' \
+    | LC_ALL=C sort \
+    | tail -n 1
+)
+if [ -z "$latest_html" ]; then
+  echo "FAILED: no dated HTML report found" >> "$LOG"
+  exit 1
+fi
+latest_date="${latest_html%.html}"
+if ! grep -q "$latest_date" "$ROOT/reports-html/$latest_html"; then
+  echo "FAILED: latest report does not contain expected date: $latest_html" >> "$LOG"
+  exit 1
+fi
+ln -sfn "$latest_html" "$ROOT/reports-html/latest.html"
+
 # ===== 兼容链接发布(2026-07-23 新增)=====
 # 1) 旧负一屏链接 /YYYY/MM/DD/<sec>-zh.html → reports-html 跳转桩(保留锚点)
-ROOT=/var/www/horizon-site
 for f in "$ROOT/reports-html"/????-??-??-*-zh.html; do
   [ -e "$f" ] || continue
   b=$(basename "$f" .html)          # 2026-07-22-horizon-zh
@@ -60,8 +80,14 @@ for f in "$ROOT/reports-html"/????-??-??-*-zh.html; do
 done
 # 2) 旧 docsify 链接 /_posts/*.md → reports/*.md
 mkdir -p "$ROOT/_posts"
+find "$ROOT/_posts" -maxdepth 1 -xtype l -delete
 for f in "$ROOT/reports"/*.md; do
   [ -e "$f" ] || continue
   ln -sf "$f" "$ROOT/_posts/$(basename "$f")"
 done
+
+report_count=$(find "$DST" -maxdepth 1 -type f -name '*.md' | wc -l)
+deploy_sha=$(git rev-parse HEAD)
+echo "done: $report_count reports" >> "$LOG"
 echo "compat links done" >> "$LOG"
+echo "deployed: sha=$deploy_sha latest=$latest_html at=$(date -Is)" >> "$LOG"
