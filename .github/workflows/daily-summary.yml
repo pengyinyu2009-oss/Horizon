@@ -266,7 +266,9 @@ jobs:
           # flow through the same filename matcher.
           git fetch origin master --depth=1
           mkdir -p data/summaries
-          for f in $(git ls-tree -r --name-only origin/master docs/_posts/); do
+          # NUL-delimited listing: plain ls-tree quotes non-ASCII paths
+          # (core.quotePath) and word-splitting breaks on spaces.
+          git ls-tree -r --name-only -z origin/master docs/_posts/ | while IFS= read -r -d '' f; do
             base=$(basename "$f")
             git show "origin/master:$f" > "data/summaries/$base"
           done
@@ -316,7 +318,9 @@ jobs:
           # materialise master docs/_posts/ into it on every rollup job.
           git fetch origin master --depth=1
           mkdir -p data/summaries
-          for f in $(git ls-tree -r --name-only origin/master docs/_posts/); do
+          # NUL-delimited listing: plain ls-tree quotes non-ASCII paths
+          # (core.quotePath) and word-splitting breaks on spaces.
+          git ls-tree -r --name-only -z origin/master docs/_posts/ | while IFS= read -r -d '' f; do
             base=$(basename "$f")
             git show "origin/master:$f" > "data/summaries/$base"
           done
@@ -365,7 +369,9 @@ jobs:
           # materialise master docs/_posts/ into it on every rollup job.
           git fetch origin master --depth=1
           mkdir -p data/summaries
-          for f in $(git ls-tree -r --name-only origin/master docs/_posts/); do
+          # NUL-delimited listing: plain ls-tree quotes non-ASCII paths
+          # (core.quotePath) and word-splitting breaks on spaces.
+          git ls-tree -r --name-only -z origin/master docs/_posts/ | while IFS= read -r -d '' f; do
             base=$(basename "$f")
             git show "origin/master:$f" > "data/summaries/$base"
           done
