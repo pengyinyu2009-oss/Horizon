@@ -19,6 +19,7 @@ import json
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SUMMARIES_DIR = REPO_ROOT / "data" / "summaries"
@@ -336,8 +337,17 @@ def build_boards(items: list[dict], anchor_date: datetime, hours: int) -> tuple[
     return boards, stats
 
 
-def build_report(date_str: str, hours: int) -> dict:
-    summary_path = SUMMARIES_DIR / f"{date_str}-horizon-zh.md"
+def default_report_date() -> str:
+    """Return the current publication date in the production timezone."""
+    return datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d")
+
+
+def build_report(
+    date_str: str,
+    hours: int,
+    summary_path: Path | None = None,
+) -> dict:
+    summary_path = summary_path or SUMMARIES_DIR / f"{date_str}-horizon-zh.md"
     if not summary_path.exists():
         raise FileNotFoundError(f"summaries 不存在: {summary_path}")
     items = parse_items_from_summary(summary_path)
@@ -354,7 +364,7 @@ def build_report(date_str: str, hours: int) -> dict:
         "_meta": {
             "period": "daily",
             "date": date_str,
-            "purpose": f"ISS-026 返修接地样张 · 基于 data/summaries/{date_str}-horizon-zh.md 真实采集",
+            "purpose": f"ISS-026 血缘门禁 · 基于 {summary_path.name} 真实发布输入",
             "schema_version": "3.0",
             "generated_by": "scripts/build_report_json.py",
             "source_summary": summary_path.name,
@@ -362,7 +372,7 @@ def build_report(date_str: str, hours: int) -> dict:
             "in_window_items_count": stats["total_items_in_window"],
             "dropped_by_window": stats["dropped_by_window"],
             "window_hours": hours,
-            "grounding_policy": "每条 source_ref 指向 data/summaries/{summary_file}#{item_id}，100% 标题/URL grep 可溯源",
+            "grounding_policy": "每条 source_ref 指向发布输入 {summary_file}#{item_id}，100% 标题/URL grep 可溯源",
         },
         "date": date_str,
         "page_title": f"Horizon 日报 · {date_str}（{weekday}）",
@@ -381,12 +391,18 @@ def build_report(date_str: str, hours: int) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--date", required=True, help="日报日期 YYYY-MM-DD")
+    ap.add_argument(
+        "--date",
+        default=default_report_date(),
+        help="日报日期 YYYY-MM-DD；默认取 Asia/Shanghai 当天",
+    )
     ap.add_argument("--hours", type=int, default=48, help="时效窗口（默认 48h）")
+    ap.add_argument("--summary", default="", help="发布输入 Markdown；默认 data/summaries/{date}-horizon-zh.md")
     ap.add_argument("--out", default="", help="输出路径；默认 reports-html/data/{date}.json")
     args = ap.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    report = build_report(args.date, args.hours)
+    summary_path = Path(args.summary) if args.summary else None
+    report = build_report(args.date, args.hours, summary_path=summary_path)
     out_path = Path(args.out) if args.out else OUT_DIR / f"{args.date}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

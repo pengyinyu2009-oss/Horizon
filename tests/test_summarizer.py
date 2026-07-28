@@ -138,3 +138,28 @@ def test_generate_empty_summary_zh_uses_localized_analyzed_line():
 
     assert "> 已分析 10 条内容，但没有达到重要性阈值的条目。" in result
     assert "Analyzed 10 items" not in result
+
+
+def test_generate_summary_marks_scoring_service_fault():
+    summarizer = DailySummarizer()
+
+    result = _run_async(
+        summarizer.generate_summary(
+            [],
+            date="2026-07-28",
+            total_fetched=4,
+            language="zh",
+            scoring_failure={
+                "success_count": 0,
+                "failure_count": 4,
+                "failure_rate": 1.0,
+                "provider": "deepseek",
+                "model": "deepseek-chat",
+            },
+        )
+    )
+
+    assert result.startswith("# 【评分故障空报】")
+    assert "成功 0 条，失败 4 条" in result
+    assert "deepseek-chat" in result
+    assert "不代表今日无重要动态" in result

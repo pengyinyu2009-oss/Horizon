@@ -2,8 +2,11 @@ import asyncio
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
+import pytest
+from tenacity import wait_none
+
 import src.ai.analyzer as analyzer_module
-from src.ai.analyzer import ContentAnalyzer
+from src.ai.analyzer import ContentAnalyzer, scoring_failure_context
 from src.models import ContentItem, SourceType
 
 
@@ -94,3 +97,87 @@ def test_analyze_batch_concurrent_preserves_order(monkeypatch):
     result = asyncio.run(analyzer.analyze_batch(items))
 
     assert [item.id for item in result] == [item.id for item in items]
+
+
+def test_analyze_batch_logs_sanitized_failure_summary(monkeypatch, capsys):
+    class FakeResponse:
+        status_code = 400
+        text = '{"error":"invalid request","api_key":"super-secret"}'
+        headers = {"x-request-id": "req-123"}
+
+    class FakeHTTPError(Exception):
+        response = FakeResponse()
+
+    client = SimpleNamespace(
+        config=SimpleNamespace(
+            provider=SimpleNamespace(value="deepseek"),
+            model="deepseek-chat",
+        )
+    )
+    analyzer = ContentAnalyzer(client)
+    items = [_make_item("rss:test:ok"), _make_item("rss:test:failed")]
+
+    async def fake_analyze_item(item):
+        if item.id.endswith("failed"):
+            raise FakeHTTPError("request rejected")
+        item.ai_score = 8.0
+
+    monkeypatch.setattr(analyzer, "_analyze_item", fake_analyze_item)
+
+    result = asyncio.run(analyzer.analyze_batch(items))
+    output = capsys.readouterr().out
+
+    assert result[0].metadata["analysis_status"] == "ok"
+    assert result[1].metadata["analysis_status"] == "failed"
+    assert "analysis_batch success=1 failure=1" in output
+    assert "provider=deepseek model=deepseek-chat" in output
+    assert "http_status=400" in output
+    assert "request_id=req-123" in output
+    assert "super-secret" not in output
+    assert '"api_key":"[REDACTED]"' in output
+
+
+def test_analyze_item_reraises_root_cause_after_retries(monkeypatch):
+    class FakeHTTPError(Exception):
+        pass
+
+    attempts = 0
+
+    async def fail_completion(**_kwargs):
+        nonlocal attempts
+        attempts += 1
+        raise FakeHTTPError("HTTP 400")
+
+    analyzer = ContentAnalyzer(SimpleNamespace(complete=fail_completion))
+    monkeypatch.setattr(ContentAnalyzer._analyze_item.retry, "wait", wait_none())
+
+    with pytest.raises(FakeHTTPError, match="HTTP 400"):
+        asyncio.run(analyzer._analyze_item(_make_item("rss:test:failed")))
+
+    assert attempts == 3
+
+
+def test_scoring_failure_context_only_flags_more_than_half_failed():
+    client = SimpleNamespace(
+        config=SimpleNamespace(
+            provider=SimpleNamespace(value="deepseek"),
+            model="deepseek-chat",
+        )
+    )
+    half_failed = [_make_item("ok"), _make_item("failed")]
+    half_failed[0].metadata["analysis_status"] = "ok"
+    half_failed[1].metadata["analysis_status"] = "failed"
+
+    assert scoring_failure_context(half_failed, client) is None
+
+    all_failed = [_make_item("failed-1"), _make_item("failed-2")]
+    for item in all_failed:
+        item.metadata["analysis_status"] = "failed"
+
+    assert scoring_failure_context(all_failed, client) == {
+        "success_count": 0,
+        "failure_count": 2,
+        "failure_rate": 1.0,
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+    }

@@ -13,6 +13,92 @@ from .utils import parse_json_response
 from ..models import ContentItem
 
 DEFAULT_THROTTLE_SEC = 0.0
+ANALYSIS_STATUS_KEY = "analysis_status"
+ANALYSIS_STATUS_OK = "ok"
+ANALYSIS_STATUS_FAILED = "failed"
+ERROR_BODY_LIMIT = 500
+SCORING_FAILURE_RATE_THRESHOLD = 0.5
+
+
+def _redact_error_text(text: str) -> str:
+    """Remove common credential shapes before an upstream error is logged."""
+    redacted = re.sub(
+        r"(?i)([\"']?(?:api[_-]?key|authorization|access[_-]?token|token|secret)"
+        r"[\"']?\s*[:=]\s*[\"']?)([^\"',}\s]+)",
+        r"\1[REDACTED]",
+        text,
+    )
+    redacted = re.sub(r"(?i)\bBearer\s+\S+", "Bearer [REDACTED]", redacted)
+    redacted = re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "sk-[REDACTED]", redacted)
+    return " ".join(redacted.split())[:ERROR_BODY_LIMIT]
+
+
+def _error_details(error: Exception) -> tuple[str, str, str]:
+    """Return sanitized (HTTP status, request id, response summary)."""
+    def safe_getattr(value, name, default=None):
+        try:
+            return getattr(value, name, default)
+        except Exception:
+            return default
+
+    response = safe_getattr(error, "response")
+    status = safe_getattr(error, "status_code")
+    if status is None and response is not None:
+        status = safe_getattr(response, "status_code")
+
+    request_id = safe_getattr(error, "request_id")
+    headers = safe_getattr(response, "headers", {}) if response is not None else {}
+    if not request_id and hasattr(headers, "get"):
+        request_id = headers.get("x-request-id") or headers.get("request-id")
+
+    body = safe_getattr(error, "body")
+    if body is None and response is not None:
+        body = safe_getattr(response, "text")
+    if body is None:
+        body = str(error)
+    if not isinstance(body, str):
+        try:
+            body = json.dumps(body, ensure_ascii=False)
+        except (TypeError, ValueError):
+            body = str(body)
+
+    return (
+        str(status) if status is not None else "n/a",
+        str(request_id) if request_id else "n/a",
+        _redact_error_text(body),
+    )
+
+
+def _client_identity(client: AIClient) -> tuple[str, str]:
+    config = getattr(client, "config", None)
+    provider = getattr(config, "provider", None) or getattr(client, "provider", "unknown")
+    provider = getattr(provider, "value", provider)
+    model = getattr(config, "model", None) or getattr(client, "model", "unknown")
+    return str(provider), str(model)
+
+
+def scoring_failure_context(
+    items: List[ContentItem],
+    client: AIClient,
+    threshold: float = SCORING_FAILURE_RATE_THRESHOLD,
+) -> Optional[dict]:
+    """Describe an unreliable scoring batch, or return None when it is usable."""
+    failure_count = sum(
+        item.metadata.get(ANALYSIS_STATUS_KEY) == ANALYSIS_STATUS_FAILED
+        for item in items
+    )
+    success_count = len(items) - failure_count
+    failure_rate = failure_count / len(items) if items else 0.0
+    if failure_rate <= threshold:
+        return None
+    provider, model = _client_identity(client)
+    return {
+        "success_count": success_count,
+        "failure_count": failure_count,
+        "failure_rate": failure_rate,
+        "provider": provider,
+        "model": model,
+    }
 
 
 class ContentAnalyzer:
@@ -45,16 +131,31 @@ class ContentAnalyzer:
         throttle_sec = self._get_throttle_sec()
         concurrency = self._get_concurrency()
         semaphore = asyncio.Semaphore(concurrency)
+        provider, model = _client_identity(self.client)
+        success_count = 0
+        failure_count = 0
 
         async def _process(item: ContentItem, index: int, progress_task) -> ContentItem:
+            nonlocal success_count, failure_count
             async with semaphore:
                 try:
                     await self._analyze_item(item)
+                    item.metadata[ANALYSIS_STATUS_KEY] = ANALYSIS_STATUS_OK
+                    success_count += 1
                 except Exception as e:
-                    print(f"Error analyzing item {item.id}: {e}")
+                    status, request_id, body = _error_details(e)
+                    print(
+                        "analysis_failure "
+                        f"item={item.id} provider={provider} model={model} "
+                        f"http_status={status} request_id={request_id} "
+                        f"error_type={type(e).__name__} body={body}"
+                    )
                     item.ai_score = 0.0
                     item.ai_reason = "Analysis failed"
                     item.ai_summary = item.title
+                    item.ai_tags = []
+                    item.metadata[ANALYSIS_STATUS_KEY] = ANALYSIS_STATUS_FAILED
+                    failure_count += 1
                 if throttle_sec > 0 and index < len(items) - 1:
                     await asyncio.sleep(throttle_sec)
             progress.advance(progress_task)
@@ -73,11 +174,19 @@ class ContentAnalyzer:
             ]
             analyzed_items = await asyncio.gather(*coros)
 
+        total = success_count + failure_count
+        failure_rate = failure_count / total if total else 0.0
+        print(
+            "analysis_batch "
+            f"success={success_count} failure={failure_count} "
+            f"provider={provider} model={model} failure_rate={failure_rate:.1%}"
+        )
         return analyzed_items
 
     @retry(
         stop=stop_after_attempt(3),
-        wait=wait_exponential(min=2, max=10)
+        wait=wait_exponential(min=2, max=10),
+        reraise=True,
     )
     async def _analyze_item(self, item: ContentItem) -> None:
         """Analyze a single content item.
@@ -152,12 +261,9 @@ class ContentAnalyzer:
         # Parse JSON response with robust fallback
         result = self._parse_json_response(response)
         if result is None:
-            print(f"Warning: could not parse analysis response for {item.id}, using defaults")
-            item.ai_score = 0.0
-            item.ai_reason = "Analysis response parse failed"
-            item.ai_summary = item.title
-            item.ai_tags = []
-            return
+            raise ValueError(
+                f"could not parse analysis response: {_redact_error_text(response)}"
+            )
 
         # Update item with analysis results
         item.ai_score = float(result.get("score", 0))

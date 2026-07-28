@@ -26,10 +26,24 @@ SITE = "https://horizon.pyyaiai.com"  # apex/www 的 /2026/... 日报链接曾 4
 STATS_RE = re.compile(r"^>\s*(从\s*\d+\s*条内容中筛选出\s*\d+\s*条重要资讯。)", re.M)
 DETAIL_RE = re.compile(r"其中\s*\*\*(\d+)\s*条\s*8\s*分以上\*\*")
 INDEX_RE = re.compile(r"^\d+\.\s+\[(.+?)\]\(#item-\d+\)\s*⭐️\s*([\d.]+)", re.M)
+SCORING_FAULT_MARKER = "【评分故障空报】"
 
 
 def build_digest(date_str: str, md: str) -> tuple[str, str, str]:
     """从日报 markdown 提取摘要卡片内容。返回 (task_name, task_content, task_result)"""
+    post_url = f"{SITE}/reports-html/{date_str}.html"
+    if SCORING_FAULT_MARKER in md:
+        return (
+            f"⚠️ Horizon 评分故障 · {date_str}",
+            (
+                f"# ⚠️ {SCORING_FAULT_MARKER} · {date_str}\n\n"
+                "评分服务高比例失败，本次日报仅发布故障占位页，"
+                "不代表今日无重要动态。\n\n"
+                f"[查看故障页]({post_url})"
+            ),
+            "生成失败：评分服务异常",
+        )
+
     stats_m = STATS_RE.search(md)
     stats = stats_m.group(1).rstrip("。") if stats_m else "今日日报已生成"
     detail_m = DETAIL_RE.search(md)
@@ -37,11 +51,10 @@ def build_digest(date_str: str, md: str) -> tuple[str, str, str]:
 
     items = INDEX_RE.findall(md)
     lines = [f"{i}. ⭐{score} {title}" for i, (title, score) in enumerate(items, 1)]
-    index_block = "\n".join(lines) if lines else "（未解析到索引）"
+    index_block = "\n".join(lines) if lines else "（有效分析后零入选）"
 
     # 负一屏 webview 不跑 JS：必须指 reports-html 静态页，不能指 docsify 壳
     # （/YYYY/MM/DD/horizon-zh.html 会永远「加载中」）
-    post_url = f"{SITE}/reports-html/{date_str}.html"
     # 合并日页内 GitHub 热榜段锚点（render 产物为同日 {date}.html）
     oshw_url = f"{SITE}/reports-html/{date_str}.html#oshw"
 
@@ -57,8 +70,25 @@ def build_digest(date_str: str, md: str) -> tuple[str, str, str]:
     if len(task_content) > 4500:
         task_content = task_content[:4500] + "\n…（更多见完整日报）"
 
-    task_result = f"已生成 · {len(items)} 条入选" if items else "已生成"
+    task_result = (
+        f"已生成 · {len(items)} 条入选"
+        if items
+        else "已生成 · 0 条入选（有效分析零入选）"
+    )
     return task_name, task_content, task_result
+
+
+def build_alert(
+    date_str: str,
+    message: str,
+    result: str,
+) -> tuple[str, str, str]:
+    """Build a release-pipeline alert for the same Hiboard channel."""
+    return (
+        f"⚠️ Horizon 发布告警 · {date_str}",
+        f"# ⚠️ Horizon 发布告警 · {date_str}\n\n{message}",
+        result,
+    )
 
 
 def push(task_name: str, task_content: str, task_result: str) -> int:
@@ -95,6 +125,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="推送 Horizon 日报到鸿蒙负一屏")
     ap.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"), help="日报日期 YYYY-MM-DD")
     ap.add_argument("--test", action="store_true", help="发送测试卡片")
+    ap.add_argument("--alert-content", default="", help="直接发送发布故障告警正文")
+    ap.add_argument("--alert-result", default="", help="发布故障告警结果摘要")
     args = ap.parse_args()
 
     if args.test:
@@ -104,6 +136,11 @@ def main() -> int:
             f"# ✅ Horizon 负一屏推送测试\n\n通道已打通，每天 08:17 日报生成后将自动推送到这里。\n\n测试时间：{args.date} {now}",
             "测试成功",
         )
+
+    if args.alert_content or args.alert_result:
+        if not args.alert_content or not args.alert_result:
+            ap.error("--alert-content 与 --alert-result 必须同时提供")
+        return push(*build_alert(args.date, args.alert_content, args.alert_result))
 
     md_path = ROOT / "data" / "summaries" / f"{args.date}-horizon-zh.md"
     if not md_path.exists():

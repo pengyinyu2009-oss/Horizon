@@ -3,7 +3,7 @@
 import asyncio
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from urllib.parse import urlparse
 import httpx
 from rich.console import Console
@@ -21,7 +21,7 @@ from .scrapers.twitter import TwitterScraper
 from .scrapers.openbb import OpenBBScraper
 from .scrapers.ossinsight import OSSInsightScraper
 from .ai.client import create_ai_client
-from .ai.analyzer import ContentAnalyzer
+from .ai.analyzer import ContentAnalyzer, scoring_failure_context
 from .ai.summarizer import (
     DailySummarizer,
     WeeklySummarizer,
@@ -30,6 +30,10 @@ from .ai.summarizer import (
 )
 from .ai.enricher import ContentEnricher
 from .ai.tokens import get_usage_snapshot
+
+
+class ScoringServiceFailure(RuntimeError):
+    """Raised after a scoring-fault report has been persisted."""
 
 
 class HorizonOrchestrator:
@@ -92,8 +96,17 @@ class HorizonOrchestrator:
                 )
 
             # 4. Analyze with AI
-            analyzed_items = await self._analyze_content(merged_items)
+            analyzed_items, scoring_failure = await self._analyze_content(merged_items)
             self.console.print(f"🤖 Analyzed {len(analyzed_items)} items with AI\n")
+            if scoring_failure:
+                self.console.print(
+                    "[bold red]SCORING_SERVICE_FAULT "
+                    f"success={scoring_failure['success_count']} "
+                    f"failure={scoring_failure['failure_count']} "
+                    f"failure_rate={scoring_failure['failure_rate']:.1%} "
+                    f"provider={scoring_failure['provider']} "
+                    f"model={scoring_failure['model']}[/bold red]\n"
+                )
 
             # 5. Filter by score threshold
             threshold = self.config.filtering.ai_score_threshold
@@ -148,6 +161,7 @@ class HorizonOrchestrator:
                     len(all_items),
                     language=lang,
                     full_threshold=full_threshold,
+                    scoring_failure=scoring_failure,
                 )
 
                 # Save to data/summaries/
@@ -193,6 +207,15 @@ class HorizonOrchestrator:
                         lang=lang,
                         summarizer=summarizer,
                     )
+
+            if scoring_failure:
+                raise ScoringServiceFailure(
+                    "评分服务故障：故障空报已生成；"
+                    f"成功 {scoring_failure['success_count']} 条，"
+                    f"失败 {scoring_failure['failure_count']} 条，"
+                    f"provider/model={scoring_failure['provider']}/"
+                    f"{scoring_failure['model']}"
+                )
 
             self.console.print("[bold green]✅ Horizon completed successfully![/bold green]")
             usage = get_usage_snapshot()
@@ -537,7 +560,9 @@ class HorizonOrchestrator:
         await enricher.enrich_batch(items)
         self.console.print(f"   Enriched {len(items)} items\n")
 
-    async def _analyze_content(self, items: List[ContentItem]) -> List[ContentItem]:
+    async def _analyze_content(
+        self, items: List[ContentItem]
+    ) -> Tuple[List[ContentItem], Optional[dict]]:
         """Analyze content items with AI.
 
         Args:
@@ -551,7 +576,8 @@ class HorizonOrchestrator:
         ai_client = create_ai_client(self.config.ai)
         analyzer = ContentAnalyzer(ai_client)
 
-        return await analyzer.analyze_batch(items)
+        analyzed_items = await analyzer.analyze_batch(items)
+        return analyzed_items, scoring_failure_context(analyzed_items, ai_client)
 
     async def _generate_summary(
         self,

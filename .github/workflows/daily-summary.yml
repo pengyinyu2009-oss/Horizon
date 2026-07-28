@@ -151,7 +151,9 @@ jobs:
         run: cp data/config.github.json data/config.json
 
       - name: Run Horizon
+        id: primary_run
         if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon --hours 24
@@ -165,8 +167,14 @@ jobs:
           cp data/config.ee.json data/config.json
           DATE=$(date -u +'%Y-%m-%d')
           cp "data/summaries/${DATE}-horizon-zh.md" "/tmp/${DATE}-horizon-zh.md.bak" || true
+          set +e
           uv run horizon --hours 24
-          mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-ee-zh.md"
+          RUN_RC=$?
+          set -e
+          if [ -f "data/summaries/${DATE}-horizon-zh.md" ]; then
+            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-ee-zh.md"
+          fi
+          exit "$RUN_RC"
 
       - name: Run Horizon (embedded edition)
         if: steps.gate.outputs.should_run == 'true'
@@ -175,9 +183,15 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.embedded.json data/config.json
-          uv run horizon --hours 24
           DATE=$(date -u +'%Y-%m-%d')
-          mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-embedded-zh.md"
+          set +e
+          uv run horizon --hours 24
+          RUN_RC=$?
+          set -e
+          if [ -f "data/summaries/${DATE}-horizon-zh.md" ]; then
+            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-embedded-zh.md"
+          fi
+          exit "$RUN_RC"
 
       - name: Run Horizon (OSHW edition)
         if: steps.gate.outputs.should_run == 'true'
@@ -186,10 +200,16 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.oshw.json data/config.json
-          uv run horizon --hours 24
           DATE=$(date -u +'%Y-%m-%d')
-          mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-oshw-zh.md"
+          set +e
+          uv run horizon --hours 24
+          RUN_RC=$?
+          set -e
+          if [ -f "data/summaries/${DATE}-horizon-zh.md" ]; then
+            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-oshw-zh.md"
+          fi
           cp "/tmp/${DATE}-horizon-zh.md.bak" "data/summaries/${DATE}-horizon-zh.md" || true
+          exit "$RUN_RC"
 
       - name: Append OSHW observations
         if: steps.gate.outputs.should_run == 'true'
@@ -212,6 +232,8 @@ jobs:
       - name: Deploy docs to master for Pages
         if: steps.gate.outputs.should_run == 'true'
         run: |
+          DATE=$(date -u +'%Y-%m-%d')
+          test -s "data/summaries/${DATE}-horizon-zh.md"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # -f: force discard local changes when switching branches
@@ -238,6 +260,12 @@ jobs:
             git commit -m "📝 Daily Summary: $DATE"
             git push origin master
           fi
+
+      - name: Mark primary scoring/generation failure after publishing incident page
+        if: steps.gate.outputs.should_run == 'true' && steps.primary_run.outcome == 'failure'
+        run: |
+          echo "::error::Primary Horizon run failed. Its persisted incident report was published to master for downstream alerting."
+          exit 1
 
   weekly-summary:
     runs-on: ubuntu-latest

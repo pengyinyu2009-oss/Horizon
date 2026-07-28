@@ -210,12 +210,18 @@ class DailySummarizer:
         total_fetched: int,
         language: str = "en",
         full_threshold: float = 8.0,
+        scoring_failure: Optional[Dict[str, object]] = None,
     ) -> str:
         """Generate daily summary in Markdown format.
 
         Items are rendered in score-descending order (already sorted by orchestrator).
         """
         labels = LABELS.get(language, LABELS["en"])
+
+        if scoring_failure:
+            return self._generate_scoring_failure_summary(
+                date, total_fetched, scoring_failure
+            )
 
         if not items:
             return self._generate_empty_summary(date, total_fetched, labels)
@@ -447,6 +453,27 @@ class DailySummarizer:
             f"# {labels['header']} - {date}\n\n"
             f"> {labels['empty_analyzed'].format(total=total_fetched)}\n\n"
             + labels["empty_body"]
+        )
+
+    def _generate_scoring_failure_summary(
+        self,
+        date: str,
+        total_fetched: int,
+        failure: Dict[str, object],
+    ) -> str:
+        """Generate an explicit incident page when scoring is unreliable."""
+        success_count = int(failure.get("success_count", 0))
+        failure_count = int(failure.get("failure_count", 0))
+        failure_rate = float(failure.get("failure_rate", 0.0))
+        provider = str(failure.get("provider", "unknown"))
+        model = str(failure.get("model", "unknown"))
+        return (
+            f"# 【评分故障空报】Horizon 每日简报 - {date}\n\n"
+            f"> 评分服务故障：共抓取 {total_fetched} 条，评分成功 {success_count} 条，"
+            f"失败 {failure_count} 条（失败率 {failure_rate:.1%}）。\n\n"
+            f"> provider/model：`{provider}/{model}`\n\n"
+            "⚠️ 生成失败：评分服务异常。本页仅用于故障告警，"
+            "不代表今日无重要动态。\n"
         )
 
 

@@ -32,7 +32,11 @@ def _normalize_text(text: str) -> str:
     return re.sub(r"\s+", "", text or "")
 
 
-def check_lineage(report: dict, hours: int = 48) -> dict:
+def check_lineage(
+    report: dict,
+    hours: int = 48,
+    summaries_dir: Path = SUMMARIES_DIR,
+) -> dict:
     """执行血缘自检，返回详细报告。"""
     date_str = report.get("date", "")
     anchor_date = datetime.strptime(date_str, "%Y-%m-%d")
@@ -44,7 +48,7 @@ def check_lineage(report: dict, hours: int = 48) -> dict:
 
     def load_summary(filename: str) -> str:
         if filename not in summary_cache:
-            path = SUMMARIES_DIR / filename
+            path = summaries_dir / filename
             if path.exists():
                 summary_cache[filename] = path.read_text(encoding="utf-8")
             else:
@@ -135,10 +139,10 @@ def check_lineage(report: dict, hours: int = 48) -> dict:
     return {
         "date": date_str,
         "total_items": title_total,
-        "title_lineage_pct": round(100 * title_ok / title_total, 1) if title_total else 0,
-        "url_lineage_pct": round(100 * url_ok / url_total, 1) if url_total else 0,
-        "anchor_lineage_pct": round(100 * anchor_ok / anchor_total, 1) if anchor_total else 0,
-        "window_pass_pct": round(100 * window_ok / window_total, 1) if window_total else 0,
+        "title_lineage_pct": round(100 * title_ok / title_total, 1) if title_total else 100,
+        "url_lineage_pct": round(100 * url_ok / url_total, 1) if url_total else 100,
+        "anchor_lineage_pct": round(100 * anchor_ok / anchor_total, 1) if anchor_total else 100,
+        "window_pass_pct": round(100 * window_ok / window_total, 1) if window_total else 100,
         "title_ok": title_ok, "url_ok": url_ok, "anchor_ok": anchor_ok, "window_ok": window_ok,
         "items_detail": items_detail,
         "window_start": window_start.isoformat(),
@@ -150,14 +154,17 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", required=True)
     ap.add_argument("--hours", type=int, default=48)
+    ap.add_argument("--report", default="", help="待检查 JSON；默认 reports-html/data/{date}.json")
+    ap.add_argument("--summaries-dir", default="", help="source_ref 指向的 Markdown 目录")
     ap.add_argument("--json-out", default="")
     args = ap.parse_args()
-    json_path = DATA_DIR / f"{args.date}.json"
+    json_path = Path(args.report) if args.report else DATA_DIR / f"{args.date}.json"
     if not json_path.exists():
         print(f"❌ {json_path} 不存在", file=sys.stderr)
         return 2
     report = json.loads(json_path.read_text(encoding="utf-8"))
-    lineage = check_lineage(report, args.hours)
+    summaries_dir = Path(args.summaries_dir) if args.summaries_dir else SUMMARIES_DIR
+    lineage = check_lineage(report, args.hours, summaries_dir=summaries_dir)
     # 终端输出
     print("=" * 64)
     print(f"【ISS-026 血缘自检】 {args.date} (window={args.hours}h)")

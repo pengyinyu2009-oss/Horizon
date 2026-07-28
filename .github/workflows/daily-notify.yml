@@ -117,6 +117,37 @@ jobs:
             echo "No state file — proceeding with push."
           fi
 
+      - name: Verify dated report is publicly readable
+        if: steps.gate.outputs.should_run == 'true' && steps.dedup.outputs.already_pushed != 'true'
+        env:
+          DATE_INPUT: ${{ inputs.date }}
+          PAGES_BASE: 'https://horizon.pyyaiai.com'
+        run: |
+          set -eu
+          if [ -n "$DATE_INPUT" ]; then
+            DATE="$DATE_INPUT"
+          else
+            DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          fi
+          URL="${PAGES_BASE}/reports-html/${DATE}.html"
+          BODY=$(mktemp)
+          trap 'rm -f "$BODY"' EXIT
+          STATUS=$(curl -sS -L --max-time 30 -o "$BODY" -w '%{http_code}' "$URL")
+          echo "Public report probe: url=$URL status=$STATUS bytes=$(wc -c < "$BODY")"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Published report is not ready (HTTP $STATUS): $URL"
+            exit 1
+          fi
+          if ! grep -Fq "$DATE" "$BODY"; then
+            echo "::error::Published report does not contain expected date $DATE"
+            exit 1
+          fi
+          if grep -Fq '<div id="app">加载中' "$BODY"; then
+            echo "::error::Published report resolved to the Docsify shell"
+            exit 1
+          fi
+          echo "Public report verified before Hiboard push."
+
       - name: Push to hiboard (华为负一屏)
         if: steps.gate.outputs.should_run == 'true' && steps.dedup.outputs.already_pushed != 'true'
         env:
