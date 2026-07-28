@@ -157,6 +157,24 @@ def test_analyze_item_reraises_root_cause_after_retries(monkeypatch):
     assert attempts == 3
 
 
+@pytest.mark.parametrize("response", ["{}", '{"score": "not-a-number"}', '{"score": 11}'])
+def test_analyze_item_rejects_invalid_scoring_schema(monkeypatch, response):
+    attempts = 0
+
+    async def invalid_completion(**_kwargs):
+        nonlocal attempts
+        attempts += 1
+        return response
+
+    analyzer = ContentAnalyzer(SimpleNamespace(complete=invalid_completion))
+    monkeypatch.setattr(ContentAnalyzer._analyze_item.retry, "wait", wait_none())
+
+    with pytest.raises(ValueError, match="invalid analysis score"):
+        asyncio.run(analyzer._analyze_item(_make_item("rss:test:invalid-schema")))
+
+    assert attempts == 3
+
+
 def test_scoring_failure_context_only_flags_more_than_half_failed():
     client = SimpleNamespace(
         config=SimpleNamespace(

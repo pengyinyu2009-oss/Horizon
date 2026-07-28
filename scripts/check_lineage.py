@@ -136,8 +136,14 @@ def check_lineage(
                 "item_id": item_id, "summary_file": summary_file,
             })
 
+    passed = (
+        title_total == title_ok
+        and url_total == url_ok
+        and anchor_total == anchor_ok
+    )
     return {
         "date": date_str,
+        "passed": passed,
         "total_items": title_total,
         "title_lineage_pct": round(100 * title_ok / title_total, 1) if title_total else 100,
         "url_lineage_pct": round(100 * url_ok / url_total, 1) if url_total else 100,
@@ -187,11 +193,7 @@ def main() -> int:
         print(f"  [{it['board']:9s}] {marks} {it['title']}")
         if it.get("item_id"):
             print(f"           ref: {it['summary_file']}#{it['item_id']}, published={it.get('published','-')}")
-    all_ok = (
-        lineage["title_lineage_pct"] == 100
-        and lineage["url_lineage_pct"] == 100
-        and lineage["anchor_lineage_pct"] == 100
-    )
+    all_ok = lineage["passed"]
     print()
     print(f"结论: {'✅ 100% 血缘溯源' if all_ok else '❌ 血缘溯源未达 100%'}")
     if args.json_out:

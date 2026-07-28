@@ -146,7 +146,35 @@ jobs:
             echo "::error::Published report resolved to the Docsify shell"
             exit 1
           fi
-          echo "Public report verified before Hiboard push."
+
+          # The VPS may intentionally publish the dated page while retaining
+          # the old latest.html when lineage fails. Require the public lineage
+          # artifact as well, otherwise this workflow would contradict the VPS
+          # failure alert with a second, normal "daily generated" card.
+          LINEAGE_URL="${PAGES_BASE}/reports-html/data/${DATE}-lineage.json"
+          LINEAGE_BODY=$(mktemp)
+          trap 'rm -f "$BODY" "$LINEAGE_BODY"' EXIT
+          LINEAGE_STATUS=$(curl -sS -L --max-time 30 \
+            -o "$LINEAGE_BODY" -w '%{http_code}' "$LINEAGE_URL")
+          echo "Public lineage probe: url=$LINEAGE_URL status=$LINEAGE_STATUS bytes=$(wc -c < "$LINEAGE_BODY")"
+          if [ "$LINEAGE_STATUS" != "200" ]; then
+            echo "::error::Published lineage is not ready (HTTP $LINEAGE_STATUS): $LINEAGE_URL"
+            exit 1
+          fi
+          python3 - "$LINEAGE_BODY" "$DATE" <<'PY'
+          import json
+          import sys
+
+          path, expected_date = sys.argv[1:]
+          with open(path, encoding="utf-8") as stream:
+              lineage = json.load(stream)
+          if lineage.get("date") != expected_date or lineage.get("passed") is not True:
+              raise SystemExit(
+                  "public lineage has not passed: "
+                  f"date={lineage.get('date')} passed={lineage.get('passed')}"
+              )
+          PY
+          echo "Public report and lineage verified before Hiboard push."
 
       - name: Push to hiboard (华为负一屏)
         if: steps.gate.outputs.should_run == 'true' && steps.dedup.outputs.already_pushed != 'true'

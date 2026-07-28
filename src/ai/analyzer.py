@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import math
 import re
 from typing import List, Optional
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -260,13 +261,28 @@ class ContentAnalyzer:
 
         # Parse JSON response with robust fallback
         result = self._parse_json_response(response)
-        if result is None:
+        if not isinstance(result, dict):
             raise ValueError(
                 f"could not parse analysis response: {_redact_error_text(response)}"
             )
 
         # Update item with analysis results
-        item.ai_score = float(result.get("score", 0))
+        score_value = result.get("score")
+        try:
+            if isinstance(score_value, bool):
+                raise TypeError("boolean is not a score")
+            score = float(score_value)
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                "invalid analysis score "
+                f"in response: {_redact_error_text(response)}"
+            ) from error
+        if not math.isfinite(score) or not 0 <= score <= 10:
+            raise ValueError(
+                "invalid analysis score "
+                f"in response: {_redact_error_text(response)}"
+            )
+        item.ai_score = score
         item.ai_reason = result.get("reason", "")
         item.ai_summary = result.get("summary", item.title)
         item.ai_tags = result.get("tags", [])

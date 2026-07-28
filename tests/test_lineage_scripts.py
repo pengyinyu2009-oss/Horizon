@@ -32,3 +32,4 @@ def test_empty_but_valid_report_has_complete_vacuous_lineage(tmp_path):
     assert lineage["title_lineage_pct"] == 100
     assert lineage["url_lineage_pct"] == 100
     assert lineage["anchor_lineage_pct"] == 100
+    assert lineage["passed"] is True
