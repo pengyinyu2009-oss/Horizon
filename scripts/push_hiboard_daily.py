@@ -11,6 +11,7 @@
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -27,6 +28,13 @@ STATS_RE = re.compile(r"^>\s*(从\s*\d+\s*条内容中筛选出\s*\d+\s*条重�
 DETAIL_RE = re.compile(r"其中\s*\*\*(\d+)\s*条\s*8\s*分以上\*\*")
 INDEX_RE = re.compile(r"^\d+\.\s+\[(.+?)\]\(#item-\d+\)\s*⭐️\s*([\d.]+)", re.M)
 SCORING_FAULT_MARKER = "【评分故障空报】"
+
+
+def push_python() -> str:
+    """Use the project venv when healthy, otherwise keep alerts independent."""
+    if VENV_PY.is_file() and os.access(VENV_PY, os.X_OK):
+        return str(VENV_PY)
+    return sys.executable
 
 
 def build_digest(date_str: str, md: str) -> tuple[str, str, str]:
@@ -104,7 +112,7 @@ def push(task_name: str, task_content: str, task_result: str) -> int:
         tmp = f.name
     try:
         proc = subprocess.run(
-            [str(VENV_PY), str(SKILL_PUSH), "--data", tmp],
+            [push_python(), str(SKILL_PUSH), "--data", tmp],
             capture_output=True,
             text=True,
             timeout=120,

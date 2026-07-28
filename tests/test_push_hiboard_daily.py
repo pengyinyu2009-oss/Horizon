@@ -1,3 +1,6 @@
+import sys
+
+import scripts.push_hiboard_daily as push_module
 from scripts.push_hiboard_daily import build_alert, build_digest
 
 
@@ -38,3 +41,11 @@ def test_build_alert_supports_publish_lineage_failures():
     assert name == "⚠️ Horizon 发布告警 · 2026-07-28"
     assert "血缘自检未达 100%" in content
     assert result == "生成失败：血缘自检异常"
+
+
+def test_push_runner_falls_back_to_current_python_when_venv_is_missing(
+    monkeypatch, tmp_path
+):
+    monkeypatch.setattr(push_module, "VENV_PY", tmp_path / "missing-python")
+
+    assert push_module.push_python() == sys.executable
