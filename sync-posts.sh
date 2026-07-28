@@ -114,6 +114,10 @@ fi
 python3 "$REPO_DIR/render-html.py" \
   --src "$DST" \
   --dst "$STAGING_DIR" >> "$LOG" 2>&1
+# mktemp creates the staging root as 0700. The directory becomes nginx's
+# live reports-html after exchange, so make every directory traversable and
+# every artifact readable before it can enter the web root.
+chmod -R a+rX "$STAGING_DIR"
 
 # 在切换前保留旧 latest 目标。血缘失败时它继续指向旧业务日期。
 previous_latest=""
