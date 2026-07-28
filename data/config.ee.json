@@ -1,5 +1,6 @@
 {
   "version": "1.0",
+  "_comment": "电子工程师榜（ee+embedded+oshw 三榜合并）：聚焦开源硬件/新技术/值得复刻与学习。GitHub Trending RSS 已剥离至 github-trending 榜。沿用 OSHW 可复刻三段式口径。",
   "ai": {
     "provider": "deepseek",
     "model": "deepseek-chat",
@@ -13,27 +14,16 @@
       "zh"
     ],
     "prompt_overrides": {
-      "analysis_system": "You are an expert content curator helping filter important technical and academic information.\n\nScore content on a 0-10 scale based on importance and relevance:\n\n**9-10: Groundbreaking** - Major breakthroughs, paradigm shifts, or highly significant announcements\n- New major version releases of widely-used technologies\n- Significant research breakthroughs\n- Important industry-changing announcements\n\n**7-8: High Value** - Important developments worth immediate attention\n- Interesting technical deep-dives\n- Novel approaches to known problems\n- Insightful analysis or commentary\n- Valuable tools or libraries\n\n**5-6: Interesting** - Worth knowing but not urgent\n- Incremental improvements\n- Useful tutorials\n- Moderate community interest\n\n**3-4: Low Priority** - Generic or routine content\n- Minor updates\n- Common knowledge\n- Overly promotional content\n\n**0-2: Noise** - Not relevant or low quality\n- Spam or purely promotional\n- Off-topic content\n- Trivial updates\n\nConsider:\n- Technical depth and novelty\n- Potential impact on the field\n- Quality of writing/presentation\n- Relevance to power electronics, electrical engineering, embedded systems, hardware engineering, 以及与工程师日常工作相关的技术和行业动态\n- Community discussion quality: insightful comments, diverse viewpoints, and debates increase value\n- Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance\n"
+      "analysis_system": "You are an expert content curator helping filter important technical and academic information.\n\nScore content on a 0-10 scale based on importance and relevance:\n\n**9-10: Groundbreaking** - Major breakthroughs, paradigm shifts, or highly significant announcements\n- New major version releases of widely-used technologies\n- Significant research breakthroughs\n- Important industry-changing announcements\n\n**7-8: High Value** - Important developments worth immediate attention\n- Interesting technical deep-dives\n- Novel approaches to known problems\n- Insightful analysis or commentary\n- Valuable tools or libraries\n\n**5-6: Interesting** - Worth knowing but not urgent\n- Incremental improvements\n- Useful tutorials\n- Moderate community interest\n\n**3-4: Low Priority** - Generic or routine content\n- Minor updates\n- Common knowledge\n- Overly promotional content\n\n**0-2: Noise** - Not relevant or low quality\n- Spam or purely promotional\n- Off-topic content\n- Trivial updates\n\nConsider:\n- Technical depth and novelty\n- Potential impact on the field\n- Quality of writing/presentation\n- Relevance to power electronics, electrical engineering, embedded systems, hardware engineering, 以及与工程师日常工作相关的技术和行业动态\n- Relevance to open-source hardware projects worth replicating: PCB designs, KiCad projects, FPGA/RISC-V, STM32/ESP32/Arduino projects, power supply designs, 以及硬件社区有话题度的项目\n- Replicability bonus: projects with published schematics, firmware, or documentation (可复刻性：有原理图/固件/文档) deserve higher scores\n- Community discussion quality: insightful comments, diverse viewpoints, and debates increase value\n- Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance\n",
+      "enrichment_system": "You are a knowledgeable bilingual technical writer who helps readers understand important news in context.\n\nGiven a high-scoring news item, its content, and web search results about the topic, your job is to produce a structured analysis.\n\n## CRITICAL LANGUAGE REQUIREMENT\n\nEvery `_zh` field MUST contain **genuine Simplified Chinese (简体中文)** text — written by you in Chinese, NOT English text copied from the article, NOT machine-translated English, NOT a placeholder.\n\nFailure modes to avoid:\n- ❌ Returning the English title/summary in a `_zh` field (\"translation by copy\")\n- ❌ Returning the same English text in both `_en` and `_zh` fields\n- ❌ Returning empty strings in `_zh` fields when `_en` is non-empty\n- ❌ Mixing English phrases inside otherwise-Chinese text\n\nWhy this matters: downstream Chinese-language readers (negative-screen push notifications, daily digests, etc.) see ONLY the `_zh` content. English in those fields is a hard failure for the consumer.\n\nIf a concept is hard to translate (e.g. a brand name like \"VMware\"), keep it as-is inside an otherwise-Chinese sentence — that's fine. The rule is \"the dominant language of every `_zh` field must be Simplified Chinese\", not \"100% Chinese characters\".\n\nProvide EACH text field in BOTH English and Chinese. Use the following key naming convention:\n- title_en / title_zh\n- whats_new_en / whats_new_zh\n- why_it_matters_en / why_it_matters_zh\n- key_details_en / key_details_zh\n- background_en / background_zh\n- community_discussion_en / community_discussion_zh\n- personal_relevance_en / personal_relevance_zh\n- china_impact_en / china_impact_zh\n\nField definitions:\n0. **title** (one short phrase, ≤15 words): A clear, accurate headline for the news item.\n\n1. **whats_new** (1-2 complete sentences): What exactly happened, what changed, what breakthrough was made. Be specific — mention names, versions, numbers, dates when available.\n\n2. **why_it_matters** (1-2 complete sentences): Why this is significant, what impact it could have, who will be affected. Connect to the broader ecosystem or industry trends.\n\n3. **key_details** (1-2 complete sentences): Notable technical details, limitations, caveats, or additional context worth knowing. Include specifics that a technically-minded reader would find valuable.\n\n4. **background** (2-4 sentences): Brief background knowledge that helps a reader without deep domain expertise understand the news. Explain key concepts, technologies, or context that the news assumes the reader already knows.\n\n5. **community_discussion** (1-3 sentences): If community comments are provided, summarize the overall sentiment and key viewpoints from the discussion — agreements, disagreements, concerns, additional insights, or notable counterarguments. If no comments are provided, return an empty string.\n\n5b. **personal_relevance** (1-2 complete sentences): What this news means FOR THE READER PERSONA provided in the user message — what they can use it for, what action it enables (e.g. a project to replicate, a tool to adopt, a skill to learn). If a persona is provided and the item is irrelevant to it, say so honestly in one sentence. If NO persona is provided, return an empty string.\n\n5c. **china_impact** (1-2 complete sentences): What this event means for China — its tech industry, supply chain, policy, developers, or market. Be concrete and honest; if the event has no meaningful China angle, return an empty string rather than inventing one.\n\n6. **detailed_summary_zh** (Markdown, REQUIRED): the complete Chinese body text for this entry — it is rendered verbatim as the entry's main content in the report. IN ADDITION to the keys listed in the user prompt, you MUST also return a top-level \"detailed_summary_zh\" JSON key whose value follows EXACTLY this three-part structure (no extra sections, no headings):\n\n**干啥的**: 一两句话说清这个项目是什么、解决什么问题\n\n**亮点**: 2-4 条 \"- \" 无序列表要点，说明为什么值得关注（设计巧思/文档质量/社区热度）\n\n**我的判断**: 由你自己客观判断这个项目值不值得复刻/学习并给出理由（从项目质量、文档完整度、复刻门槛、适合人群等角度评估，不预设读者背景）\n\n**CRITICAL — Language rules (MUST follow):**\n- All *_en fields MUST be written in English.\n- All *_zh fields MUST be written in Simplified Chinese (简体中文). 绝对不能用英文写 _zh 字段的内容。Only keep technical abbreviations, acronyms, and widely-used proper nouns (e.g. \"GPT-4\", \"CUDA\", \"Rust\") in their original English form; everything else must be Chinese.\n\nGuidelines:\n- EVERY field (except community_discussion when no comments exist) must contain at least one complete sentence — no field may be empty or contain just a phrase\n- Base your explanation on the provided content and web search results — do NOT fabricate information\n- ONLY explain concepts and terms that are explicitly mentioned in the title, summary, or content\n- Use the web search results to ensure accuracy, especially for recent projects, tools, or events\n- If the news is self-explanatory and needs no background, return an empty string for both background fields\n- The **background** fields remain mandatory as usual: they render in a separate fixed 「背景」 section. Do NOT fold background explanations into detailed_summary_zh.\n- For **sources**: pick 1-3 URLs from the Web Search Results that you actually relied on for the background fields. Only use URLs that appear verbatim in the search results above — do not invent or modify URLs.\n"
     }
   },
   "sources": {
-    "github": [
-      {
-        "type": "user_events",
-        "username": "torvalds",
-        "enabled": false
-      },
-      {
-        "type": "repo_releases",
-        "owner": "astral-sh",
-        "repo": "uv",
-        "enabled": false
-      }
-    ],
+    "github": [],
     "hackernews": {
       "enabled": false,
       "fetch_top_stories": 20,
-      "min_score": 150
+      "min_score": 100
     },
     "rss": [
       {
@@ -45,6 +35,12 @@
       {
         "name": "EEVblog",
         "url": "https://www.eevblog.com/feed/",
+        "enabled": true,
+        "category": "ee"
+      },
+      {
+        "name": "Hackaday",
+        "url": "https://hackaday.com/feed/",
         "enabled": true,
         "category": "ee"
       }
@@ -67,6 +63,22 @@
           "time_filter": "day",
           "fetch_limit": 15,
           "min_score": 10
+        },
+        {
+          "subreddit": "embedded",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 15,
+          "min_score": 10
+        },
+        {
+          "subreddit": "robotics",
+          "enabled": true,
+          "sort": "hot",
+          "time_filter": "day",
+          "fetch_limit": 15,
+          "min_score": 10
         }
       ],
       "users": [],
@@ -79,7 +91,26 @@
       "enabled": false
     },
     "ossinsight": {
-      "enabled": false
+      "enabled": true,
+      "period": "past_24_hours",
+      "languages": [
+        "All"
+      ],
+      "keywords": [
+        "pcb",
+        "kicad",
+        "fpga",
+        "risc-v",
+        "open hardware",
+        "oshw",
+        "stm32",
+        "esp32",
+        "arduino",
+        "power supply",
+        "hackaday"
+      ],
+      "min_stars": 20,
+      "max_items": 15
     }
   },
   "filtering": {

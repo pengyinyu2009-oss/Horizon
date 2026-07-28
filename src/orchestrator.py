@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import httpx
 from rich.console import Console
 
-from .models import Config, ContentItem, Story
+from .models import Config, ContentItem, SourceType, Story
 from .storage.manager import StorageManager
 from .services.email import EmailManager
 from .services.webhook import WebhookNotifier
@@ -20,6 +20,7 @@ from .scrapers.telegram import TelegramScraper
 from .scrapers.twitter import TwitterScraper
 from .scrapers.openbb import OpenBBScraper
 from .scrapers.ossinsight import OSSInsightScraper
+from .scrapers.github_trending import GitHubTrendingScraper
 from .ai.client import create_ai_client
 from .ai.analyzer import ContentAnalyzer, scoring_failure_context
 from .ai.summarizer import (
@@ -333,6 +334,15 @@ class HorizonOrchestrator:
                 oss_scraper = OSSInsightScraper(self.config.sources.ossinsight, client)
                 tasks.append(self._fetch_with_progress("OSS Insight", oss_scraper, since))
 
+            # GitHub Trending board (daily/weekly/monthly sub-boards)
+            if self.config.sources.github_trending and self.config.sources.github_trending.enabled:
+                trending_scraper = GitHubTrendingScraper(
+                    self.config.sources.github_trending, client
+                )
+                tasks.append(
+                    self._fetch_with_progress("GitHub Trending", trending_scraper, since)
+                )
+
             # Fetch all concurrently
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -382,6 +392,11 @@ class HorizonOrchestrator:
         if meta.get("channel"):
             return f"@{meta['channel']}"
         if meta.get("period") and meta.get("repo"):
+            if item.source_type == SourceType.GITHUB_TRENDING:
+                label = f"github-trending:{meta['period']}"
+                if meta.get("fallback"):
+                    label += f"({meta['fallback']})"
+                return label
             return f"ossinsight:{meta.get('primary_language', 'all')}"
         if meta.get("repo"):
             return meta["repo"]

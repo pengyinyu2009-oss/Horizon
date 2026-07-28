@@ -1,0 +1,356 @@
+{
+  "version": "1.0",
+  "_comment": "全球新闻榜：worldmonitor 31 条全球 RSS（A 方案数据层）。客观分=全球大事重要性；enrichment 强制输出对中国影响+对我影响。",
+  "ai": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "temperature": 0.3,
+    "max_tokens": 4096,
+    "throttle_sec": 0,
+    "analysis_concurrency": 1,
+    "enrichment_concurrency": 1,
+    "languages": [
+      "zh"
+    ],
+    "prompt_overrides": {
+      "analysis_system": "You are an expert content curator helping filter important technical and academic information.\n\nScore content on a 0-10 scale based on importance and relevance:\n\n**9-10: Groundbreaking** - Major breakthroughs, paradigm shifts, or highly significant announcements\n- New major version releases of widely-used technologies\n- Significant research breakthroughs\n- Important industry-changing announcements\n\n**7-8: High Value** - Important developments worth immediate attention\n- Interesting technical deep-dives\n- Novel approaches to known problems\n- Insightful analysis or commentary\n- Valuable tools or libraries\n\n**5-6: Interesting** - Worth knowing but not urgent\n- Incremental improvements\n- Useful tutorials\n- Moderate community interest\n\n**3-4: Low Priority** - Generic or routine content\n- Minor updates\n- Common knowledge\n- Overly promotional content\n\n**0-2: Noise** - Not relevant or low quality\n- Spam or purely promotional\n- Off-topic content\n- Trivial updates\n\nConsider:\n- Global significance: impact on international relations, major economies, supply chains, energy, security, or the technology landscape\n- China angle: events that affect China's interests, industry, policy, or developers deserve higher scores\n- Scale and novelty: how many people/countries are affected; prefer new developments over routine commentary and op-eds\n- Hard news over opinion: factual reporting of events outranks analysis pieces\n- Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance\n"
+    }
+  },
+  "sources": {
+    "github": [],
+    "hackernews": {
+      "enabled": false,
+      "fetch_top_stories": 20,
+      "min_score": 100
+    },
+    "rss": [
+      {
+        "name": "Reuters US (美洲)",
+        "url": "https://news.google.com/rss/search?q=site:reuters.com+US&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "NPR News (美洲)",
+        "url": "https://feeds.npr.org/1001/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "AP News (美洲)",
+        "url": "https://news.google.com/rss/search?q=site:apnews.com&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Politico (美洲)",
+        "url": "https://rss.politico.com/politics-news.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Axios (美洲)",
+        "url": "https://api.axios.com/feed/",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Wall Street Journal (美洲)",
+        "url": "https://feeds.content.dowjones.io/public/rss/RSSUSnews",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "BBC World (欧洲)",
+        "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Guardian World (欧洲)",
+        "url": "https://www.theguardian.com/world/rss",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "France 24 (欧洲)",
+        "url": "https://www.france24.com/en/rss",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "EuroNews (欧洲)",
+        "url": "https://www.euronews.com/rss?format=xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "DW News (欧洲)",
+        "url": "https://rss.dw.com/xml/rss-en-all",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Le Monde (欧洲)",
+        "url": "https://www.lemonde.fr/en/rss/une.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Der Spiegel (欧洲)",
+        "url": "https://www.spiegel.de/schlagzeilen/tops/index.rss",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Al Jazeera (中东)",
+        "url": "https://www.aljazeera.com/xml/rss/all.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "BBC Middle East (中东)",
+        "url": "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Iran International (中东)",
+        "url": "https://news.google.com/rss/search?q=site:iranintl.com+when:2d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Haaretz (中东)",
+        "url": "https://news.google.com/rss/search?q=site:haaretz.com+when:7d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Jerusalem Post (中东)",
+        "url": "https://www.jpost.com/rss/rssfeedsheadlines.aspx",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "BBC Asia (亚太)",
+        "url": "https://feeds.bbci.co.uk/news/world/asia/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "The Diplomat (亚太)",
+        "url": "https://thediplomat.com/feed/",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "South China Morning Post (亚太)",
+        "url": "https://www.scmp.com/rss/91/feed/",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Nikkei Asia (亚太)",
+        "url": "https://news.google.com/rss/search?q=site:asia.nikkei.com+when:3d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Xinhua (亚太)",
+        "url": "https://news.google.com/rss/search?q=site:xinhuanet.com+OR+Xinhua+when:1d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "The Hindu (亚太)",
+        "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "BBC Latin America (拉美)",
+        "url": "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Reuters LatAm (拉美)",
+        "url": "https://news.google.com/rss/search?q=site:reuters.com+(Brazil+OR+Mexico+OR+Argentina)+when:3d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "BBC Africa (非洲)",
+        "url": "https://feeds.bbci.co.uk/news/world/africa/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Africa News (非洲)",
+        "url": "https://news.google.com/rss/search?q=(Africa+OR+Nigeria+OR+Kenya+OR+%22South+Africa%22+OR+Ethiopia)+when:2d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Foreign Policy (智库/分析)",
+        "url": "https://foreignpolicy.com/feed/",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Atlantic Council (智库/分析)",
+        "url": "https://www.atlanticcouncil.org/feed/",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Crisis Group (智库/分析)",
+        "url": "https://www.crisisgroup.org/rss",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "Brookings (智库/分析)",
+        "url": "https://news.google.com/rss/search?q=site:brookings.edu+when:7d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "UN News (联合国/政府)",
+        "url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "WHO (联合国/政府)",
+        "url": "https://www.who.int/rss-feeds/news-english.xml",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      },
+      {
+        "name": "IAEA (联合国/政府)",
+        "url": "https://www.iaea.org/feeds/topnews",
+        "enabled": true,
+        "category": "global-news",
+        "group": "global-news"
+      }
+    ],
+    "reddit": {
+      "enabled": false,
+      "subreddits": [],
+      "users": [],
+      "fetch_comments": 5
+    },
+    "twitter": {
+      "enabled": false
+    },
+    "openbb": {
+      "enabled": false
+    },
+    "ossinsight": {
+      "enabled": false
+    }
+  },
+  "filtering": {
+    "ai_score_threshold": 7.0,
+    "ai_score_full_threshold": 8.0,
+    "time_window_hours": 24
+  },
+  "email": {
+    "enabled": false,
+    "smtp_server": "smtp.example.com",
+    "smtp_port": 465,
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "email_address": "placeholder@example.com",
+    "sender_name": "Horizon Daily",
+    "subscribe_keyword": "SUBSCRIBE",
+    "unsubscribe_keyword": "UNSUBSCRIBE"
+  },
+  "webhook": {
+    "enabled": false
+  },
+  "weekly": {
+    "enabled": true,
+    "ai_score_threshold": 8.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 1,
+    "lookback_days": 7,
+    "languages": [
+      "zh"
+    ]
+  },
+  "monthly": {
+    "enabled": true,
+    "ai_score_threshold": 9.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 3,
+    "lookback_weeks": 5,
+    "languages": [
+      "zh"
+    ]
+  },
+  "yearly": {
+    "enabled": true,
+    "ai_score_threshold": 9.0,
+    "ai_score_report_threshold": 9.0,
+    "top_n_report": 10,
+    "lookback_months": 12,
+    "languages": [
+      "zh"
+    ]
+  },
+  "persona": {
+    "enabled": true,
+    "description": "读者画像：电子工程师/硬件开发者。核心关注：开源硬件与可复刻项目（值得动手复刻的板卡、设备、工具）、EDA 与嵌入式新技术、HarmonyOS/鸿蒙开发、AI 模型与开发工具链、自动化效率工具。Reader persona: electronics engineer / hardware developer — open-source hardware & replicable projects, EDA & embedded tech, HarmonyOS development, AI models & dev toolchains, automation tools.",
+    "keywords": [
+      "开源硬件",
+      "open hardware",
+      "可复刻",
+      "RISC-V",
+      "EDA",
+      "嵌入式",
+      "embedded",
+      "HarmonyOS",
+      "鸿蒙",
+      "AI 工具链",
+      "自动化"
+    ]
+  }
+}

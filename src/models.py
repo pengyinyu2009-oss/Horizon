@@ -38,6 +38,7 @@ class SourceType(str, Enum):
     TWITTER = "twitter"
     OPENBB = "openbb"
     OSSINSIGHT = "ossinsight"
+    GITHUB_TRENDING = "github_trending"
 
 
 class ContentItem(BaseModel):
@@ -247,6 +248,30 @@ class OSSInsightConfig(BaseModel):
     max_items: int = 30
 
 
+class GitHubTrendingConfig(BaseModel):
+    """GitHub Trending board source configuration (2026-07-28).
+
+    Scrapes github.com/trending directly (no official API exists) for
+    each configured period — GitHub natively publishes daily/weekly/
+    monthly boards, and all three are fetched every day so the report
+    can show the three sub-boards side by side. `min_stars` filters on
+    the repo's TOTAL star count; `keywords` substring-match repo name +
+    description (case-insensitive). When HTML parsing yields zero rows
+    for every period, the scraper falls back to the OSS Insight API
+    (daily→past_24_hours, weekly→past_week, monthly→past_28_days) so
+    the board degrades instead of going blank.
+    """
+
+    enabled: bool = False
+    periods: List[str] = Field(default_factory=lambda: ["daily", "weekly", "monthly"])
+    # Language path segments for github.com/trending/<language>; "" = all.
+    languages: List[str] = Field(default_factory=lambda: [""])
+    keywords: List[str] = Field(default_factory=list)
+    min_stars: int = 0
+    max_items: int = 25  # per period sub-board
+    fallback_to_ossinsight: bool = True
+
+
 class SourcesConfig(BaseModel):
     """All sources configuration."""
 
@@ -258,6 +283,7 @@ class SourcesConfig(BaseModel):
     twitter: Optional[TwitterConfig] = None
     openbb: Optional[OpenBBConfig] = None
     ossinsight: OSSInsightConfig = Field(default_factory=OSSInsightConfig)
+    github_trending: GitHubTrendingConfig = Field(default_factory=GitHubTrendingConfig)
 
 
 class WebhookConfig(BaseModel):

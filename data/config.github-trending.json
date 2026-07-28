@@ -1,0 +1,110 @@
+{
+  "version": "1.0",
+  "_comment": "GitHub 热榜：原生 trending 抓取，日/周/月三子榜每天全收。GitHub 自带周期榜，故不进周/月/年 rollup。",
+  "ai": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "temperature": 0.3,
+    "max_tokens": 4096,
+    "throttle_sec": 0,
+    "analysis_concurrency": 1,
+    "enrichment_concurrency": 1,
+    "languages": [
+      "zh"
+    ]
+  },
+  "sources": {
+    "github": [],
+    "hackernews": {
+      "enabled": false,
+      "fetch_top_stories": 20,
+      "min_score": 100
+    },
+    "rss": [],
+    "reddit": {
+      "enabled": false,
+      "subreddits": [],
+      "users": [],
+      "fetch_comments": 5
+    },
+    "twitter": {
+      "enabled": false
+    },
+    "openbb": {
+      "enabled": false
+    },
+    "ossinsight": {
+      "enabled": false
+    },
+    "github_trending": {
+      "enabled": true,
+      "periods": [
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "languages": [
+        ""
+      ],
+      "keywords": [],
+      "min_stars": 0,
+      "max_items": 25,
+      "fallback_to_ossinsight": true
+    }
+  },
+  "filtering": {
+    "ai_score_threshold": 6.0,
+    "ai_score_full_threshold": 7.0,
+    "time_window_hours": 48
+  },
+  "email": {
+    "enabled": false,
+    "smtp_server": "smtp.example.com",
+    "smtp_port": 465,
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "email_address": "placeholder@example.com",
+    "sender_name": "Horizon Daily",
+    "subscribe_keyword": "SUBSCRIBE",
+    "unsubscribe_keyword": "UNSUBSCRIBE"
+  },
+  "webhook": {
+    "enabled": false
+  },
+  "weekly": {
+    "enabled": false,
+    "languages": [
+      "zh"
+    ]
+  },
+  "monthly": {
+    "enabled": false,
+    "languages": [
+      "zh"
+    ]
+  },
+  "yearly": {
+    "enabled": false,
+    "languages": [
+      "zh"
+    ]
+  },
+  "persona": {
+    "enabled": true,
+    "description": "读者画像：电子工程师/硬件开发者。核心关注：开源硬件与可复刻项目（值得动手复刻的板卡、设备、工具）、EDA 与嵌入式新技术、HarmonyOS/鸿蒙开发、AI 模型与开发工具链、自动化效率工具。Reader persona: electronics engineer / hardware developer — open-source hardware & replicable projects, EDA & embedded tech, HarmonyOS development, AI models & dev toolchains, automation tools.",
+    "keywords": [
+      "开源硬件",
+      "open hardware",
+      "可复刻",
+      "RISC-V",
+      "EDA",
+      "嵌入式",
+      "embedded",
+      "HarmonyOS",
+      "鸿蒙",
+      "AI 工具链",
+      "自动化"
+    ]
+  }
+}
