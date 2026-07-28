@@ -40,7 +40,8 @@ DST.mkdir(parents=True, exist_ok=True)
 NEW_DAILY_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})-榜单汇总-zh$")
 NEW_WEEKLY_RE = re.compile(r"^(\d{4})-W(\d{1,2})-周榜-zh$")
 NEW_MONTHLY_RE = re.compile(r"^(\d{4})-(\d{2})-月榜-zh$")
-NEW_YEARLY_RE = re.compile(r"^(\d{4})-年榜-zh$")
+# 年榜 period_id 为 YYYY-H1 / YYYY-H2(半年一榜);兼容旧的 YYYY-年榜。
+NEW_YEARLY_RE = re.compile(r"^(\d{4})(?:-(H[12]))?-年榜-zh$")
 
 # 2026-07-28 四榜单改版:全球新闻 / Horizon 总榜 / GitHub 热榜(日周月子榜) / 电子工程师。
 NAV_ORDER_NEW = ["global", "ai", "github", "ee"]
@@ -188,7 +189,8 @@ def period_label(stem: str) -> str:
         return f"🗓 {m.group(1)}-{m.group(2)} 月榜"
     m = NEW_YEARLY_RE.match(stem)
     if m:
-        return f"📆 {m.group(1)} 年榜"
+        half = f" {m.group(2)}" if m.group(2) else ""
+        return f"📆 {m.group(1)}{half} 年榜"
     m = OLD_WEEKLY_RE.match(stem)
     if m:
         return f"📅 {m.group(1)}-W{int(m.group(2)):02d} 周报"
