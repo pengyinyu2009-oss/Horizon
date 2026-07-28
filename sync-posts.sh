@@ -7,7 +7,7 @@ HORIZON_REPO=${HORIZON_REPO:-/home/pengyinyu/Horizon}
 ROOT=${HORIZON_SITE_ROOT:-/var/www/horizon-site}
 STAGING_ROOT=${HORIZON_STAGING_ROOT:-/home/pengyinyu/.horizon-publish-staging}
 LOG=${HORIZON_SYNC_LOG:-/home/pengyinyu/Horizon-posts/sync.log}
-LOCK=${HORIZON_SYNC_LOCK:-/home/pengyinyu/Horizon-posts/.sync-posts.lock}
+LOCK=${HORIZON_SYNC_LOCK:-/home/pengyinyu/.horizon-sync-posts.lock}
 TODAY=${HORIZON_DATE:-$(TZ=Asia/Shanghai date +%F)}
 MIN_HTML_PAGES=${HORIZON_MIN_HTML_PAGES:-20}
 SRC="$REPO_DIR/docs/_posts"
