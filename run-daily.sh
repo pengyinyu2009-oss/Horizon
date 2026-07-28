@@ -2,7 +2,7 @@
 # Horizon 本地每日跑批。正常 Hiboard 推送由 GitHub Actions 在发布验证后负责。
 set -Eeuo pipefail
 LOG=/home/pengyinyu/Horizon/data/cron.log
-LOCK=/home/pengyinyu/Horizon/.run-daily.lock
+LOCK=/home/pengyinyu/.horizon-run-daily.lock
 
 exec 9>"$LOCK"
 if ! flock -n 9; then
