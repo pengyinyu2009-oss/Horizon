@@ -581,7 +581,7 @@ class HorizonOrchestrator:
             f"   Re-analyzing {len(expanded)} Twitter items with reply context...\n"
         )
         ai_client = create_ai_client(self.config.ai)
-        analyzer = ContentAnalyzer(ai_client)
+        analyzer = ContentAnalyzer(ai_client, persona=self.config.persona)
         await analyzer.analyze_batch(expanded)
 
     async def _enrich_important_items(self, items: List[ContentItem]) -> None:
@@ -598,7 +598,7 @@ class HorizonOrchestrator:
 
         self.console.print("📚 Enriching with background knowledge...")
         ai_client = create_ai_client(self.config.ai)
-        enricher = ContentEnricher(ai_client)
+        enricher = ContentEnricher(ai_client, persona=self.config.persona)
         await enricher.enrich_batch(items)
         self.console.print(f"   Enriched {len(items)} items\n")
 
@@ -616,7 +616,7 @@ class HorizonOrchestrator:
         self.console.print("🤖 Analyzing content with AI...")
 
         ai_client = create_ai_client(self.config.ai)
-        analyzer = ContentAnalyzer(ai_client)
+        analyzer = ContentAnalyzer(ai_client, persona=self.config.persona)
 
         analyzed_items = await analyzer.analyze_batch(items)
         return analyzed_items, scoring_failure_context(analyzed_items, ai_client)

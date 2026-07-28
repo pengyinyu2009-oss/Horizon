@@ -28,8 +28,13 @@ from ..models import ContentItem
 class ContentEnricher:
     """Enriches high-scoring content items with background knowledge."""
 
-    def __init__(self, ai_client: AIClient):
+    def __init__(self, ai_client: AIClient, persona=None):
+        # See ContentAnalyzer: the persona lives on the root Config while
+        # ``ai_client.config`` is the AIConfig sub-model, so the
+        # orchestrator passes it explicitly; fall back to a full-Config
+        # client attribute for older call sites.
         self.client = ai_client
+        self._persona = persona
 
     def _get_concurrency(self) -> int:
         """Return the configured enrichment concurrency, clamped to 1 or above."""
@@ -179,7 +184,12 @@ class ContentEnricher:
 
         # 2026-07-28: persona drives the personal_relevance fields;
         # neutral fallback text when no persona is configured.
-        persona_section = build_persona_section(getattr(config, "persona", None))
+        persona = (
+            self._persona
+            if self._persona is not None
+            else getattr(config, "persona", None)
+        )
+        persona_section = build_persona_section(persona)
 
         # Step 3: AI generates background grounded in search results
         user_prompt = CONTENT_ENRICHMENT_USER.format(

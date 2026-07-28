@@ -100,6 +100,38 @@ def test_analyze_item_dual_missing_subjective_falls_back_to_objective():
     assert item.subjective_reason == ""
 
 
+def test_analyze_item_dual_via_explicit_persona_with_ai_config_client():
+    """Regression for the 2026-07-28 first-run bug: in production the
+    client carries the *AIConfig* sub-model (no ``persona`` attribute),
+    so dual scoring silently never ran until the orchestrator started
+    passing the root-Config persona explicitly."""
+    response = json.dumps({
+        "score": 8.0,
+        "subjective_score": 6.5,
+        "reason": "r",
+        "summary": "s",
+        "tags": [],
+    })
+
+    async def completion(**_kwargs):
+        completion.kwargs = _kwargs
+        return response
+
+    # AIConfig-shaped client: model/temperature/prompt_overrides, NO persona.
+    client = SimpleNamespace(
+        complete=completion,
+        config=SimpleNamespace(model="m", temperature=0.1, prompt_overrides={}),
+    )
+    analyzer = ContentAnalyzer(client, persona=_PERSONA)
+    item = _make_item("rss:test:dual-explicit")
+
+    asyncio.run(analyzer._analyze_item(item))
+
+    assert item.ai_score == 8.0
+    assert item.subjective_score == 6.5
+    assert "电子工程师" in completion.kwargs["user"]
+
+
 @pytest.mark.parametrize("bad", ['{"score": 8, "subjective_score": 99}',
                                  '{"score": 8, "subjective_score": "high"}'])
 def test_analyze_item_dual_rejects_invalid_subjective(monkeypatch, bad):

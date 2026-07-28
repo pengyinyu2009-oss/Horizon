@@ -135,8 +135,14 @@ def scoring_failure_context(
 class ContentAnalyzer:
     """Analyzes content items using AI to determine importance."""
 
-    def __init__(self, ai_client: AIClient):
+    def __init__(self, ai_client: AIClient, persona=None):
+        # ``ai_client.config`` is the AIConfig sub-model (model/temperature/
+        # prompt_overrides); the persona lives on the *root* Config, which
+        # the client never sees — so the orchestrator passes it explicitly.
+        # Falling back to ``client.config.persona`` keeps older call sites
+        # (and tests with a full-Config mock) working.
         self.client = ai_client
+        self._persona = persona
 
     @staticmethod
     def _parse_json_response(response: str) -> Optional[dict]:
@@ -277,7 +283,11 @@ class ContentAnalyzer:
 
         # 2026-07-28: dual scoring — when a persona is configured and
         # enabled, one analysis call also produces subjective_score.
-        persona = getattr(config, "persona", None)
+        persona = (
+            self._persona
+            if self._persona is not None
+            else getattr(config, "persona", None)
+        )
         use_dual = persona is not None and getattr(persona, "enabled", False)
 
         # Generate user prompt
