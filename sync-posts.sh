@@ -111,6 +111,12 @@ STAGING_DIR=$(mktemp -d "$STAGING_ROOT/reports-html.${TODAY}.XXXXXX")
 if [ -d "$LIVE_HTML/data" ]; then
   cp -a "$LIVE_HTML/data" "$STAGING_DIR/data"
 fi
+# A same-day rerun must earn a fresh lineage pass. Otherwise an early
+# build/check failure could leave yesterday's passed=true artifact beside
+# the newly published page and let GHA send a contradictory normal card.
+mkdir -p "$STAGING_DIR/data"
+rm -f -- "$STAGING_DIR/data/${TODAY}.json" \
+  "$STAGING_DIR/data/${TODAY}-lineage.json"
 python3 "$REPO_DIR/render-html.py" \
   --src "$DST" \
   --dst "$STAGING_DIR" >> "$LOG" 2>&1
