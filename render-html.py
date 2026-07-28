@@ -8,12 +8,31 @@
 - 兼容:旧格式 {date}-{sec}-zh.md 仍支持(2026-07-22 之前),每天 4 文件合并成
   {date}.html,锚点 horizon/ee/embedded/oshw,保证历史链接不 404。
 """
+import argparse
 import pathlib
 import re
 import markdown
 
-SRC = pathlib.Path("/var/www/horizon-site/reports")
-DST = pathlib.Path("/var/www/horizon-site/reports-html")
+parser = argparse.ArgumentParser(
+    description="Render Horizon Markdown into a complete non-live output directory."
+)
+parser.add_argument(
+    "--src",
+    default="/var/www/horizon-site/reports",
+    help="Markdown input directory",
+)
+parser.add_argument(
+    "--dst",
+    required=True,
+    help="Staging output directory; the live reports-html path is rejected",
+)
+args = parser.parse_args()
+
+SRC = pathlib.Path(args.src)
+DST = pathlib.Path(args.dst)
+LIVE_DST = pathlib.Path("/var/www/horizon-site/reports-html")
+if DST.resolve() == LIVE_DST.resolve():
+    parser.error("--dst must be a staging directory, not the live reports-html path")
 DST.mkdir(parents=True, exist_ok=True)
 
 # === 新格式(2026-07-23 起,1 文件 4 榜单)===
