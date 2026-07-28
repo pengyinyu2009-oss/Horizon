@@ -45,6 +45,7 @@ def main():
     # 全部在 {date}.html 里，顶部锚点导航切换（2026-07-22 起由 4 个独立
     # 分版页合并而来，避免页面太多）。负一屏卡片只放这一个链接。
     digest_url = f"{pages_base}/reports-html/{date}.html"
+    scoring_fault = "【评分故障空报】" in text
 
     # Pull out headlines in the form:
     #   ## [title](url) ⭐ 8.5/10
@@ -86,31 +87,44 @@ def main():
     top = top[:12]
 
     # Build the markdown body that hiboard will display.
-    lines = [
-        f"🌅 Horizon 每日速递 · {date}",
-        "",
-        f"{len(top)} 条 8 分以上要事：",
-        "",
-    ]
-    for s, t, u in top:
-        lines.append(f"{s:.1f} 分｜{t}")
-    lines += [
-        "",
-        "📖 今日完整简报（总览/电源EE/嵌入式/GitHub热榜，一页看全）：",
-        # NOTE: hiboard 卡片不支持 markdown 链接语法 —— [文字](url) 会显示成
-        # 纯文本且不可点击。平台只把裸 URL 自动识别为超链接，所以这里必须
-        # 输出纯文本 URL。
-        digest_url,
-    ]
-    content = "\n".join(lines)
-
-    summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
-    if skipped and not top:
-        result = f"{date} 暂无中文标题要事（{skipped} 条仅英文标题已跳过）"
-    elif skipped:
-        result = f"daily-summary {date} 已生成（{skipped} 条英文标题已跳过）"
+    if scoring_fault:
+        content = "\n".join([
+            f"⚠️ 【评分故障空报】· {date}",
+            "",
+            "评分服务高比例失败，本次页面只用于故障告警，不代表今日无重要动态。",
+            "",
+            digest_url,
+        ])
+        summary = f"⚠️ Horizon 评分故障 {date}"
+        result = "生成失败：评分服务异常"
     else:
-        result = f"daily-summary {date} 已生成"
+        lines = [
+            f"🌅 Horizon 每日速递 · {date}",
+            "",
+            f"{len(top)} 条 8 分以上要事：",
+            "",
+        ]
+        for s, t, u in top:
+            lines.append(f"{s:.1f} 分｜{t}")
+        lines += [
+            "",
+            "📖 今日完整简报（总览/电源EE/嵌入式/GitHub热榜，一页看全）：",
+            # NOTE: hiboard 卡片不支持 markdown 链接语法 —— [文字](url) 会显示成
+            # 纯文本且不可点击。平台只把裸 URL 自动识别为超链接，所以这里必须
+            # 输出纯文本 URL。
+            digest_url,
+        ]
+        content = "\n".join(lines)
+
+        summary = f"🌅 Horizon 每日速递 {date} · {len(top)} 条 8+"
+        if skipped and not top:
+            result = f"{date} 暂无中文标题要事（{skipped} 条仅英文标题已跳过）"
+        elif skipped:
+            result = f"daily-summary {date} 已生成（{skipped} 条英文标题已跳过）"
+        elif not top:
+            result = f"daily-summary {date} 已生成 · 0 条入选（有效分析零入选）"
+        else:
+            result = f"daily-summary {date} 已生成"
 
     # msgId 必须每次推送唯一：华为侧按 msgId 去重，同一天重推（force）
     # 若 msgId 不变会被当成重复卡片丢弃，手机上看不到更新。
