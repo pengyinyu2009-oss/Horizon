@@ -45,7 +45,10 @@ send_publish_alert() {
   fi
   python_bin="$HORIZON_REPO/.venv/bin/python"
   push_script="$HORIZON_REPO/scripts/push_hiboard_daily.py"
-  if [ ! -x "$python_bin" ] || [ ! -f "$push_script" ]; then
+  if [ ! -x "$python_bin" ]; then
+    python_bin=$(command -v python3 || true)
+  fi
+  if [ -z "$python_bin" ] || [ ! -f "$push_script" ]; then
     echo "ALERT FAILED: Hiboard adapter unavailable: $python_bin $push_script" >> "$LOG"
     return 1
   fi

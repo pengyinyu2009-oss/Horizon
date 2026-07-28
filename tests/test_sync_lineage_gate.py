@@ -24,6 +24,15 @@ class SyncLineageGateTest(unittest.TestCase):
             script[invalidate_at:swap_at],
         )
 
+    def test_alert_runner_falls_back_when_horizon_venv_is_unavailable(self):
+        script = (REPO / "sync-posts.sh").read_text(encoding="utf-8")
+        alert_start = script.index("send_publish_alert()")
+        alert_end = script.index("trap cleanup_staging", alert_start)
+        alert_function = script[alert_start:alert_end]
+
+        self.assertIn("command -v python3", alert_function)
+        self.assertIn('"$python_bin" "$push_script"', alert_function)
+
 
 if __name__ == "__main__":
     unittest.main()
