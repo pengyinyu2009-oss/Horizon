@@ -13,6 +13,7 @@ from .prompts import (
     CONTENT_ANALYSIS_SYSTEM,
     CONTENT_ANALYSIS_USER,
     CONTENT_ANALYSIS_USER_DUAL,
+    analysis_language_note,
     build_persona_section,
 )
 from .utils import parse_json_response
@@ -300,6 +301,9 @@ class ContentAnalyzer:
                 content_section=content_section,
                 discussion_section=discussion_section,
                 persona_section=build_persona_section(persona),
+                language_note=analysis_language_note(
+                    getattr(config, "languages", None)
+                ),
             )
         else:
             user_prompt = CONTENT_ANALYSIS_USER.format(
