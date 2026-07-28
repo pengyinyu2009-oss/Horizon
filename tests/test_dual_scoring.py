@@ -280,3 +280,48 @@ def test_parse_daily_full_stories_legacy_single_score():
     assert len(stories) == 1
     assert stories[0].score == 8.5
     assert stories[0].subjective_score == 0.0
+
+
+# --- period-grouped (GitHub 热榜) rendering ---------------------------------
+
+
+def _trending_item(idx: int, period: str, objective: float, subjective=None) -> ContentItem:
+    item = _scored_item(idx, objective, subjective)
+    item.metadata["period"] = period
+    return item
+
+
+def test_period_grouped_summary_renders_three_subboards():
+    summarizer = DailySummarizer()
+    items = []
+    i = 0
+    for period, base in (("daily", 9.0), ("weekly", 8.5), ("monthly", 8.0)):
+        for j in range(12):
+            i += 1
+            items.append(_trending_item(i, period, objective=base - j * 0.1,
+                                        subjective=float(j)))
+    md = asyncio.run(summarizer.generate_summary(
+        items, "2026-07-28", total_fetched=36, language="zh",
+    ))
+
+    assert "📅 日榜" in md and "📆 周榜" in md and "🗓 月榜" in md
+    # Namespaced anchors per sub-board.
+    assert '<a id="item-daily-1"></a>' in md
+    assert '<a id="item-weekly-1"></a>' in md
+    assert '<a id="item-monthly-1"></a>' in md
+    # Each sub-board capped at 10 + up to 3 picks.
+    assert '<a id="item-daily-11"></a>' in md   # pick
+    assert '<a id="item-daily-14"></a>' not in md
+    # TOC links point at the namespaced anchors.
+    assert "](#item-weekly-1)" in md
+
+
+def test_period_grouped_not_triggered_for_mixed_items():
+    summarizer = DailySummarizer()
+    items = [_trending_item(1, "daily", 9.0), _scored_item(2, 8.5)]
+    md = asyncio.run(summarizer.generate_summary(
+        items, "2026-07-28", total_fetched=2, language="zh",
+    ))
+    # Mixed content falls back to the flat layout.
+    assert '<a id="item-1"></a>' in md
+    assert "日榜" not in md

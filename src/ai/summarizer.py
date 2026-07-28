@@ -88,6 +88,14 @@ LABELS = {
 TOP_N_MAIN = 10
 TOP_N_PICKS = 3
 
+# 2026-07-28: GitHub-trending style boards carry metadata["period"] and
+# render as per-period sub-boards (each with its own top10+3).
+_PERIOD_GROUP_ORDER = ("daily", "weekly", "monthly")
+_PERIOD_GROUP_LABELS = {
+    "zh": {"daily": "📅 日榜", "weekly": "📆 周榜", "monthly": "🗓 月榜"},
+    "en": {"daily": "📅 Daily board", "weekly": "📆 Weekly board", "monthly": "🗓 Monthly board"},
+}
+
 
 def _fmt_score(value) -> str:
     """Render a 0-10 score without a trailing '.0'."""
@@ -270,14 +278,72 @@ class DailySummarizer:
 
         sorted_items = sorted(items, key=lambda x: x.ai_score or 0, reverse=True)
 
-        # 2026-07-28: "top 10 + 3" selection. When dual scoring ran, the
-        # objective top TOP_N_MAIN form the main list; up to TOP_N_PICKS
-        # off-list items with the highest subjective scores render under
-        # "🎯 猜你感兴趣". Items the orchestrator flagged as
-        # ``persona_pick`` (below-threshold but high subjective score)
-        # always land in the pick pool, never in the main ranking.
-        # Without subjective scores (persona disabled / legacy runs)
-        # everything renders as before.
+        # 2026-07-28: boards whose items ALL carry a trending-style
+        # metadata["period"] (e.g. the GitHub 热榜 config) render as
+        # per-period sub-boards, each with its own top10+3 selection.
+        groups: Dict[str, List[ContentItem]] = {}
+        for it in sorted_items:
+            period = it.metadata.get("period")
+            if period in _PERIOD_GROUP_ORDER:
+                groups.setdefault(period, []).append(it)
+        if len(groups) > 1 and sum(len(v) for v in groups.values()) == len(sorted_items):
+            return self._generate_period_grouped_summary(
+                groups, date, total_fetched, labels, language, full_threshold
+            )
+
+        full_items, brief_items, pick_items = self._select_tiers(
+            sorted_items, full_threshold
+        )
+
+        n_total = len(full_items) + len(brief_items) + len(pick_items)
+        n_full = len(full_items)
+        subline = self._subline(labels, language, n_full, len(brief_items), len(pick_items))
+
+        header = (
+            f"# {labels['header']} - {date}\n\n"
+            f"> {labels['selected_items'].format(total=total_fetched, selected=n_total)}\n\n"
+            f"{subline}\n\n"
+            "---\n\n"
+        )
+
+        toc, body = self._render_toc_and_body(
+            full_items, brief_items, pick_items, labels, language, full_threshold
+        )
+        return header + toc + body
+
+    @staticmethod
+    def _subline(labels: dict, language: str, n_full: int, n_brief: int, n_picks: int) -> str:
+        if language == "zh":
+            subline = (
+                f"其中 **{n_full} 条 8 分以上**展开详细简报，其余 {n_brief} 条"
+                f"仅列于索引。"
+            )
+            if n_picks:
+                subline += f"另有 **{n_picks} 条🎯猜你感兴趣**（按画像主观分入选）。"
+        else:
+            subline = (
+                f"**{n_full} items at 8+** get full write-ups; the other "
+                f"{n_brief} are listed in the index only."
+            )
+            if n_picks:
+                subline += f" Plus **{n_picks} 🎯 picks** chosen by persona relevance."
+        return subline
+
+    @staticmethod
+    def _select_tiers(
+        sorted_items: List[ContentItem], full_threshold: float
+    ) -> Tuple[List[ContentItem], List[ContentItem], List[ContentItem]]:
+        """Split score-sorted items into (full, brief, picks) tiers.
+
+        2026-07-28: "top 10 + 3" selection. When dual scoring ran, the
+        objective top TOP_N_MAIN form the main list; up to TOP_N_PICKS
+        off-list items with the highest subjective scores render under
+        "🎯 猜你感兴趣". Items the orchestrator flagged as
+        ``persona_pick`` (below-threshold but high subjective score)
+        always land in the pick pool, never in the main ranking.
+        Without subjective scores (persona disabled / legacy runs)
+        everything renders as before.
+        """
         has_subjective = any(it.subjective_score is not None for it in sorted_items)
         flagged = [it for it in sorted_items if it.metadata.get("persona_pick")]
         unflagged = [it for it in sorted_items if not it.metadata.get("persona_pick")]
@@ -304,51 +370,38 @@ class DailySummarizer:
             it for it in main_items
             if (it.ai_score or 0) < full_threshold
         ]
+        return full_items, brief_items, pick_items
 
-        n_total = len(main_items) + len(pick_items)
-        n_full = len(full_items)
-        if language == "zh":
-            subline = (
-                f"其中 **{n_full} 条 8 分以上**展开详细简报，其余 {len(brief_items)} 条"
-                f"仅列于索引。"
-            )
-            if pick_items:
-                subline += f"另有 **{len(pick_items)} 条🎯猜你感兴趣**（按画像主观分入选）。"
-        else:
-            subline = (
-                f"**{n_full} items at 8+** get full write-ups; the other "
-                f"{len(brief_items)} are listed in the index only."
-            )
-            if pick_items:
-                subline += (
-                    f" Plus **{len(pick_items)} 🎯 picks** chosen by persona relevance."
-                )
+    def _render_toc_and_body(
+        self,
+        full_items: List[ContentItem],
+        brief_items: List[ContentItem],
+        pick_items: List[ContentItem],
+        labels: dict,
+        language: str,
+        full_threshold: float,
+        anchor_prefix: str = "item",
+    ) -> Tuple[str, str]:
+        """Render the TOC + body for one (sub-)board.
 
-        header = (
-            f"# {labels['header']} - {date}\n\n"
-            f"> {labels['selected_items'].format(total=total_fetched, selected=n_total)}\n\n"
-            f"{subline}\n\n"
-            "---\n\n"
-        )
+        ``anchor_prefix`` namespaces the per-item anchors so several
+        sub-boards can coexist in one document ("item-daily-3").
+        """
+        def _title(item: ContentItem) -> str:
+            _t = item.metadata.get(f"title_{language}") or item.title
+            t = str(_t).replace("[", "(").replace("]", ")")
+            return _pangu(t) if language == "zh" else t
 
-        # TOC uses display order (full first, then brief, then picks)
         toc_entries: List[str] = []
         for display_idx, item in enumerate(full_items + brief_items, start=1):
-            _t = item.metadata.get(f"title_{language}") or item.title
-            t = str(_t).replace("[", "(").replace("]", ")")
-            if language == "zh":
-                t = _pangu(t)
             toc_entries.append(
-                f"{display_idx}. [{t}](#item-{display_idx}) "
+                f"{display_idx}. [{_title(item)}](#{anchor_prefix}-{display_idx}) "
                 + _score_suffix(item.ai_score or "?", item.subjective_score, language)
             )
-        for pick_idx, item in enumerate(pick_items, start=len(full_items) + len(brief_items) + 1):
-            _t = item.metadata.get(f"title_{language}") or item.title
-            t = str(_t).replace("[", "(").replace("]", ")")
-            if language == "zh":
-                t = _pangu(t)
+        pick_offset = len(full_items) + len(brief_items)
+        for pick_idx, item in enumerate(pick_items, start=pick_offset + 1):
             toc_entries.append(
-                f"{pick_idx}. 🎯 [{t}](#item-{pick_idx}) "
+                f"{pick_idx}. 🎯 [{_title(item)}](#{anchor_prefix}-{pick_idx}) "
                 + _score_suffix(item.ai_score or "?", item.subjective_score, language)
             )
         toc = "\n".join(toc_entries) + "\n\n---\n\n"
@@ -357,9 +410,13 @@ class DailySummarizer:
         for display_idx, item in enumerate(full_items + brief_items, start=1):
             is_full = (item.ai_score or 0) >= full_threshold
             if is_full:
-                body_parts.append(self._format_item(item, labels, language, display_idx))
+                body_parts.append(
+                    self._format_item(item, labels, language, display_idx, anchor_prefix=anchor_prefix)
+                )
             else:
-                body_parts.append(self._format_brief_item(item, labels, language, display_idx))
+                body_parts.append(
+                    self._format_brief_item(item, labels, language, display_idx, anchor_prefix=anchor_prefix)
+                )
 
         if pick_items:
             body_parts.append(
@@ -367,14 +424,70 @@ class DailySummarizer:
                 + labels["picks_intro"].format(n=len(pick_items), top=TOP_N_MAIN)
                 + "\n\n---\n\n"
             )
-            for pick_idx, item in enumerate(
-                pick_items, start=len(full_items) + len(brief_items) + 1
-            ):
+            for pick_idx, item in enumerate(pick_items, start=pick_offset + 1):
                 body_parts.append(
-                    self._format_item(item, labels, language, pick_idx, is_pick=True)
+                    self._format_item(item, labels, language, pick_idx, is_pick=True, anchor_prefix=anchor_prefix)
                 )
 
-        return header + toc + "".join(body_parts)
+        return toc, "".join(body_parts)
+
+    def _generate_period_grouped_summary(
+        self,
+        groups: Dict[str, List[ContentItem]],
+        date: str,
+        total_fetched: int,
+        labels: dict,
+        language: str,
+        full_threshold: float,
+    ) -> str:
+        """Render a board as per-period sub-boards (GitHub 热榜 style).
+
+        Each period sub-board gets its own top10+3 selection; item
+        anchors are namespaced per period so a merged multi-board page
+        keeps working links.
+        """
+        n_total = sum(len(v) for v in groups.values())
+        group_labels = _PERIOD_GROUP_LABELS.get(language, _PERIOD_GROUP_LABELS["en"])
+        present = [p for p in _PERIOD_GROUP_ORDER if p in groups]
+
+        if language == "zh":
+            subline = (
+                "本榜含 "
+                + " / ".join(group_labels[p] for p in present)
+                + " 三个子榜，各取客观分前 10 与画像精选。"
+            )
+        else:
+            subline = (
+                "Sub-boards: "
+                + " / ".join(group_labels[p] for p in present)
+                + " — each with its own top 10 + persona picks."
+            )
+
+        header = (
+            f"# {labels['header']} - {date}\n\n"
+            f"> {labels['selected_items'].format(total=total_fetched, selected=n_total)}\n\n"
+            f"{subline}\n\n"
+            "---\n\n"
+        )
+
+        parts: List[str] = []
+        for period in present:
+            period_items = groups[period]
+            full_items, brief_items, pick_items = self._select_tiers(
+                period_items, full_threshold
+            )
+            shown = len(full_items) + len(brief_items) + len(pick_items)
+            if language == "zh":
+                parts.append(f"## {group_labels[period]}（{shown} 条）\n\n")
+            else:
+                parts.append(f"## {group_labels[period]} ({shown} items)\n\n")
+            toc, body = self._render_toc_and_body(
+                full_items, brief_items, pick_items, labels, language,
+                full_threshold, anchor_prefix=f"item-{period}",
+            )
+            parts.append(toc)
+            parts.append(body)
+        return header + "".join(parts)
 
     def generate_webhook_overview(
         self,
@@ -430,6 +543,7 @@ class DailySummarizer:
         language: str,
         index: int,
         is_pick: bool = False,
+        anchor_prefix: str = "item",
     ) -> str:
         """Format a single ContentItem into Markdown (full write-up)."""
         _title = item.metadata.get(f"title_{language}") or item.title
@@ -495,7 +609,7 @@ class DailySummarizer:
                 source_line += f' · [{labels["discussion"]}]({discussion_url})'
 
         lines = [
-            f'<a id="item-{index}"></a>',
+            f'<a id="{anchor_prefix}-{index}"></a>',
             f"## [{title}]({url}) {score_badge}",
             "",
             summary,
@@ -542,7 +656,12 @@ class DailySummarizer:
         return "\n".join(lines) + "\n\n"
 
     def _format_brief_item(
-        self, item: ContentItem, labels: dict, language: str, index: int
+        self,
+        item: ContentItem,
+        labels: dict,
+        language: str,
+        index: int,
+        anchor_prefix: str = "item",
     ) -> str:
         """Format a sub-full-threshold item as a one-paragraph note.
 
@@ -572,7 +691,7 @@ class DailySummarizer:
             note = "*(brief)*"
 
         return (
-            f'<a id="item-{index}"></a>\n'
+            f'<a id="{anchor_prefix}-{index}"></a>\n'
             f"### {note} [{title}]({url}) {score_badge}\n\n"
             f"{summary}\n\n"
             "---\n\n"

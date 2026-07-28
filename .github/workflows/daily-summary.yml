@@ -176,50 +176,42 @@ jobs:
           fi
           exit "$RUN_RC"
 
-      - name: Run Horizon (embedded edition)
+      - name: Run Horizon (global news edition)
         if: steps.gate.outputs.should_run == 'true'
         continue-on-error: true
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          cp data/config.embedded.json data/config.json
+          cp data/config.global.json data/config.json
           DATE=$(date -u +'%Y-%m-%d')
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
           set -e
           if [ -f "data/summaries/${DATE}-horizon-zh.md" ]; then
-            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-embedded-zh.md"
+            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-global-zh.md"
           fi
           exit "$RUN_RC"
 
-      - name: Run Horizon (OSHW edition)
+      - name: Run Horizon (github-trending edition)
         if: steps.gate.outputs.should_run == 'true'
         continue-on-error: true
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          cp data/config.oshw.json data/config.json
+          cp data/config.github-trending.json data/config.json
           DATE=$(date -u +'%Y-%m-%d')
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
           set -e
           if [ -f "data/summaries/${DATE}-horizon-zh.md" ]; then
-            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-oshw-zh.md"
+            mv "data/summaries/${DATE}-horizon-zh.md" "data/summaries/${DATE}-github-trending-zh.md"
           fi
           cp "/tmp/${DATE}-horizon-zh.md.bak" "data/summaries/${DATE}-horizon-zh.md" || true
           exit "$RUN_RC"
 
-      - name: Append OSHW observations
-        if: steps.gate.outputs.should_run == 'true'
-        continue-on-error: true
-        env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          uv run python scripts/append_observations.py --date $(date -u +'%Y-%m-%d')
-
-      - name: Append EE/Embedded daily knowledge card
+      - name: Append EE daily knowledge card
         if: steps.gate.outputs.should_run == 'true'
         continue-on-error: true
         env:
@@ -227,7 +219,12 @@ jobs:
         run: |
           DATE=$(date -u +'%Y-%m-%d')
           uv run python scripts/append_knowledge.py --edition ee --date "$DATE"
-          uv run python scripts/append_knowledge.py --edition embedded --date "$DATE"
+
+      - name: Merge four boards into one daily page
+        if: steps.gate.outputs.should_run == 'true'
+        continue-on-error: true
+        run: |
+          uv run python scripts/merge_boards.py --date $(date -u +'%Y-%m-%d')
 
       - name: Deploy docs to master for Pages
         if: steps.gate.outputs.should_run == 'true'
