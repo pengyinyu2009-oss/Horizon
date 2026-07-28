@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """把 reports/*.md 渲染成独立静态 HTML(无 JS 依赖,手机任何 webview 都能开)。
 
-页面组织(2026-07-23 起改版,4 榜单一页):
+页面组织(2026-07-23 起改版,4 榜单一页;2026-07-28 换新四榜):
 - 日报:一天一页,新格式 {date}-榜单汇总-zh.md,4 章节吸顶导航
-  (全球资讯/AI 科技/嵌入式/财经),每条 4 字段(概要/对中国影响/对我影响/我的判断)。
+  (全球新闻/Horizon 总榜/GitHub 热榜/电子工程师),每条双评分(客观+画像相关)。
+  新格式日期同时输出 {date}.html 别名,供 latest/血缘/推送链路使用。
 - 周报/月报/年报:{period}-周榜-zh.md / -月榜-zh.md / -年榜-zh.md,独立页。
 - 兼容:旧格式 {date}-{sec}-zh.md 仍支持(2026-07-22 之前),每天 4 文件合并成
   {date}.html,锚点 horizon/ee/embedded/oshw,保证历史链接不 404。
@@ -41,13 +42,22 @@ NEW_WEEKLY_RE = re.compile(r"^(\d{4})-W(\d{1,2})-周榜-zh$")
 NEW_MONTHLY_RE = re.compile(r"^(\d{4})-(\d{2})-月榜-zh$")
 NEW_YEARLY_RE = re.compile(r"^(\d{4})-年榜-zh$")
 
-NAV_ORDER_NEW = ["global", "ai", "embedded", "finance", "github"]
+# 2026-07-28 四榜单改版:全球新闻 / Horizon 总榜 / GitHub 热榜(日周月子榜) / 电子工程师。
+NAV_ORDER_NEW = ["global", "ai", "github", "ee"]
 NAV_LABELS_NEW = {
-    "global": "🌍 全球资讯",
-    "ai": "🤖 AI 科技",
-    "embedded": "🔧 嵌入式/开源硬件",
-    "finance": "💰 财经/加密",
+    "global": "🌍 全球新闻",
+    "ai": "🤖 Horizon 总榜",
     "github": "🔥 GitHub 热榜",
+    "ee": "🔧 电子工程师",
+}
+
+# 旧分版锚点 → 新四榜锚点(新格式日期的跳转桩用)。
+OLD_TO_NEW_ANCHOR = {
+    "horizon": "sec-ai",
+    "ee": "sec-ee",
+    "embedded": "sec-ee",
+    "oshw": "sec-github",
+    "global": "sec-global",
 }
 
 # === 旧格式(2026-07-22 之前,1 天 4 文件)===
@@ -220,14 +230,30 @@ for i, date in enumerate(new_dates):
     foot.append("</div>")
 
     # 输出文件名 = md stem(保持原名,sidebar 链接直接命中)
-    (DST / f"{md_stem}.html").write_text(
-        TEMPLATE.format(title=f"{date} 4 榜单速览", nav=nav, body=body, footer="".join(foot)),
-        encoding="utf-8",
+    page_html = TEMPLATE.format(
+        title=f"{date} 4 榜单速览", nav=nav, body=body, footer="".join(foot)
     )
+    (DST / f"{md_stem}.html").write_text(page_html, encoding="utf-8")
+    count += 1
+    # 2026-07-28:latest 更新、血缘门禁、Hiboard 推送都认 YYYY-MM-DD.html。
+    # 新格式日期补一份同内容别名;旧格式循环会跳过这些日期(见下),
+    # 不会被 horizon/ee/global 分版文件拼出的旧式页面覆盖。
+    (DST / f"{date}.html").write_text(page_html, encoding="utf-8")
     count += 1
 
 # === 旧格式日报:一天一页,4 旧榜单吸顶导航(兼容历史) ===
 for date, secs in old_daily.items():
+    if date in new_daily:
+        # 新格式日期:horizon/ee/global 分版 md 仍在(供 rollup 与血缘门禁
+        # 消费),但页面以榜单汇总为准。只生成旧分版链接的跳转桩,
+        # 锚点映射到新四榜。
+        for s in secs:
+            target = OLD_TO_NEW_ANCHOR.get(s, "")
+            suffix = f"#{target}" if target else ""
+            (DST / f"{date}-{s}-zh.html").write_text(
+                REDIRECT.format(target=f"{date}.html{suffix}"), encoding="utf-8"
+            )
+        continue
     present = [s for s in NAV_ORDER_OLD if s in secs]
     nav = ""
     if len(present) > 1:

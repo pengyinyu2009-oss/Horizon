@@ -98,7 +98,7 @@ done
 sidebar_tmp="$ROOT/.sidebar.tmp.$$"
 {
   echo "* [🏠 首页](reports-html/index.html)"
-  echo "* [📑 5 榜单导航](reports-html/index.html)"
+  echo "* [📑 4 榜单导航](reports-html/index.html)"
   echo ""
   echo "**📅 日报 / 周报(新→旧)**"
   echo ""
@@ -218,13 +218,27 @@ for f in "$LIVE_HTML"/????-??-??-*-zh.html; do
   y=${b:0:4}; m=${b:5:2}; d=${b:8:2}; sec=${b:11}
   sec=${sec%-zh}
   date=${b:0:10}
+  # 2026-07-28 四榜单改版:新格式日期的页面锚点是 sec-global/sec-ai/
+  # sec-github/sec-ee;旧分版链接按映射跳转。旧格式日期保持原锚点。
+  anchor="$sec"
+  if [ -f "$LIVE_HTML/${date}-榜单汇总-zh.html" ]; then
+    case "$sec" in
+      horizon) anchor="sec-ai" ;;
+      ee|embedded) anchor="sec-ee" ;;
+      oshw) anchor="sec-github" ;;
+      global) anchor="sec-global" ;;
+      *) anchor="" ;;
+    esac
+  fi
+  target="/reports-html/$date.html"
+  [ -n "$anchor" ] && target="$target#$anchor"
   dir="$ROOT/$y/$m/$d"
   mkdir -p "$dir"
   printf '%s\n' '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">' \
-    "<meta http-equiv=\"refresh\" content=\"0; url=/reports-html/$date.html#$sec\">" \
+    "<meta http-equiv=\"refresh\" content=\"0; url=$target\">" \
     '<title>跳转中…</title></head>' \
     '<body style="font-family:sans-serif;text-align:center;padding-top:3em">' \
-    "<p><a href=\"/reports-html/$date.html#$sec\">点这里立即打开</a></p>" \
+    "<p><a href=\"$target\">点这里立即打开</a></p>" \
     '</body></html>' > "$dir/$sec-zh.html"
 done
 
