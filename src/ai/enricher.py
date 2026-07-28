@@ -19,6 +19,7 @@ from .client import AIClient
 from .prompts import (
     CONCEPT_EXTRACTION_SYSTEM, CONCEPT_EXTRACTION_USER,
     CONTENT_ENRICHMENT_SYSTEM, CONTENT_ENRICHMENT_USER,
+    build_persona_section,
 )
 from .utils import parse_json_response
 from ..models import ContentItem
@@ -172,6 +173,14 @@ class ContentEnricher:
         # Index of available URLs for citation validation
         available_urls = {r["url"]: r["title"] for r in all_results if r.get("url")}
 
+        # A per-config prompt override (if present) wins over the
+        # hardcoded default system prompt.
+        config = getattr(self.client, "config", None)
+
+        # 2026-07-28: persona drives the personal_relevance fields;
+        # neutral fallback text when no persona is configured.
+        persona_section = build_persona_section(getattr(config, "persona", None))
+
         # Step 3: AI generates background grounded in search results
         user_prompt = CONTENT_ENRICHMENT_USER.format(
             title=item.title,
@@ -183,11 +192,10 @@ class ContentEnricher:
             content=content_text,
             comments_section=f"\n**Community Comments:**\n{comments_text}" if comments_text else "",
             web_context=web_context or "No web search results available.",
+            persona_section=persona_section,
         )
 
-        # A per-config prompt override (if present) wins over the
-        # hardcoded default system prompt.
-        config = getattr(self.client, "config", None)
+        prompt_overrides = getattr(config, "prompt_overrides", None) or {}
         prompt_overrides = getattr(config, "prompt_overrides", None) or {}
         system_prompt = prompt_overrides.get("enrichment_system") or CONTENT_ENRICHMENT_SYSTEM
         response = await self.client.complete(
@@ -232,6 +240,12 @@ class ContentEnricher:
                 val = result[f"community_discussion_{lang}"]
                 item.metadata[f"community_discussion_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
 
+            # 2026-07-28: persona/impact fields ("对我有什么用" / "对中国影响")
+            for field in ("personal_relevance", "china_impact"):
+                if result.get(f"{field}_{lang}"):
+                    val = result[f"{field}_{lang}"]
+                    item.metadata[f"{field}_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
+
         # Store citation sources — only URLs that actually came from our search results
         if result.get("sources") and available_urls:
             valid = [
@@ -246,6 +260,8 @@ class ContentEnricher:
         item.metadata["detailed_summary"] = item.metadata.get("detailed_summary_en", "")
         item.metadata["background"] = item.metadata.get("background_en", "")
         item.metadata["community_discussion"] = item.metadata.get("community_discussion_en", "")
+        item.metadata["personal_relevance"] = item.metadata.get("personal_relevance_en", "")
+        item.metadata["china_impact"] = item.metadata.get("china_impact_en", "")
 
     async def _translate_item(self, item: ContentItem) -> None:
         """Lightweight translation fallback: when full enrichment fails, at least

@@ -1,5 +1,30 @@
 """AI prompts for content analysis and summarization."""
 
+_NO_PERSONA_TEXT = (
+    "No specific reader persona provided — score subjective relevance "
+    "for a general technical reader, and return an empty string for "
+    "persona-specific fields."
+)
+
+
+def build_persona_section(persona) -> str:
+    """Render the persona block injected into analysis/enrichment prompts.
+
+    Duck-typed against PersonaConfig so this module stays import-light.
+    Returns a neutral fallback when the persona is absent or disabled.
+    """
+    if persona is None or not getattr(persona, "enabled", False):
+        return _NO_PERSONA_TEXT
+    parts = []
+    description = getattr(persona, "description", "") or ""
+    if description.strip():
+        parts.append(description.strip())
+    keywords = getattr(persona, "keywords", None) or []
+    if keywords:
+        parts.append("Key interests: " + ", ".join(str(k) for k in keywords))
+    return "\n".join(parts) if parts else _NO_PERSONA_TEXT
+
+
 TOPIC_DEDUP_SYSTEM = """You are a news deduplication assistant. Identify groups of news items that cover the exact same real-world event, release, or announcement.
 
 Rules:
@@ -81,6 +106,46 @@ Respond with valid JSON only:
   "tags": ["<tag1>", "<tag2>", ...]
 }}"""
 
+# 2026-07-28: dual-scoring variant used when Config.persona is enabled.
+# `score` keeps its legacy meaning (objective importance) so every
+# downstream reader keeps working; `subjective_score` rates relevance
+# to the owner persona. Both are produced in ONE analysis call.
+CONTENT_ANALYSIS_USER_DUAL = """Analyze the following content and provide a JSON response with:
+- score (0-10): OBJECTIVE importance score — how significant this event is in its field, regardless of the reader
+- subjective_score (0-10): SUBJECTIVE relevance score — how relevant/useful this is to the specific reader persona described below
+- subjective_reason: Brief explanation for the subjective score (which persona interest it matches, or why it is irrelevant)
+- reason: Brief explanation for the objective score (mention discussion quality if comments are provided)
+- summary: One-sentence summary of the content
+- tags: Relevant topic tags (3-5 tags)
+
+**Reader persona (for subjective_score only):**
+{persona_section}
+
+Subjective scoring guide:
+- 9-10: Directly matches the persona's core interests; actionable for them (e.g. a project they could replicate, a tool they would use daily)
+- 7-8: Closely related to their interests; worth their time today
+- 5-6: Tangentially related; nice to know
+- 3-4: Outside their interests but in a nearby field
+- 0-2: Irrelevant to this reader
+
+Content:
+Title: {title}
+Source: {source}
+Author: {author}
+URL: {url}
+{content_section}
+{discussion_section}
+
+Respond with valid JSON only:
+{{
+  "score": <number>,
+  "subjective_score": <number>,
+  "subjective_reason": "<explanation>",
+  "reason": "<explanation>",
+  "summary": "<one-sentence-summary>",
+  "tags": ["<tag1>", "<tag2>", ...]
+}}"""
+
 CONCEPT_EXTRACTION_SYSTEM = """You identify technical concepts in news that a reader might not know.
 Given a news item, return 1-3 search queries for concepts that need explanation.
 Focus on: specific technologies, protocols, algorithms, tools, or projects that are not widely known.
@@ -124,6 +189,8 @@ Provide EACH text field in BOTH English and Chinese. Use the following key namin
 - key_details_en / key_details_zh
 - background_en / background_zh
 - community_discussion_en / community_discussion_zh
+- personal_relevance_en / personal_relevance_zh
+- china_impact_en / china_impact_zh
 
 Field definitions:
 0. **title** (one short phrase, ≤15 words): A clear, accurate headline for the news item.
@@ -137,6 +204,10 @@ Field definitions:
 4. **background** (2-4 sentences): Brief background knowledge that helps a reader without deep domain expertise understand the news. Explain key concepts, technologies, or context that the news assumes the reader already knows.
 
 5. **community_discussion** (1-3 sentences): If community comments are provided, summarize the overall sentiment and key viewpoints from the discussion — agreements, disagreements, concerns, additional insights, or notable counterarguments. If no comments are provided, return an empty string.
+
+6. **personal_relevance** (1-2 complete sentences): What this news means FOR THE READER PERSONA provided in the user message — what they can use it for, what action it enables (e.g. a project to replicate, a tool to adopt, a skill to learn). If a persona is provided and the item is irrelevant to it, say so honestly in one sentence. If NO persona is provided, return an empty string.
+
+7. **china_impact** (1-2 complete sentences): What this event means for China — its tech industry, supply chain, policy, developers, or market. Be concrete and honest; if the event has no meaningful China angle, return an empty string rather than inventing one.
 
 **CRITICAL — Language rules (MUST follow):**
 - All *_en fields MUST be written in English.
@@ -168,6 +239,9 @@ CONTENT_ENRICHMENT_USER = """Provide a structured bilingual analysis for the fol
 **Web Search Results (for grounding):**
 {web_context}
 
+**Reader persona (for the personal_relevance fields):**
+{persona_section}
+
 Respond with valid JSON only.
 
 **LANGUAGE REMINDER** (system prompt enforces this, repeated here for clarity):
@@ -189,5 +263,9 @@ Every field MUST be at least one complete sentence (except community_discussion 
   "background_zh": "<2-4句中文，或空字符串>",
   "community_discussion_en": "<1-3 sentences in English, or empty string>",
   "community_discussion_zh": "<1-3句中文，或空字符串>",
+  "personal_relevance_en": "<1-2 sentences in English, or empty string>",
+  "personal_relevance_zh": "<1-2句中文，或空字符串>",
+  "china_impact_en": "<1-2 sentences in English, or empty string>",
+  "china_impact_zh": "<1-2句中文，或空字符串>",
   "sources": ["<url from search results>", "..."]
 }}"""

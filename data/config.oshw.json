@@ -133,5 +133,22 @@
     "languages": [
       "zh"
     ]
+  },
+  "persona": {
+    "enabled": true,
+    "description": "读者画像：电子工程师/硬件开发者。核心关注：开源硬件与可复刻项目（值得动手复刻的板卡、设备、工具）、EDA 与嵌入式新技术、HarmonyOS/鸿蒙开发、AI 模型与开发工具链、自动化效率工具。Reader persona: electronics engineer / hardware developer — open-source hardware & replicable projects, EDA & embedded tech, HarmonyOS development, AI models & dev toolchains, automation tools.",
+    "keywords": [
+      "开源硬件",
+      "open hardware",
+      "可复刻",
+      "RISC-V",
+      "EDA",
+      "嵌入式",
+      "embedded",
+      "HarmonyOS",
+      "鸿蒙",
+      "AI 工具链",
+      "自动化"
+    ]
   }
 }

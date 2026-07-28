@@ -129,6 +129,32 @@ class HorizonOrchestrator:
                 )
             important_items = deduped_items
 
+            # 5.5b Persona picks (2026-07-28): up to 3 below-threshold items
+            # with the highest subjective (persona) scores join the enrichment
+            # set, flagged so the summarizer renders them under
+            # "🎯 猜你感兴趣" instead of the objective ranking.
+            persona = getattr(self.config, "persona", None)
+            if persona is not None and getattr(persona, "enabled", False):
+                in_main = {id(it) for it in important_items}
+                pick_candidates = sorted(
+                    (
+                        it for it in analyzed_items
+                        if id(it) not in in_main
+                        and it.subjective_score is not None
+                        and it.subjective_score >= 7.0
+                    ),
+                    key=lambda x: x.subjective_score or 0,
+                    reverse=True,
+                )[:3]
+                for it in pick_candidates:
+                    it.metadata["persona_pick"] = True
+                if pick_candidates:
+                    important_items.extend(pick_candidates)
+                    self.console.print(
+                        f"🎯 {len(pick_candidates)} persona picks added "
+                        f"(subjective ≥ 7.0, below objective threshold)\n"
+                    )
+
             # 5.6 Optional second-stage Twitter reply expansion + targeted re-analysis
             await self._expand_twitter_discussion(important_items)
 

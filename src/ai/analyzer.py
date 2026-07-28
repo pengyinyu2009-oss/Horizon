@@ -9,7 +9,12 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, MofNCompleteColumn
 
 from .client import AIClient
-from .prompts import CONTENT_ANALYSIS_SYSTEM, CONTENT_ANALYSIS_USER
+from .prompts import (
+    CONTENT_ANALYSIS_SYSTEM,
+    CONTENT_ANALYSIS_USER,
+    CONTENT_ANALYSIS_USER_DUAL,
+    build_persona_section,
+)
 from .utils import parse_json_response
 from ..models import ContentItem
 
@@ -76,6 +81,31 @@ def _client_identity(client: AIClient) -> tuple[str, str]:
     provider = getattr(provider, "value", provider)
     model = getattr(config, "model", None) or getattr(client, "model", "unknown")
     return str(provider), str(model)
+
+
+def _parse_score_field(result: dict, key: str, response: str) -> float:
+    """Strictly validate one 0-10 score from an analysis response.
+
+    Shared by the objective `score` and (dual-scoring) `subjective_score`
+    so both ride the same fault channel: an invalid value raises and is
+    counted as an analysis failure by analyze_batch.
+    """
+    value = result.get(key)
+    try:
+        if isinstance(value, bool):
+            raise TypeError("boolean is not a score")
+        score = float(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError(
+            f"invalid analysis {key} "
+            f"in response: {_redact_error_text(response)}"
+        ) from error
+    if not math.isfinite(score) or not 0 <= score <= 10:
+        raise ValueError(
+            f"invalid analysis {key} "
+            f"in response: {_redact_error_text(response)}"
+        )
+    return score
 
 
 def scoring_failure_context(
@@ -155,6 +185,8 @@ class ContentAnalyzer:
                     item.ai_reason = "Analysis failed"
                     item.ai_summary = item.title
                     item.ai_tags = []
+                    item.subjective_score = None
+                    item.subjective_reason = None
                     item.metadata[ANALYSIS_STATUS_KEY] = ANALYSIS_STATUS_FAILED
                     failure_count += 1
                 if throttle_sec > 0 and index < len(items) - 1:
@@ -239,19 +271,36 @@ class ContentAnalyzer:
 
         discussion_section = "\n".join(discussion_parts) if discussion_parts else ""
 
-        # Generate user prompt
-        user_prompt = CONTENT_ANALYSIS_USER.format(
-            title=item.title,
-            source=f"{item.source_type.value}",
-            author=item.author or "Unknown",
-            url=str(item.url),
-            content_section=content_section,
-            discussion_section=discussion_section
-        )
-
         # Get AI completion. A per-config prompt override (if present)
         # wins over the hardcoded default system prompt.
         config = getattr(self.client, "config", None)
+
+        # 2026-07-28: dual scoring — when a persona is configured and
+        # enabled, one analysis call also produces subjective_score.
+        persona = getattr(config, "persona", None)
+        use_dual = persona is not None and getattr(persona, "enabled", False)
+
+        # Generate user prompt
+        if use_dual:
+            user_prompt = CONTENT_ANALYSIS_USER_DUAL.format(
+                title=item.title,
+                source=f"{item.source_type.value}",
+                author=item.author or "Unknown",
+                url=str(item.url),
+                content_section=content_section,
+                discussion_section=discussion_section,
+                persona_section=build_persona_section(persona),
+            )
+        else:
+            user_prompt = CONTENT_ANALYSIS_USER.format(
+                title=item.title,
+                source=f"{item.source_type.value}",
+                author=item.author or "Unknown",
+                url=str(item.url),
+                content_section=content_section,
+                discussion_section=discussion_section
+            )
+
         prompt_overrides = getattr(config, "prompt_overrides", None) or {}
         system_prompt = prompt_overrides.get("analysis_system") or CONTENT_ANALYSIS_SYSTEM
         response = await self.client.complete(
@@ -267,22 +316,25 @@ class ContentAnalyzer:
             )
 
         # Update item with analysis results
-        score_value = result.get("score")
-        try:
-            if isinstance(score_value, bool):
-                raise TypeError("boolean is not a score")
-            score = float(score_value)
-        except (TypeError, ValueError) as error:
-            raise ValueError(
-                "invalid analysis score "
-                f"in response: {_redact_error_text(response)}"
-            ) from error
-        if not math.isfinite(score) or not 0 <= score <= 10:
-            raise ValueError(
-                "invalid analysis score "
-                f"in response: {_redact_error_text(response)}"
-            )
+        score = _parse_score_field(result, "score", response)
         item.ai_score = score
         item.ai_reason = result.get("reason", "")
         item.ai_summary = result.get("summary", item.title)
         item.ai_tags = result.get("tags", [])
+
+        if use_dual:
+            # Strictly validated when present (garbage rides the same
+            # fault channel as the objective score); when the model omits
+            # the key entirely, degrade to the objective score so a
+            # schema-miss alone cannot blank the report.
+            if result.get("subjective_score") is None:
+                item.subjective_score = score
+                item.subjective_reason = ""
+            else:
+                item.subjective_score = _parse_score_field(
+                    result, "subjective_score", response
+                )
+                item.subjective_reason = result.get("subjective_reason", "")
+        else:
+            item.subjective_score = None
+            item.subjective_reason = None

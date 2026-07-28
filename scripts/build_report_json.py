@@ -77,7 +77,10 @@ _FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)
 # 完整条目（含简报）— 直接捕获 markdown item 块
 _ITEM_BLOCK_RE = re.compile(
     r'<a id="item-(\d+)"></a>\s*\n'
-    r'.*?\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10\s*\n'
+    # 2026-07-28: optional dual-score half (`· 相关 X/10`) — absent in
+    # pre-2026-07-28 dailies, so the group must stay optional.
+    r'.*?\[([^\]]+)\]\(([^)]+)\)\s*⭐️\s*([\d.]+)/10'
+    r'(?:\s*·\s*(?:相关|relevance)\s*([\d.]+)/10)?\s*\n'
     r'(.*?)\n---\s*$',
     re.MULTILINE | re.DOTALL,
 )
@@ -141,7 +144,11 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
             score = float(m.group(4))
         except (TypeError, ValueError):
             continue
-        block = m.group(5).strip()
+        try:
+            subjective_score = float(m.group(5)) if m.group(5) else None
+        except (TypeError, ValueError):
+            subjective_score = None
+        block = m.group(6).strip()
         # summary = block 的第一段（去掉信源行/标签行）
         first_para = block.split("\n\n")[0].strip()
         summary_text = first_para
@@ -153,6 +160,9 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
             "title": title,
             "url": url,
             "score": score,
+            "subjective_score": subjective_score,
+            "china_impact": _extract_labeled(block, "对中国影响") or _extract_labeled(block, "China impact"),
+            "personal_relevance": _extract_labeled(block, "对我有什么用") or _extract_labeled(block, "Why it matters to you"),
             "summary": summary_text,
             "tags": tags,
             "published": published,
@@ -161,6 +171,12 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
             "summary_file": summary_path.name,
         })
     return items
+
+
+def _extract_labeled(block: str, label: str) -> str:
+    """从 item 块里抽取 `**标签**: 内容` 行（双评分新增的字段段落）。"""
+    m = re.search(rf"\*\*{re.escape(label)}\*\*:\s*(.+)", block)
+    return m.group(1).strip() if m else ""
 
 
 def _published_from_url(url: str) -> str:
@@ -199,19 +215,33 @@ def derive_news_fields(item: dict) -> dict:
         f"原始 AI 评分 {item['score']}/10，标签：{tag_str}。"
         f"事件影响范围和后续走向需结合 tags 与原始信源判断；本派生字段仅做格式整理，不脱离原文。"
     )
+    # 2026-07-28: relevance/impact 字段优先使用双评分与 enrichment
+    # 产出的真实值；只有旧日报（无这些段落）才退回原有派生逻辑。
+    subjective = item.get("subjective_score")
+    relevance = round(subjective, 1) if subjective is not None else round(item["score"] * 0.85, 1)
+    impact_cn = item.get("china_impact") or (
+        "（待人工/AI 二次解读，原文未明确涉及中国影响）"
+        if "中国" not in summary and "China" not in summary
+        else f"原文提及中国相关：{summary[:120]}"
+    )
+    impact_me = item.get("personal_relevance") or (
+        "（待人工/AI 二次解读，原文未明确涉及个人影响）"
+        if len(summary) < 80
+        else f"基于原文判断：{summary[:120]}"
+    )
     return {
         "anchor": item["item_id"],
         "title": title,
         "url": item["url"],
         "importance": item["score"],
-        "relevance": round(item["score"] * 0.85, 1),
+        "relevance": relevance,
         "source": "Horizon Daily 采集",
         "source_url": f"https://github.com/pengyinyu2009-oss/Horizon/blob/main/data/summaries/{item['summary_file']}",
         "published": item.get("published") or item["daily_date"],
         "language_note": "派生自 daily summary 真实采集",
         "summary": summary,
-        "impact_cn": "（待人工/AI 二次解读，原文未明确涉及中国影响）" if "中国" not in summary and "China" not in summary else f"原文提及中国相关：{summary[:120]}",
-        "impact_me": "（待人工/AI 二次解读，原文未明确涉及个人影响）" if len(summary) < 80 else f"基于原文判断：{summary[:120]}",
+        "impact_cn": impact_cn,
+        "impact_me": impact_me,
         "judge_me": judge,
         "source_ref": {
             "summary_file": item["summary_file"],
@@ -233,12 +263,14 @@ def derive_tech_fields(item: dict) -> dict:
         f"原始 AI 评分 {item['score']}/10，标签：{tag_str}。"
         f"技术亮点与适用场景以原文为准；本派生字段仅做格式整理。"
     )
+    subjective = item.get("subjective_score")
+    relevance = round(subjective, 1) if subjective is not None else round(item["score"] * 0.8, 1)
     return {
         "anchor": item["item_id"],
         "title": title,
         "url": item["url"],
         "importance": item["score"],
-        "relevance": round(item["score"] * 0.8, 1),
+        "relevance": relevance,
         "source": "Horizon Daily 采集",
         "source_url": f"https://github.com/pengyinyu2009-oss/Horizon/blob/main/data/summaries/{item['summary_file']}",
         "published": item.get("published") or item["daily_date"],

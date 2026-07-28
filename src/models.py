@@ -21,6 +21,10 @@ class Story:
     score: float
     summary: str
     source_date: str  # YYYY-MM-DD when this story appeared in a digest
+    # 2026-07-28: dual scoring — objective importance lives in `score`;
+    # subjective (persona relevance) rides along for roll-up "我必看"
+    # sections. Defaults to 0.0 so legacy parsers keep working.
+    subjective_score: float = 0.0
 
 
 class SourceType(str, Enum):
@@ -50,10 +54,15 @@ class ContentItem(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
     # AI analysis results
-    ai_score: Optional[float] = None  # 0-10 importance score
+    ai_score: Optional[float] = None  # 0-10 objective importance score
     ai_reason: Optional[str] = None
     ai_summary: Optional[str] = None
     ai_tags: List[str] = Field(default_factory=list)
+    # 2026-07-28: dual scoring — subjective relevance to the configured
+    # persona (Config.persona), produced in the same analysis call as
+    # ai_score. None when the item has not been dual-scored yet.
+    subjective_score: Optional[float] = None  # 0-10 persona relevance
+    subjective_reason: Optional[str] = None
 
 
 class AIProvider(str, Enum):
@@ -390,6 +399,21 @@ class YearlyConfig(PeriodSummaryConfig):
     top_n_report: int = 10
 
 
+class PersonaConfig(BaseModel):
+    """Owner persona used for subjective scoring and "对我有什么用" text.
+
+    `description` is injected verbatim into the analysis/enrichment
+    prompts; `keywords` bias the subjective score toward matching items
+    and drive the "🎯 猜你感兴趣" off-list picks. When `enabled` is
+    false the analyser skips subjective scoring entirely (saves tokens)
+    and reports render objective score only.
+    """
+
+    enabled: bool = True
+    description: str = ""
+    keywords: List[str] = Field(default_factory=list)
+
+
 class Config(BaseModel):
     """Main configuration model."""
 
@@ -402,3 +426,6 @@ class Config(BaseModel):
     weekly: Optional[WeeklyConfig] = None
     monthly: Optional[MonthlyConfig] = None
     yearly: Optional[YearlyConfig] = None
+    # 2026-07-28: owner persona for dual scoring / personal-impact text.
+    # Optional so every existing config.json keeps validating unchanged.
+    persona: Optional[PersonaConfig] = None

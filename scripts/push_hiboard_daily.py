@@ -26,7 +26,10 @@ SITE = "https://horizon.pyyaiai.com"  # apex/www 的 /2026/... 日报链接曾 4
 
 STATS_RE = re.compile(r"^>\s*(从\s*\d+\s*条内容中筛选出\s*\d+\s*条重要资讯。)", re.M)
 DETAIL_RE = re.compile(r"其中\s*\*\*(\d+)\s*条\s*8\s*分以上\*\*")
-INDEX_RE = re.compile(r"^\d+\.\s+\[(.+?)\]\(#item-\d+\)\s*⭐️\s*([\d.]+)", re.M)
+# 2026-07-28: TOC pick lines carry a "🎯 " prefix between the number and
+# the link ("5. 🎯 [t](#item-5) ⭐️ …"); make it optional so both main
+# entries and 猜你感兴趣 picks are included in the push digest.
+INDEX_RE = re.compile(r"^\d+\.\s+(?:🎯\s*)?\[(.+?)\]\(#item-\d+\)\s*⭐️\s*([\d.]+)", re.M)
 SCORING_FAULT_MARKER = "【评分故障空报】"
 
 

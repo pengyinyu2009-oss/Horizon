@@ -33,6 +33,14 @@ LABELS = {
         "discussion": "Discussion",
         "references": "References",
         "tags": "Tags",
+        "personal_relevance": "Why it matters to you",
+        "china_impact": "China impact",
+        "pick_reason": "Why this pick",
+        "picks_header": "🎯 Picks for you",
+        "picks_intro": (
+            "These {n} items missed the objective top {top} but score "
+            "highest on relevance to your interests."
+        ),
         "selected_items": "From {total} items, {selected} important content pieces were selected",
         "empty_analyzed": "Analyzed {total} items, but none met the importance threshold.",
         "empty_body": (
@@ -53,6 +61,11 @@ LABELS = {
         "discussion": "社区讨论",
         "references": "参考链接",
         "tags": "标签",
+        "personal_relevance": "对我有什么用",
+        "china_impact": "对中国影响",
+        "pick_reason": "入选理由",
+        "picks_header": "🎯 猜你感兴趣",
+        "picks_intro": "以下 {n} 条未进客观分前 {top}，但与你的兴趣画像高度相关。",
         "selected_items": "从 {total} 条内容中筛选出 {selected} 条重要资讯。",
         "empty_analyzed": "已分析 {total} 条内容，但没有达到重要性阈值的条目。",
         "empty_body": (
@@ -67,6 +80,35 @@ LABELS = {
         ),
     },
 }
+
+
+# 2026-07-28: "top 10 + 3" selection — the objective top N form the main
+# list; up to this many off-list items with the highest subjective
+# (persona) scores are appended as "🎯 猜你感兴趣".
+TOP_N_MAIN = 10
+TOP_N_PICKS = 3
+
+
+def _fmt_score(value) -> str:
+    """Render a 0-10 score without a trailing '.0'."""
+    if isinstance(value, (int, float)):
+        return f"{value:g}"
+    return str(value)
+
+
+def _score_suffix(score, subjective_score, language: str) -> str:
+    """Render the trailing score badge: `⭐️ 8.5/10 · 相关 9/10`.
+
+    The objective half keeps its legacy formatting (raw value); the
+    subjective half only appears when dual scoring actually ran
+    (``subjective_score is not None``), keeping legacy single-score
+    output byte-identical.
+    """
+    suffix = f"\u2b50\ufe0f {score}/10"
+    if subjective_score is not None:
+        rel = "相关" if language == "zh" else "relevance"
+        suffix += f" · {rel} {_fmt_score(subjective_score)}/10"
+    return suffix
 
 
 # --- Roll-up labels (weekly / monthly / yearly) ----------------------------
@@ -227,24 +269,60 @@ class DailySummarizer:
             return self._generate_empty_summary(date, total_fetched, labels)
 
         sorted_items = sorted(items, key=lambda x: x.ai_score or 0, reverse=True)
-        full_items = [it for it in sorted_items if (it.ai_score or 0) >= full_threshold]
+
+        # 2026-07-28: "top 10 + 3" selection. When dual scoring ran, the
+        # objective top TOP_N_MAIN form the main list; up to TOP_N_PICKS
+        # off-list items with the highest subjective scores render under
+        # "🎯 猜你感兴趣". Items the orchestrator flagged as
+        # ``persona_pick`` (below-threshold but high subjective score)
+        # always land in the pick pool, never in the main ranking.
+        # Without subjective scores (persona disabled / legacy runs)
+        # everything renders as before.
+        has_subjective = any(it.subjective_score is not None for it in sorted_items)
+        flagged = [it for it in sorted_items if it.metadata.get("persona_pick")]
+        unflagged = [it for it in sorted_items if not it.metadata.get("persona_pick")]
+
+        if has_subjective and len(unflagged) > TOP_N_MAIN:
+            main_items = unflagged[:TOP_N_MAIN]
+            overflow = unflagged[TOP_N_MAIN:]
+        else:
+            main_items = unflagged
+            overflow = []
+
+        if has_subjective:
+            pick_pool = flagged + [
+                it for it in overflow if it.subjective_score is not None
+            ]
+            pick_items = sorted(
+                pick_pool, key=lambda x: x.subjective_score or 0, reverse=True
+            )[:TOP_N_PICKS]
+        else:
+            pick_items = []
+
+        full_items = [it for it in main_items if (it.ai_score or 0) >= full_threshold]
         brief_items = [
-            it for it in sorted_items
+            it for it in main_items
             if (it.ai_score or 0) < full_threshold
         ]
 
-        n_total = len(sorted_items)
+        n_total = len(main_items) + len(pick_items)
         n_full = len(full_items)
         if language == "zh":
             subline = (
-                f"其中 **{n_full} 条 8 分以上**展开详细简报，其余 {n_total - n_full} 条"
+                f"其中 **{n_full} 条 8 分以上**展开详细简报，其余 {len(brief_items)} 条"
                 f"仅列于索引。"
             )
+            if pick_items:
+                subline += f"另有 **{len(pick_items)} 条🎯猜你感兴趣**（按画像主观分入选）。"
         else:
             subline = (
                 f"**{n_full} items at 8+** get full write-ups; the other "
-                f"{n_total - n_full} are listed in the index only."
+                f"{len(brief_items)} are listed in the index only."
             )
+            if pick_items:
+                subline += (
+                    f" Plus **{len(pick_items)} 🎯 picks** chosen by persona relevance."
+                )
 
         header = (
             f"# {labels['header']} - {date}\n\n"
@@ -253,16 +331,25 @@ class DailySummarizer:
             "---\n\n"
         )
 
-        # TOC uses display order (full first, then brief)
+        # TOC uses display order (full first, then brief, then picks)
         toc_entries: List[str] = []
         for display_idx, item in enumerate(full_items + brief_items, start=1):
             _t = item.metadata.get(f"title_{language}") or item.title
             t = str(_t).replace("[", "(").replace("]", ")")
             if language == "zh":
                 t = _pangu(t)
-            score = item.ai_score or "?"
             toc_entries.append(
-                f"{display_idx}. [{t}](#item-{display_idx}) \u2b50\ufe0f {score}/10"
+                f"{display_idx}. [{t}](#item-{display_idx}) "
+                + _score_suffix(item.ai_score or "?", item.subjective_score, language)
+            )
+        for pick_idx, item in enumerate(pick_items, start=len(full_items) + len(brief_items) + 1):
+            _t = item.metadata.get(f"title_{language}") or item.title
+            t = str(_t).replace("[", "(").replace("]", ")")
+            if language == "zh":
+                t = _pangu(t)
+            toc_entries.append(
+                f"{pick_idx}. 🎯 [{t}](#item-{pick_idx}) "
+                + _score_suffix(item.ai_score or "?", item.subjective_score, language)
             )
         toc = "\n".join(toc_entries) + "\n\n---\n\n"
 
@@ -273,6 +360,19 @@ class DailySummarizer:
                 body_parts.append(self._format_item(item, labels, language, display_idx))
             else:
                 body_parts.append(self._format_brief_item(item, labels, language, display_idx))
+
+        if pick_items:
+            body_parts.append(
+                f"## {labels['picks_header']}\n\n"
+                + labels["picks_intro"].format(n=len(pick_items), top=TOP_N_MAIN)
+                + "\n\n---\n\n"
+            )
+            for pick_idx, item in enumerate(
+                pick_items, start=len(full_items) + len(brief_items) + 1
+            ):
+                body_parts.append(
+                    self._format_item(item, labels, language, pick_idx, is_pick=True)
+                )
 
         return header + toc + "".join(body_parts)
 
@@ -323,12 +423,19 @@ class DailySummarizer:
         prefix = f"第 {index}/{total} 条\n\n" if language == "zh" else f"Item {index}/{total}\n\n"
         return prefix + self._format_item(item, labels, language, index).rstrip("-\n ")
 
-    def _format_item(self, item: ContentItem, labels: dict, language: str, index: int) -> str:
+    def _format_item(
+        self,
+        item: ContentItem,
+        labels: dict,
+        language: str,
+        index: int,
+        is_pick: bool = False,
+    ) -> str:
         """Format a single ContentItem into Markdown (full write-up)."""
         _title = item.metadata.get(f"title_{language}") or item.title
         title = str(_title).replace("[", "(").replace("]", ")")
         url = str(item.url)
-        score = item.ai_score or "?"
+        score_badge = _score_suffix(item.ai_score or "?", item.subjective_score, language)
         meta = item.metadata
 
         summary = (
@@ -343,12 +450,24 @@ class DailySummarizer:
             or meta.get("community_discussion")
             or ""
         )
+        personal_relevance = (
+            meta.get(f"personal_relevance_{language}")
+            or meta.get("personal_relevance")
+            or ""
+        )
+        china_impact = (
+            meta.get(f"china_impact_{language}")
+            or meta.get("china_impact")
+            or ""
+        )
 
         if language == "zh":
             title = _pangu(title)
             summary = _pangu(summary)
             background = _pangu(background)
             discussion = _pangu(discussion)
+            personal_relevance = _pangu(personal_relevance)
+            china_impact = _pangu(china_impact)
 
         source_type = item.source_type.value
         source_parts = [source_type]
@@ -377,7 +496,7 @@ class DailySummarizer:
 
         lines = [
             f'<a id="item-{index}"></a>',
-            f"## [{title}]({url}) \u2b50\ufe0f {score}/10",  # ⭐️
+            f"## [{title}]({url}) {score_badge}",
             "",
             summary,
             "",
@@ -387,6 +506,18 @@ class DailySummarizer:
         if background:
             lines.append("")
             lines.append(f"**{labels['background']}**: {background}")
+
+        if china_impact:
+            lines.append("")
+            lines.append(f"**{labels['china_impact']}**: {china_impact}")
+
+        if personal_relevance:
+            lines.append("")
+            lines.append(f"**{labels['personal_relevance']}**: {personal_relevance}")
+
+        if is_pick and item.subjective_reason:
+            lines.append("")
+            lines.append(f"**{labels['pick_reason']}**: {item.subjective_reason}")
 
         sources = meta.get("sources") or []
         if sources:
@@ -422,7 +553,7 @@ class DailySummarizer:
         _title = item.metadata.get(f"title_{language}") or item.title
         title = str(_title).replace("[", "(").replace("]", ")")
         url = str(item.url)
-        score = item.ai_score or "?"
+        score_badge = _score_suffix(item.ai_score or "?", item.subjective_score, language)
         meta = item.metadata
 
         summary = (
@@ -442,7 +573,7 @@ class DailySummarizer:
 
         return (
             f'<a id="item-{index}"></a>\n'
-            f"### {note} [{title}]({url}) \u2b50\ufe0f {score}/10\n\n"
+            f"### {note} [{title}]({url}) {score_badge}\n\n"
             f"{summary}\n\n"
             "---\n\n"
         )
@@ -657,7 +788,8 @@ class _RollupSummarizerBase:
             t = _pangu(story.title) if language == "zh" else story.title
             t = t.replace("[", "(").replace("]", ")")
             toc_lines.append(
-                f"{i}. [{t}](#{self.period}-item-{i}) \u2b50\ufe0f {story.score}/10"
+                f"{i}. [{t}](#{self.period}-item-{i}) "
+                + _score_suffix(story.score, story.subjective_score or None, language)
             )
         toc = "\n".join(toc_lines) + "\n\n---\n\n"
 
@@ -691,7 +823,8 @@ class _RollupSummarizerBase:
         )
 
         lines = [
-            f"### [{title}]({story.url}) \u2b50\ufe0f {story.score}/10",
+            f"### [{title}]({story.url}) "
+            + _score_suffix(story.score, story.subjective_score or None, language),
             "",
             summary,
             "",
@@ -715,7 +848,8 @@ class _RollupSummarizerBase:
         title = title.replace("[", "(").replace("]", ")")
         block = (
             f'<a id="{self.period}-item-{index}"></a>\n'
-            f"- [{title}]({story.url}) \u2b50\ufe0f {story.score}/10"
+            f"- [{title}]({story.url}) "
+            + _score_suffix(story.score, story.subjective_score or None, language)
         )
         related_block = self._format_related(related, language, inline=True)
         if related_block:
@@ -773,11 +907,14 @@ class YearlySummarizer(_RollupSummarizerBase):
 # --- Markdown parsers for chain-mode roll-ups ------------------------------
 
 
+# 2026-07-28: the trailing `(?: · 相关 X/10)?` group is OPTIONAL so
+# pre-dual-scoring dailies (everything before 2026-07-28) keep parsing.
 _DAILY_ITEM_HEADER_RE = re.compile(
     r'^<a id="item-(\d+)"></a>\s*\n'
     r'(?:^###\s+\*[^*]+\*\s*)?'   # optional "(简报)" / "(brief)" prefix
     r'^#{2,3}\s+(?:\*[^*]+\*\s+)?'  # ## or ###, plus optional "*brief*" prefix
-    r'\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
+    r'\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10'
+    r'(?:\s*·\s*(?:相关|relevance)\s*([\d.]+)/10)?',
     re.MULTILINE,
 )
 
@@ -806,6 +943,10 @@ def parse_daily_full_stories(markdown: str, language: str = "zh") -> List[Story]
             continue
         if score < 8.0:
             continue
+        try:
+            subjective_score = float(m.group(5)) if m.group(5) else 0.0
+        except (TypeError, ValueError):
+            subjective_score = 0.0
         # Brief tier items are written with a "### *（简报）* [title](url)"
         # header on the line right before the <a id>. Detect and skip.
         pre = body[: m.start()]
@@ -820,13 +961,17 @@ def parse_daily_full_stories(markdown: str, language: str = "zh") -> List[Story]
         if not summary:
             continue
         stories.append(
-            Story(title=title, url=url, score=score, summary=summary, source_date="")
+            Story(
+                title=title, url=url, score=score, summary=summary,
+                source_date="", subjective_score=subjective_score,
+            )
         )
     return stories
 
 
 _ROLLUP_CALLOUT_HEADER_RE = re.compile(
-    r'^###\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10',
+    r'^###\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10'
+    r'(?:\s*·\s*(?:相关|relevance)\s*([\d.]+)/10)?',
     re.MULTILINE,
 )
 
@@ -854,6 +999,10 @@ def parse_rollup_callouts(markdown: str, language: str = "zh") -> List[Story]:
             score = float(m.group(3))
         except (TypeError, ValueError):
             continue
+        try:
+            subjective_score = float(m.group(4)) if m.group(4) else 0.0
+        except (TypeError, ValueError):
+            subjective_score = 0.0
         next_match = next(
             (nm for nm in matches if nm.start() > m.end()), None
         )
@@ -869,7 +1018,10 @@ def parse_rollup_callouts(markdown: str, language: str = "zh") -> List[Story]:
         if not summary:
             continue
         callouts.append(
-            Story(title=title, url=url, score=score, summary=summary, source_date="")
+            Story(
+                title=title, url=url, score=score, summary=summary,
+                source_date="", subjective_score=subjective_score,
+            )
         )
     return callouts
 
