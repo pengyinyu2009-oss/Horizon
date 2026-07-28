@@ -28,6 +28,7 @@ from .ai.summarizer import (
     WeeklySummarizer,
     MonthlySummarizer,
     YearlySummarizer,
+    _score_suffix,
 )
 from .ai.enricher import ContentEnricher
 from .ai.tokens import get_usage_snapshot
@@ -704,6 +705,15 @@ class HorizonOrchestrator:
             f"   target {period} id = {period_id}\n"
         )
 
+        # 2026-07-28: rollups run PER BOARD (horizon/global/ee). The
+        # github-trending board is excluded — GitHub natively ships
+        # daily/weekly/monthly boards, so it never enters chain-mode.
+        # Per-board reports are saved as {period_id}-{board}-{lang}.md
+        # (monthly/yearly chains read these), then merged into a single
+        # multi-board page {period_id}-{周榜|月榜|年榜}-{lang}.md; monthly
+        # and yearly pages get a "⭐ 我必看" section on top.
+        rollup_boards = ("horizon", "global", "ee")
+
         # Per-language prereq check + read prior reports.
         # Prereq is the hard gate introduced on 2026-07-02: weekly requires
         # the 7 daily reports for that ISO week, monthly requires all
@@ -711,25 +721,14 @@ class HorizonOrchestrator:
         # reports in the H1/H2 half-year window. Without the gate,
         # weekly/monthly/yearly silently skipped with "No X reports for
         # lang; skipping." because data/summaries/ is .gitignored on
-        # fresh GHA runners.
-        summaries_by_lang: Dict[str, List[Path]] = {}
-        for lang in languages:
-            if not self._check_prerequisites(period, period_id, lang):
-                summaries_by_lang[lang] = []
-                continue
-            files = self.storage.list_recent_summaries(
-                period=prior_period,
-                language=lang,
-            )
-            summaries_by_lang[lang] = files[-lookback_count:]
-            self.console.print(
-                f"   {lang}: {len(summaries_by_lang[lang])} {prior_period} report(s) to read\n"
-            )
-
-        # Per-language parse + web search + generate
+        # fresh GHA runners. Boards whose data history doesn't cover the
+        # window yet (global/ee started 2026-07-28) are honestly skipped
+        # by the same gate — no synthetic backfill.
         from .ai.summarizer import (
+            merge_period_reports,
             parse_daily_full_stories,
             parse_rollup_callouts,
+            period_file_label,
         )
 
         ai_client = create_ai_client(self.config.ai)
@@ -741,68 +740,198 @@ class HorizonOrchestrator:
 
         import httpx as _httpx
 
-        for lang in languages:
-            files = summaries_by_lang.get(lang, [])
-            if not files:
-                self.console.print(
-                    f"[yellow]No {prior_period} reports for {lang}; skipping.[/yellow]"
-                )
-                continue
+        # lang -> {board: report_md}; lang -> [stories] (for 我必看)
+        board_reports: Dict[str, Dict[str, str]] = {}
+        all_stories_by_lang: Dict[str, List[Story]] = {}
 
-            # Parse stories from each prior report
-            all_stories: List[Story] = []
-            for f in files:
-                md = f.read_text(encoding="utf-8")
-                if prior_period == "daily":
-                    stories = parse_daily_full_stories(md, lang)
-                else:
-                    stories = parse_rollup_callouts(md, lang)
-                for s in stories:
-                    # Tag the source date from the filename (YYYY-MM-DD-...)
-                    s.source_date = f.stem.split("-horizon-")[0]
-                all_stories.extend(stories)
-            self.console.print(
-                f"   {lang}: parsed {len(all_stories)} story(ies) from {len(files)} prior report(s)\n"
-            )
-
-            if not all_stories:
-                self.console.print(
-                    f"[yellow]No stories above threshold for {lang}; skipping.[/yellow]"
-                )
-                continue
-
-            # Web search: one AsyncClient shared across calls
-            async with _httpx.AsyncClient(timeout=30.0) as client:
-                from .search import search_related_for_stories
-                related = await search_related_for_stories(all_stories, client)
-                self.console.print(
-                    f"   {lang}: web search done ({sum(len(v) for v in related.values())} related stories)\n"
-                )
-
-                summarizer = summarizer_cls(ai_client=ai_client, http_client=client)
-                lookback_label = lookback_label_zh if lang == "zh" else lookback_label_en
-                report = await summarizer.generate_report(
-                    stories=all_stories,
-                    period_id=period_id,
+        for board in rollup_boards:
+            summaries_by_lang: Dict[str, List[Path]] = {}
+            for lang in languages:
+                if not self._check_prerequisites(period, period_id, lang, board=board):
+                    summaries_by_lang[lang] = []
+                    continue
+                files = self.storage.list_recent_summaries(
+                    period=prior_period,
                     language=lang,
-                    threshold=period_cfg.ai_score_threshold,
-                    report_threshold=period_cfg.ai_score_report_threshold,
-                    top_n_report=period_cfg.top_n_report,
-                    lookback_label=lookback_label,
-                    related_by_index=related,
+                    board=board,
+                )
+                summaries_by_lang[lang] = files[-lookback_count:]
+                self.console.print(
+                    f"   {board}/{lang}: {len(summaries_by_lang[lang])} "
+                    f"{prior_period} report(s) to read\n"
                 )
 
-            save_method = getattr(self.storage, save_method_name)
-            saved = save_method(period_id, report, language=lang)
-            self.console.print(f"💾 Saved {period} {lang.upper()} report to: {saved}\n")
-            self._deploy_period_post(period, period_id, lang)
+            for lang in languages:
+                files = summaries_by_lang.get(lang, [])
+                if not files:
+                    self.console.print(
+                        f"[yellow]No {prior_period} reports for "
+                        f"{board}/{lang}; skipping.[/yellow]"
+                    )
+                    continue
 
-    def _deploy_period_post(self, period: str, period_id: str, lang: str) -> None:
+                # Parse stories from each prior report
+                all_stories: List[Story] = []
+                for f in files:
+                    md = f.read_text(encoding="utf-8")
+                    if prior_period == "daily":
+                        stories = parse_daily_full_stories(md, lang)
+                    else:
+                        stories = parse_rollup_callouts(md, lang)
+                    for s in stories:
+                        # Tag the source date from the filename (YYYY-MM-DD-...)
+                        s.source_date = f.stem.split(f"-{board}-")[0]
+                    all_stories.extend(stories)
+                self.console.print(
+                    f"   {board}/{lang}: parsed {len(all_stories)} story(ies) "
+                    f"from {len(files)} prior report(s)\n"
+                )
+
+                if not all_stories:
+                    self.console.print(
+                        f"[yellow]No stories above threshold for "
+                        f"{board}/{lang}; skipping.[/yellow]"
+                    )
+                    continue
+
+                # Web search: one AsyncClient shared across calls
+                async with _httpx.AsyncClient(timeout=30.0) as client:
+                    from .search import search_related_for_stories
+                    related = await search_related_for_stories(all_stories, client)
+                    self.console.print(
+                        f"   {board}/{lang}: web search done "
+                        f"({sum(len(v) for v in related.values())} related stories)\n"
+                    )
+
+                    summarizer = summarizer_cls(ai_client=ai_client, http_client=client)
+                    lookback_label = lookback_label_zh if lang == "zh" else lookback_label_en
+                    report = await summarizer.generate_report(
+                        stories=all_stories,
+                        period_id=period_id,
+                        language=lang,
+                        threshold=period_cfg.ai_score_threshold,
+                        report_threshold=period_cfg.ai_score_report_threshold,
+                        top_n_report=period_cfg.top_n_report,
+                        lookback_label=lookback_label,
+                        related_by_index=related,
+                    )
+
+                save_method = getattr(self.storage, save_method_name)
+                saved = save_method(period_id, report, language=lang, board=board)
+                self.console.print(
+                    f"💾 Saved {period} {board}/{lang.upper()} report to: {saved}\n"
+                )
+                self._deploy_period_post(period, period_id, lang, board=board)
+                board_reports.setdefault(lang, {})[board] = report
+                all_stories_by_lang.setdefault(lang, []).extend(all_stories)
+
+        # Merge per-board reports into the multi-board period page.
+        for lang, reports in board_reports.items():
+            if not reports:
+                continue
+            must_see_md = ""
+            if period in ("monthly", "yearly"):
+                must_see_md = await self._build_must_see_section(
+                    period, all_stories_by_lang.get(lang, []), lang, ai_client
+                )
+            merged = merge_period_reports(
+                period, period_id, lang, reports, must_see_md=must_see_md
+            )
+            merged_filename = f"{period_id}-{period_file_label(period)}-{lang}.md"
+            merged_path = self.storage._write_period_post(
+                filename=merged_filename,
+                markdown=merged,
+                period=period,
+                period_id=period_id,
+                language=lang,
+            )
+            self.console.print(
+                f"💾 Saved merged {period} {lang.upper()} page to: {merged_path}\n"
+            )
+            self._deploy_file(merged_filename)
+
+    async def _build_must_see_section(
+        self,
+        period: str,
+        stories: List[Story],
+        language: str,
+        ai_client,
+    ) -> str:
+        """Build the "⭐ 我必看" section for monthly/yearly pages.
+
+        Picks the period's highest subjective-score stories and asks the
+        AI for 1-3 concrete action recommendations against the owner
+        persona (e.g. which open-source project to replicate this month).
+        Falls back to a plain top-3 listing when the AI call fails, and
+        to "" when no subjective scores exist (legacy data).
+        """
+        candidates = [s for s in stories if s.subjective_score and s.subjective_score > 0]
+        if not candidates:
+            return ""
+        top = sorted(candidates, key=lambda s: s.subjective_score, reverse=True)[:8]
+
+        head = "## ⭐ 我必看" if language == "zh" else "## ⭐ Must-see for you"
+        blurb = (
+            "> 本期全部榜单中与你画像最强相关的条目，附行动建议。"
+            if language == "zh"
+            else "> The period's most persona-relevant stories, with action advice."
+        )
+
+        advice = ""
+        if ai_client and language == "zh":
+            from .ai.prompts import (
+                MUST_SEE_SYSTEM_ZH,
+                MUST_SEE_USER_ZH,
+                build_persona_section,
+            )
+            persona_section = build_persona_section(getattr(self.config, "persona", None))
+            period_label = "月" if period == "monthly" else "半年"
+            story_lines = []
+            for s in top:
+                summary = (s.summary or "").replace("\n", " ")[:200]
+                story_lines.append(
+                    f"- 标题: {s.title}\n  链接: {s.url}\n"
+                    f"  客观分: {s.score}/10 · 相关分: {s.subjective_score}/10\n"
+                    f"  摘要: {summary}"
+                )
+            try:
+                advice = await ai_client.complete(
+                    system=MUST_SEE_SYSTEM_ZH.format(persona_section=persona_section),
+                    user=MUST_SEE_USER_ZH.format(
+                        period_label=period_label,
+                        stories="\n".join(story_lines),
+                    ),
+                )
+                advice = (advice or "").strip()
+            except Exception as e:
+                self.console.print(
+                    f"[yellow]⚠️  我必看 AI call failed: {e}; "
+                    f"falling back to plain listing.[/yellow]"
+                )
+
+        if not advice:
+            lines = []
+            for i, s in enumerate(top[:3], start=1):
+                title = s.title.replace("[", "(").replace("]", ")")
+                lines.append(
+                    f"{i}. [{title}]({s.url}) "
+                    + _score_suffix(s.score, s.subjective_score, language)
+                )
+            advice = "\n".join(lines)
+
+        return f"{head}\n\n{blurb}\n\n{advice}\n"
+
+    def _deploy_period_post(
+        self, period: str, period_id: str, lang: str, board: str = "horizon"
+    ) -> None:
         """Copy a freshly saved roll-up summary into docs/_posts/."""
+        self._deploy_file(f"{period_id}-{board}-{lang}.md")
+
+    def _deploy_file(self, filename: str) -> None:
+        """Copy a file from data/summaries/ into docs/_posts/."""
         try:
             from pathlib import Path
 
-            filename = f"{period_id}-horizon-{lang}.md"
             src = self.storage.summaries_dir / filename
             posts_dir = Path("docs/_posts")
             posts_dir.mkdir(parents=True, exist_ok=True)
@@ -819,11 +948,11 @@ class HorizonOrchestrator:
             with open(dest, "w", encoding="utf-8") as f:
                 f.write(stored)
             self.console.print(
-                f"📄 Copied {period} {lang.upper()} report to GitHub Pages: {dest}\n"
+                f"📄 Copied {filename} to GitHub Pages: {dest}\n"
             )
         except Exception as e:
             self.console.print(
-                f"[yellow]⚠️  Failed to deploy {period} {lang} report: {e}[/yellow]\n"
+                f"[yellow]⚠️  Failed to deploy {filename}: {e}[/yellow]\n"
             )
 
     # --- Prerequisite validation -----------------------------------------
@@ -884,33 +1013,41 @@ class HorizonOrchestrator:
             return [f"{year}-{m:02d}" for m in months]
         raise ValueError(f"unknown period: {period}")
 
-    def _check_prerequisites(self, period: str, period_id: str, lang: str) -> bool:
+    def _check_prerequisites(
+        self, period: str, period_id: str, lang: str, board: str = "horizon"
+    ) -> bool:
         """Return True iff all upstream reports for ``period``/``period_id`` exist.
 
         On miss, prints a yellow skip line and returns False — the caller
         (the lang loop in :meth:`_run_rollup`) is expected to ``continue``
         so the remaining languages still get a chance. (Currently only
         ``zh`` is configured, so this is mostly defensive.)
+
+        2026-07-28: ``board`` makes the gate per-board — global/ee only
+        have history since 2026-07-28, so their first weekly/monthly are
+        honestly blocked until enough of their own dailies exist.
         """
         prior_period = {"weekly": "daily", "monthly": "weekly", "yearly": "monthly"}[
             period
         ]
         expected = self._expected_prereq_ids(period, period_id)
         existing = {
-            p.stem[: -len(f"-horizon-{lang}")]
-            for p in self.storage.list_recent_summaries(period=prior_period, language=lang)
+            p.stem[: -len(f"-{board}-{lang}")]
+            for p in self.storage.list_recent_summaries(
+                period=prior_period, language=lang, board=board
+            )
         }
         missing = [e for e in expected if e not in existing]
         if missing:
             preview = ", ".join(missing[:3]) + ("..." if len(missing) > 3 else "")
             self.console.print(
-                f"[yellow]⏭  {period} {period_id} ({lang.upper()}) skipped: "
+                f"[yellow]⏭  {period} {period_id} ({board}/{lang.upper()}) skipped: "
                 f"{len(missing)}/{len(expected)} upstream {prior_period} report(s) "
                 f"missing — {preview}[/yellow]"
             )
             return False
         self.console.print(
-            f"[green]✅ {period} {period_id} ({lang.upper()}) prereq: "
+            f"[green]✅ {period} {period_id} ({board}/{lang.upper()}) prereq: "
             f"all {len(expected)} {prior_period} report(s) present[/green]"
         )
         return True

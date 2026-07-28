@@ -175,7 +175,8 @@ class StorageManager:
         )
 
     def save_weekly_summary(
-        self, iso_week_id: str, markdown: str, language: str = "en"
+        self, iso_week_id: str, markdown: str, language: str = "en",
+        board: str = "horizon",
     ) -> Path:
         """Save a weekly roll-up summary.
 
@@ -187,7 +188,7 @@ class StorageManager:
         Returns:
             Path to the saved file under data/summaries/.
         """
-        filename = f"{iso_week_id}-horizon-{language}.md"
+        filename = f"{iso_week_id}-{board}-{language}.md"
         return self._write_period_post(
             filename=filename,
             markdown=markdown,
@@ -197,14 +198,15 @@ class StorageManager:
         )
 
     def save_monthly_summary(
-        self, year_month: str, markdown: str, language: str = "en"
+        self, year_month: str, markdown: str, language: str = "en",
+        board: str = "horizon",
     ) -> Path:
         """Save a monthly roll-up summary.
 
         Args:
             year_month: ``YYYY-MM`` identifier, e.g. ``2026-06``.
         """
-        filename = f"{year_month}-horizon-{language}.md"
+        filename = f"{year_month}-{board}-{language}.md"
         return self._write_period_post(
             filename=filename,
             markdown=markdown,
@@ -214,14 +216,15 @@ class StorageManager:
         )
 
     def save_yearly_summary(
-        self, year: str, markdown: str, language: str = "en"
+        self, year: str, markdown: str, language: str = "en",
+        board: str = "horizon",
     ) -> Path:
         """Save a yearly roll-up summary.
 
         Args:
             year: ``YYYY`` identifier, e.g. ``2026``.
         """
-        filename = f"{year}-horizon-{language}.md"
+        filename = f"{year}-{board}-{language}.md"
         return self._write_period_post(
             filename=filename,
             markdown=markdown,
@@ -236,8 +239,13 @@ class StorageManager:
         language: str = "zh",
         since_id: str = "",
         until_id: str = "",
+        board: str = "horizon",
     ) -> List[Path]:
         """List existing summary files for a given period + language.
+
+        2026-07-28: ``board`` selects the per-board file suffix
+        (``-horizon-`` / ``-global-`` / ``-ee-``) so chain-mode rollups
+        can run per board; the default keeps legacy behaviour.
 
         ``period`` is one of ``daily``, ``weekly``, ``monthly``, ``yearly``.
         The id format depends on the period:
@@ -251,7 +259,7 @@ class StorageManager:
         """
         if period not in {"daily", "weekly", "monthly", "yearly"}:
             raise ValueError(f"unknown period: {period}")
-        suffix = f"-horizon-{language}.md"
+        suffix = f"-{board}-{language}.md"
         results: List[Path] = []
         for path in self.summaries_dir.iterdir():
             if not path.name.endswith(suffix):

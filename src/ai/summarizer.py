@@ -1023,6 +1023,113 @@ class YearlySummarizer(_RollupSummarizerBase):
     period = "yearly"
 
 
+# --- Multi-board period merge (2026-07-28) ---------------------------------
+
+# Board key → (section anchor, zh label, en label). github-trending is
+# deliberately absent: GitHub natively ships daily/weekly/monthly boards,
+# so the trending board never enters chain-mode rollups.
+ROLLUP_BOARD_SECTIONS = {
+    "horizon": ("ai", "🤖 Horizon 总榜", "🤖 Horizon main board"),
+    "global": ("global", "🌍 全球新闻", "🌍 Global news"),
+    "ee": ("ee", "🔧 电子工程师", "🔧 Electronics engineer"),
+}
+
+_PERIOD_FILE_LABEL = {"weekly": "周榜", "monthly": "月榜", "yearly": "年榜"}
+_PERIOD_TITLE_ZH = {
+    "weekly": "Horizon 周榜",
+    "monthly": "Horizon 月榜",
+    "yearly": "Horizon 年榜",
+}
+_PERIOD_TITLE_EN = {
+    "weekly": "Horizon Weekly Boards",
+    "monthly": "Horizon Monthly Boards",
+    "yearly": "Horizon Yearly Boards",
+}
+
+_HEADING_DEMOTE_RE = re.compile(r"^(#{1,5})\s")
+
+
+def _demote_headings(body: str) -> str:
+    """Demote every Markdown heading one level (code-fence aware)."""
+    out_lines = []
+    in_fence = False
+    for line in body.split("\n"):
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            out_lines.append(line)
+            continue
+        if not in_fence and _HEADING_DEMOTE_RE.match(line):
+            line = "#" + line
+        out_lines.append(line)
+    return "\n".join(out_lines)
+
+
+def merge_period_reports(
+    period: str,
+    period_id: str,
+    language: str,
+    board_reports: Dict[str, str],
+    must_see_md: str = "",
+) -> str:
+    """Merge per-board roll-up reports into one multi-board period page.
+
+    ``board_reports`` maps board key (``horizon``/``global``/``ee``) to
+    the raw per-board roll-up markdown. Roll-up item anchors
+    (``{period}-item-N``) are namespaced per board, headings demoted,
+    and the optional "⭐ 我必看" section (monthly/yearly) goes on top.
+
+    The returned markdown starts with an H1; the storage layer strips
+    it into front matter exactly like every other period post.
+    """
+    titles = _PERIOD_TITLE_ZH if language == "zh" else _PERIOD_TITLE_EN
+    title = titles.get(period, period)
+
+    nav_parts = []
+    for board in board_reports:
+        anchor, zh_label, en_label = ROLLUP_BOARD_SECTIONS[board]
+        nav_parts.append(f"[{zh_label if language == 'zh' else en_label}](#sec-{anchor})")
+    nav = " · ".join(nav_parts)
+
+    if language == "zh":
+        intro = f"> 本期 {len(board_reports)} 个榜单的合并{('，含 ⭐ 我必看精选' if must_see_md else '')}。\n>\n> 📑 跳转到: {nav}"
+    else:
+        intro = f"> {len(board_reports)} boards merged{(' with ⭐ must-see picks' if must_see_md else '')}.\n>\n> 📑 Jump to: {nav}"
+
+    parts = [f"# {title} · {period_id}\n\n{intro}\n\n---\n\n"]
+
+    if must_see_md:
+        parts.append(must_see_md.strip() + "\n\n---\n\n")
+
+    for board, report in board_reports.items():
+        anchor, zh_label, en_label = ROLLUP_BOARD_SECTIONS[board]
+        label = zh_label if language == "zh" else en_label
+        body = _strip_front_matter(report)
+        # Drop the per-board H1 (its info lives in the section header) —
+        # BEFORE demotion turns it into an H2.
+        lines = body.split("\n")
+        for i, line in enumerate(lines):
+            if not line.strip():
+                continue
+            if line.startswith("# "):
+                del lines[i]
+                if i < len(lines) and not lines[i].strip():
+                    del lines[i]
+            break
+        body = "\n".join(lines)
+        # Namespace the roll-up anchors: {period}-item-N → {period}-{board}-item-N
+        body = body.replace(f'<a id="{period}-item-', f'<a id="{period}-{board}-item-')
+        body = body.replace(f"](#{period}-item-", f"](#{period}-{board}-item-")
+        body = _demote_headings(body).strip()
+        parts.append(f'<a id="sec-{anchor}"></a>\n## {label}\n\n{body}\n')
+
+    return "\n---\n\n".join(parts) + "\n"
+
+
+def period_file_label(period: str) -> str:
+    """File-name infix for the merged multi-board period page."""
+    return _PERIOD_FILE_LABEL[period]
+
+
 # --- Markdown parsers for chain-mode roll-ups ------------------------------
 
 

@@ -164,6 +164,30 @@ Respond with valid JSON only:
   "queries": ["<search query 1>", "<search query 2>"]
 }}"""
 
+# 2026-07-28: "⭐ 我必看" section for monthly/yearly roll-ups — picks the
+# most persona-relevant stories of the period and turns them into
+# concrete action advice (e.g. which open-source project to replicate).
+MUST_SEE_SYSTEM_ZH = """你是一位资深技术顾问，为特定读者从周期榜单中挑选"必看"内容并给出行动建议。
+
+读者画像：
+{persona_section}
+
+规则：
+- 从给定条目中选出 1-3 条与画像最强相关的（优先主观分高且可行动的）
+- 每条给出具体、可执行的建议，例如：
+  - 值得动手复刻的开源项目：说明复刻价值、需要的物料/技能/大致门槛
+  - 值得采用的工具或技术：说明如何融入读者现有的开发工作流
+  - 必须跟踪的技术动态：说明接下来要盯的关键节点
+- 直接给建议，不要重复条目正文，不要客套开场白
+- 用简体中文；输出 Markdown 有序列表，每条以 "**条目标题**：" 开头，建议 2-4 句"""
+
+MUST_SEE_USER_ZH = """以下是本{period_label}全部榜单中主观分（与画像相关性）最高的条目：
+
+{stories}
+
+请给出"我必看"行动建议。"""
+
+
 CONTENT_ENRICHMENT_SYSTEM = """You are a knowledgeable bilingual technical writer who helps readers understand important news in context.
 
 Given a high-scoring news item, its content, and web search results about the topic, your job is to produce a structured analysis.
