@@ -180,7 +180,11 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.ee.json data/config.json
-          DATE=$(date -u +'%Y-%m-%d')
+          # Pin date to Beijing time — GHA's primary window UTC 23:00–23:55
+          # (= 07:00–07:50 BJT) crosses the UTC date boundary, so a
+          # `date -u`-derived filename drifts and merge_boards.py silently
+          # sees only 1/4 boards.
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           cp "data/summaries/${DATE}-horizon-zh.md" "/tmp/${DATE}-horizon-zh.md.bak" || true
           set +e
           uv run horizon --hours 24
@@ -198,7 +202,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.global.json data/config.json
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -215,7 +219,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.github-trending.json data/config.json
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -232,19 +236,19 @@ jobs:
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           uv run python scripts/append_knowledge.py --edition ee --date "$DATE"
 
       - name: Merge four boards into one daily page
         if: steps.gate.outputs.should_run == 'true'
         continue-on-error: true
         run: |
-          uv run python scripts/merge_boards.py --date $(date -u +'%Y-%m-%d')
+          uv run python scripts/merge_boards.py --date $(TZ=Asia/Shanghai date +'%Y-%m-%d')
 
       - name: Deploy docs to master for Pages
         if: steps.gate.outputs.should_run == 'true'
         run: |
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           test -s "data/summaries/${DATE}-horizon-zh.md"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
