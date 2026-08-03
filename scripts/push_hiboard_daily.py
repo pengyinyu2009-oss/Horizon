@@ -102,12 +102,20 @@ def build_alert(
     )
 
 
-def push(task_name: str, task_content: str, task_result: str) -> int:
+def make_msg_id(date_str: str) -> str:
+    return f"horizon-daily-{date_str}-{datetime.now().strftime('%H%M%S')}"
+
+
+def push(task_name: str, task_content: str, task_result: str, *, msg_id: str, schedule_task_id: str = "horizon-daily") -> int:
     payload = {
         "task_name": task_name,
         "task_content": task_content,
         "task_result": task_result,
+        "schedule_task_id": schedule_task_id,
+        "msg_id": msg_id,
     }
+    print(f"[push] schedule_task_id={schedule_task_id}")
+    print(f"[push] msg_id={msg_id}")
     with tempfile.NamedTemporaryFile(
         "w", suffix=".json", prefix="horizon_push_", delete=False, encoding="utf-8"
     ) as f:
@@ -142,23 +150,31 @@ def main() -> int:
 
     if args.test:
         now = datetime.now().strftime("%H:%M")
+        mid = make_msg_id(args.date)
         return push(
             "Horizon 推送测试",
             f"# ✅ Horizon 负一屏推送测试\n\n通道已打通，每天 08:17 日报生成后将自动推送到这里。\n\n测试时间：{args.date} {now}",
             "测试成功",
+            msg_id=mid,
         )
 
     if args.alert_content or args.alert_result:
         if not args.alert_content or not args.alert_result:
             ap.error("--alert-content 与 --alert-result 必须同时提供")
-        return push(*build_alert(args.date, args.alert_content, args.alert_result))
+        return push(
+            *build_alert(args.date, args.alert_content, args.alert_result),
+            msg_id=make_msg_id(args.date),
+        )
 
     md_path = ROOT / "data" / "summaries" / f"{args.date}-horizon-zh.md"
     if not md_path.exists():
         print(f"❌ 日报不存在: {md_path}", file=sys.stderr)
         return 2
     name, content, result = build_digest(args.date, md_path.read_text(encoding="utf-8"))
-    return push(name, content, result)
+    name = f"{name}（改版）"
+    mid = make_msg_id(args.date)
+    print(f"[push] task_name={name}")
+    return push(name, content, result, msg_id=mid)
 
 
 if __name__ == "__main__":
