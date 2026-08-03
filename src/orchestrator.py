@@ -2,7 +2,12 @@
 
 import asyncio
 from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
+try:
+    from zoneinfo import ZoneInfo
+    BJT = ZoneInfo("Asia/Shanghai")
+except ImportError:
+    BJT = timezone(timedelta(hours=8))  # py<3.9 fallback
 from typing import List, Dict, Optional, Tuple
 from urllib.parse import urlparse
 import httpx
@@ -179,7 +184,7 @@ class HorizonOrchestrator:
             self.console.print(f"📚 Enriched {len(important_items)} items\n")
 
             # 7. Generate and save daily summaries for each configured language
-            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            today = datetime.now(BJT).strftime("%Y-%m-%d")
             full_threshold = self.config.filtering.ai_score_full_threshold
             for lang in self.config.ai.languages:
                 summarizer = DailySummarizer()
@@ -267,7 +272,7 @@ class HorizonOrchestrator:
             # Send webhook failure notification if configured
             if self.webhook_notifier:
                 await self.webhook_notifier.send_failure(
-                    date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                    date=datetime.now(BJT).strftime("%Y-%m-%d"),
                     error_message=str(e),
                 )
 
