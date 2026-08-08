@@ -4,24 +4,27 @@ name: Daily Horizon Summary
 # Empirically a single `0 0 * * *` cron can fire 18h late, twice in one
 # day, or be skipped entirely. The fix is to fire every 5 minutes and use
 # a time-window + state-dedup gate at the start of the job:
-#   - Outside the 00:00–01:00 UTC window (= 08:00–09:00 Beijing) the job
-#     exits immediately. GHA still wakes the runner but the run is a few
-#     seconds of bash, well within free-plan minutes (~150 min/month).
-#     Window widened from 20 to 60 minutes on 2026-06-27 because the
-#     narrower 7:50–8:10 BJT window was repeatedly skipped entirely by
-#     GHA's */5 scheduler in the Asia time-zone. 60 minutes = 12 */5
-#     triggers, statistically near-impossible to miss, and the state-
-#     dedup still keeps it down to a single run/day.
-#   - Inside the window, if today's `docs/_posts/YYYY-MM-DD-horizon-zh.md`
-#     already exists on master, the job exits. This handles the case
-#     where multiple */5 triggers in the window all wake up before any
-#     single run finishes deploying.
+#   - Two valid windows (UTC):
+#       23:00–23:55 (= 07:00–07:55 Beijing): primary, lands the post
+#         before the VPS sync at 08:17 BJT
+#       00:00–01:00 (= 08:00–09:00 Beijing): legacy safety net so a
+#         missed early run still gets covered
+#     Outside both windows the job exits immediately. GHA still wakes
+#     the runner but the run is a few seconds of bash, well within
+#     free-plan minutes (~150 min/month). 60 minutes = 12 */5 triggers,
+#     statistically near-impossible to miss, and the state-dedup still
+#     keeps it down to a single run/day.
+#   - Inside either window, if today's
+#     `docs/_posts/YYYY-MM-DD-horizon-zh.md` already exists on master,
+#     the job exits. This handles the case where multiple */5 triggers
+#     across both windows all wake up before any single run finishes
+#     deploying.
 # The first run that survives both checks is the one that actually
 # generates the post.
 #
 # Local mavis-cron backstop (~/.mavis/cron/today-task-daily-summary-backstop)
 # fires workflow_dispatch at 08:30 BJT if today's post is missing — final
-# backstop if GHA misses the whole window.
+# backstop if GHA misses both windows.
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
@@ -29,8 +32,11 @@ env:
 on:
   schedule:
     - cron: '*/5 * * * *'  # Every 5 minutes. Window + state dedup inside
-                            # the job filters down to a single 8:00 BJT
-                            # run per day (plus the silent 23h55m).
+                            # the job filters down to a single daily
+                            # run per day — primary window 23:00–23:55 UTC
+                            # (= 07:00–07:55 BJT, lands before VPS sync at
+                            # 08:17 BJT), legacy safety-net window
+                            # 00:00–01:00 UTC (= 08:00–09:00 BJT).
     - cron: '0 10 * * 1'   # Weekly: every Monday 10:00 Asia/Shanghai.
                             #   10:00 BJT = 02:00 UTC. Picked to land AFTER
                             #   the daily run finishes (08:00–09:00 window)
@@ -93,24 +99,33 @@ jobs:
       - name: Window + state dedup (gate via output, NOT exit 0)
         id: gate
         run: |
-          # Cron */5 fires 288x/day. Filter down to the 8:00–9:00 Beijing
-          # window (00:00–01:00 UTC). Inside the window, skip if today's
-          # post is already on master — that means a previous */5 trigger
-          # in the same window already finished.
+          # Cron */5 fires 288x/day. Filter down to the daily-generation
+          # windows: 23:00–23:55 UTC (= 07:00–07:55 BJT, primary — must
+          # land before VPS sync at 08:17 BJT) or 00:00–01:00 UTC
+          # (= 08:00–09:00 BJT, legacy safety net). Inside either window
+          # skip if today's post is already on master — that means a
+          # previous */5 trigger in either window already finished.
           #
           # CRITICAL: do NOT use `exit 0` to "skip" — exit 0 only exits
           # the current step, the rest of the job keeps running. Use
           # $GITHUB_OUTPUT `should_run` + `if: steps.gate.outputs.should_run == 'true'`
           # on every later step instead.
+          UTC_NOW=$(date -u +'%H%M')
           BJT_NOW=$(TZ=Asia/Shanghai date +'%H%M')
-          echo "BJT_NOW=$BJT_NOW (window: 0800–1100), trigger=${{ github.event_name }}"
+          echo "UTC_NOW=$UTC_NOW BJT_NOW=$BJT_NOW, trigger=${{ github.event_name }}"
           # Manual triggers (workflow_dispatch) bypass the time window —
-          # operator wants to run NOW, even outside 9:00 BJT.
+          # operator wants to run NOW, even outside the scheduled windows.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "workflow_dispatch — bypassing time-window gate."
           else
-            if [ "$BJT_NOW" -lt "0800" ] || [ "$BJT_NOW" -gt "1100" ]; then
-              echo "Outside 08:00–09:00 Beijing window, skipping."
+            # Primary window: 23:00–23:55 UTC (= 07:00–07:55 BJT)
+            if [ "$UTC_NOW" -ge "2300" ] && [ "$UTC_NOW" -lt "2400" ]; then
+              :
+            # Legacy safety-net window: 00:00–01:00 UTC (= 08:00–09:00 BJT)
+            elif [ "$UTC_NOW" -ge "0000" ] && [ "$UTC_NOW" -lt "0200" ]; then
+              :
+            else
+              echo "Outside 23:00–01:00 UTC generation window (07:00–09:00 BJT), skipping."
               echo "should_run=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
@@ -165,7 +180,11 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.ee.json data/config.json
-          DATE=$(date -u +'%Y-%m-%d')
+          # Pin date to Beijing time — GHA's primary window UTC 23:00–23:55
+          # (= 07:00–07:50 BJT) crosses the UTC date boundary, so a
+          # `date -u`-derived filename drifts and merge_boards.py silently
+          # sees only 1/4 boards.
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           cp "data/summaries/${DATE}-horizon-zh.md" "/tmp/${DATE}-horizon-zh.md.bak" || true
           set +e
           uv run horizon --hours 24
@@ -183,7 +202,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.global.json data/config.json
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -200,7 +219,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.github-trending.json data/config.json
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -217,19 +236,19 @@ jobs:
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           uv run python scripts/append_knowledge.py --edition ee --date "$DATE"
 
       - name: Merge four boards into one daily page
         if: steps.gate.outputs.should_run == 'true'
         continue-on-error: true
         run: |
-          uv run python scripts/merge_boards.py --date $(date -u +'%Y-%m-%d')
+          uv run python scripts/merge_boards.py --date $(TZ=Asia/Shanghai date +'%Y-%m-%d')
 
       - name: Deploy docs to master for Pages
         if: steps.gate.outputs.should_run == 'true'
         run: |
-          DATE=$(date -u +'%Y-%m-%d')
+          DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           test -s "data/summaries/${DATE}-horizon-zh.md"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

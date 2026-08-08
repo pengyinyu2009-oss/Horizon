@@ -100,6 +100,37 @@ def test_analyze_item_dual_missing_subjective_falls_back_to_objective():
     assert item.subjective_reason == ""
 
 
+def test_analyze_item_dual_prompt_pins_chinese_output_language():
+    """The dual prompt must pin free-text fields to the report language —
+    otherwise subjective_reason leaks English into the zh report (seen on
+    the 2026-07-28 first run: "入选理由" rendered in English)."""
+    response = json.dumps({
+        "score": 8.0,
+        "subjective_score": 6.5,
+        "subjective_reason": "r",
+        "reason": "r",
+        "summary": "s",
+        "tags": [],
+    })
+
+    async def completion(**_kwargs):
+        completion.kwargs = _kwargs
+        return response
+
+    client = SimpleNamespace(
+        complete=completion,
+        config=SimpleNamespace(
+            model="m", temperature=0.1, prompt_overrides={}, languages=["zh"]
+        ),
+    )
+    analyzer = ContentAnalyzer(client, persona=_PERSONA)
+    item = _make_item("rss:test:dual-lang")
+
+    asyncio.run(analyzer._analyze_item(item))
+
+    assert "Simplified Chinese" in completion.kwargs["user"]
+
+
 def test_analyze_item_dual_via_explicit_persona_with_ai_config_client():
     """Regression for the 2026-07-28 first-run bug: in production the
     client carries the *AIConfig* sub-model (no ``persona`` attribute),

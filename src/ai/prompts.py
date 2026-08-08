@@ -136,6 +136,7 @@ URL: {url}
 {content_section}
 {discussion_section}
 
+{language_note}
 Respond with valid JSON only:
 {{
   "score": <number>,
@@ -145,6 +146,25 @@ Respond with valid JSON only:
   "summary": "<one-sentence-summary>",
   "tags": ["<tag1>", "<tag2>", ...]
 }}"""
+
+
+def analysis_language_note(languages) -> str:
+    """Directive pinning the free-text fields to the report language.
+
+    Without it the model mirrors the (English) prompt and fields like
+    ``subjective_reason`` leak English into the Chinese report (seen on
+    the 2026-07-28 first run: "入选理由" rendered in English).
+    """
+    langs = set(languages or [])
+    if langs == {"zh"}:
+        return (
+            "**Output language: Simplified Chinese.** All free-text fields "
+            "(summary, reason, subjective_reason) MUST be written in Chinese; "
+            "tags may stay in English."
+        )
+    if langs == {"en"}:
+        return "**Output language: English.** All free-text fields (summary, reason, subjective_reason) MUST be written in English."
+    return ""
 
 CONCEPT_EXTRACTION_SYSTEM = """You identify technical concepts in news that a reader might not know.
 Given a news item, return 1-3 search queries for concepts that need explanation.
