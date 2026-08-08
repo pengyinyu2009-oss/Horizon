@@ -2,9 +2,9 @@
   "version": "1.0",
   "_comment": "全球新闻榜：worldmonitor 31 条全球 RSS（A 方案数据层）。客观分=全球大事重要性；enrichment 强制输出对中国影响+对我影响。",
   "ai": {
-    "provider": "deepseek",
-    "model": "deepseek-chat",
-    "api_key_env": "DEEPSEEK_API_KEY",
+    "provider": "minimax",
+    "model": "MiniMax-M3",
+    "api_key_env": "MINIMAX_API_KEY",
     "temperature": 0.3,
     "max_tokens": 4096,
     "throttle_sec": 0,

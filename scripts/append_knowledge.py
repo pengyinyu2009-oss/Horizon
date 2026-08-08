@@ -16,6 +16,8 @@ Usage:
 """
 
 import argparse
+import asyncio
+import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
@@ -93,6 +95,41 @@ def condense_markdown(text: str, max_chars: int = MAX_CONTENT_CHARS) -> str:
     return "\n".join(out)[:max_chars]
 
 
+def _load_ai_config_from_file() -> "AIConfig":
+    """Read data/config.json and return its AIConfig block.
+
+    Falls back to MINIMAX_API_KEY if config is missing (the current default
+    provider per the four data/config.*.json copies).
+    """
+    from src.models import AIConfig
+
+    config_path = Path("data/config.json")
+    if not config_path.exists():
+        # Safe default that matches today's chosen provider in 4 board configs.
+        return AIConfig(
+            provider="minimax",
+            model="MiniMax-M3",
+            api_key_env="MINIMAX_API_KEY",
+            temperature=0.4,
+            max_tokens=900,
+        )
+    raw = json.loads(config_path.read_text(encoding="utf-8"))
+    ai = raw.get("ai", {})
+    return AIConfig(**ai)
+
+
+def _load_api_key_env_from_config() -> str:
+    """Return the env var name configured for the AI API key."""
+    config_path = Path("data/config.json")
+    if not config_path.exists():
+        return "MINIMAX_API_KEY"
+    try:
+        raw = json.loads(config_path.read_text(encoding="utf-8"))
+        return raw.get("ai", {}).get("api_key_env", "MINIMAX_API_KEY")
+    except Exception:
+        return "MINIMAX_API_KEY"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Append daily knowledge card")
     parser.add_argument("--edition", required=True, choices=sorted(EDITIONS))
@@ -117,34 +154,31 @@ def main() -> int:
         content = condense_markdown(content, MAX_CONTENT_CHARS)
         print(f"[append_knowledge] condensed report to {len(content)} chars")
 
-    api_key = os.environ.get("DEEPSEEK_API_KEY")
-    if not api_key:
-        print("[append_knowledge] DEEPSEEK_API_KEY not set, skipping.")
+    api_key_env = _load_api_key_env_from_config()
+    if not api_key_env or not os.environ.get(api_key_env):
+        print(f"[append_knowledge] {api_key_env or 'AI key env'} not set, skipping.")
         return 0
 
     domain = EDITIONS[args.edition]
     try:
-        # NOTE: plain OpenAI client on purpose — src/ai/client.py forces
-        # response_format={"type": "json_object"} for deepseek, which would
-        # corrupt this free-form Markdown output.
-        from openai import OpenAI
+        # NOTE: free-form Markdown output — go through create_ai_client
+        # so provider follows data/config.json (no hardcoded deepseek).
+        # The shared OpenAIClient's response_format/json_object toggling is
+        # handled inside the client per-provider.
+        from src.ai.client import create_ai_client
 
-        client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-        resp = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT.format(domain=domain)},
-                {
-                    "role": "user",
-                    "content": USER_PROMPT_TEMPLATE.format(domain=domain, content=content),
-                },
-            ],
-            temperature=0.4,
-            max_tokens=900,
+        client = create_ai_client(_load_ai_config_from_file())
+        text = asyncio.run(
+            client.complete(
+                system=SYSTEM_PROMPT.format(domain=domain),
+                user=USER_PROMPT_TEMPLATE.format(domain=domain, content=content),
+                temperature=0.4,
+                max_tokens=900,
+            )
         )
-        text = (resp.choices[0].message.content or "").strip()
+        text = (text or "").strip()
     except Exception as exc:
-        print(f"[append_knowledge] DeepSeek call failed: {exc}")
+        print(f"[append_knowledge] AI call failed: {exc}")
         return 0
 
     if not text or KNOWLEDGE_HEADING not in text:

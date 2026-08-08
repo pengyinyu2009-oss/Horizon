@@ -2,9 +2,9 @@
   "version": "1.0",
   "_comment": "GitHub 热榜：原生 trending 抓取，日/周/月三子榜每天全收。GitHub 自带周期榜，故不进周/月/年 rollup。",
   "ai": {
-    "provider": "deepseek",
-    "model": "deepseek-chat",
-    "api_key_env": "DEEPSEEK_API_KEY",
+    "provider": "minimax",
+    "model": "MiniMax-M3",
+    "api_key_env": "MINIMAX_API_KEY",
     "temperature": 0.3,
     "max_tokens": 4096,
     "throttle_sec": 0,

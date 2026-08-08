@@ -2,9 +2,9 @@
   "version": "1.0",
   "_comment": "电子工程师榜（ee+embedded+oshw 三榜合并）：聚焦开源硬件/新技术/值得复刻与学习。GitHub Trending RSS 已剥离至 github-trending 榜。沿用 OSHW 可复刻三段式口径。",
   "ai": {
-    "provider": "deepseek",
-    "model": "deepseek-chat",
-    "api_key_env": "DEEPSEEK_API_KEY",
+    "provider": "minimax",
+    "model": "MiniMax-M3",
+    "api_key_env": "MINIMAX_API_KEY",
     "temperature": 0.3,
     "max_tokens": 4096,
     "throttle_sec": 0,
