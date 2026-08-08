@@ -2,7 +2,7 @@
 
 import asyncio
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 try:
     from zoneinfo import ZoneInfo
     BJT = ZoneInfo("Asia/Shanghai")
