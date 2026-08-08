@@ -1,0 +1,14 @@
+---
+layout: default
+title: "Horizon Daily: 2026-08-08 (ZH)"
+date: 2026-08-08
+lang: zh
+period: daily
+period_id: 2026-08-08
+---
+
+> 评分服务故障：共抓取 56 条，评分成功 0 条，失败 52 条（失败率 100.0%）。
+
+> provider/model：`deepseek/deepseek-chat`
+
+⚠️ 生成失败：评分服务异常。本页仅用于故障告警，不代表今日无重要动态。
