@@ -171,6 +171,7 @@ jobs:
         continue-on-error: true
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon --hours 24
 
       - name: Run Horizon (EE edition)
@@ -178,6 +179,7 @@ jobs:
         continue-on-error: true
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.ee.json data/config.json
           # Pin date to Beijing time — GHA's primary window UTC 23:00–23:55
@@ -200,6 +202,7 @@ jobs:
         continue-on-error: true
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.global.json data/config.json
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
@@ -217,6 +220,7 @@ jobs:
         continue-on-error: true
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           cp data/config.github-trending.json data/config.json
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
@@ -235,6 +239,7 @@ jobs:
         continue-on-error: true
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           uv run python scripts/append_knowledge.py --edition ee --date "$DATE"
@@ -321,6 +326,7 @@ jobs:
       - name: Run weekly roll-up
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon weekly
       - name: Deploy weekly to Pages
         run: |
@@ -372,6 +378,7 @@ jobs:
       - name: Run monthly roll-up
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon monthly
       - name: Deploy monthly to Pages
         run: |
@@ -423,6 +430,7 @@ jobs:
       - name: Run yearly roll-up
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: uv run horizon yearly
       - name: Deploy yearly to Pages
         run: |

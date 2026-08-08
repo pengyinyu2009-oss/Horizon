@@ -93,9 +93,15 @@ class TestFactoryDispatch:
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
         assert isinstance(c, FallbackAIClient)
         assert c.config.provider == AIProvider.MINIMAX
-        assert len(c._clients) == 2
-        assert c._clients[0].config.provider == AIProvider.MINIMAX
-        assert c._clients[1].config.provider == AIProvider.DEEPSEEK
+        # Lazy-build: children are not constructed until first use.
+        assert len(c._configs) == 2
+        assert c._configs[0].provider == AIProvider.MINIMAX
+        assert c._configs[1].provider == AIProvider.DEEPSEEK
+        assert c._clients == [None, None]
+        # After _get_client(0), only primary is built.
+        c._get_client(0)
+        assert c._clients[0] is not None
+        assert c._clients[1] is None
 
     def test_wrapper_config_is_primary(self, monkeypatch):
         """Downstream code reads client.config.throttle_sec / prompt_overrides
@@ -120,11 +126,14 @@ class TestFallbackBehaviour:
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        # Build clients eagerly for patching; complete() will reuse cached ones.
+        primary = c._get_client(0)
+        backup = c._get_client(1)
 
         with patch.object(
-            c._clients[0].client.chat.completions, "create", new_callable=AsyncMock
+            primary.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_primary, patch.object(
-            c._clients[1].client.chat.completions, "create", new_callable=AsyncMock
+            backup.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_backup:
             m_primary.side_effect = _StatusError(401, "quota")
             m_backup.return_value = _ok_response('{"from": "deepseek"}')
@@ -142,11 +151,13 @@ class TestFallbackBehaviour:
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
 
         with patch.object(
-            c._clients[0].client.chat.completions, "create", new_callable=AsyncMock
+            primary.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_primary, patch.object(
-            c._clients[1].client.chat.completions, "create", new_callable=AsyncMock
+            backup.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_backup:
             m_primary.side_effect = _StatusError(429, "rate")
             m_backup.return_value = _ok_response('{"from": "deepseek"}')
@@ -157,11 +168,13 @@ class TestFallbackBehaviour:
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
 
         with patch.object(
-            c._clients[0].client.chat.completions, "create", new_callable=AsyncMock
+            primary.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_primary, patch.object(
-            c._clients[1].client.chat.completions, "create", new_callable=AsyncMock
+            backup.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_backup:
             m_primary.side_effect = _StatusError(400, "bad prompt")
             with pytest.raises(_StatusError) as exc:
@@ -173,11 +186,13 @@ class TestFallbackBehaviour:
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
 
         with patch.object(
-            c._clients[0].client.chat.completions, "create", new_callable=AsyncMock
+            primary.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_primary, patch.object(
-            c._clients[1].client.chat.completions, "create", new_callable=AsyncMock
+            backup.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_backup:
             m_primary.side_effect = _StatusError(401, "quota")
             m_backup.side_effect = _StatusError(503, "deepseek down")
@@ -191,11 +206,13 @@ class TestFallbackBehaviour:
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
 
         with patch.object(
-            c._clients[0].client.chat.completions, "create", new_callable=AsyncMock
+            primary.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_primary, patch.object(
-            c._clients[1].client.chat.completions, "create", new_callable=AsyncMock
+            backup.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_backup:
             m_primary.return_value = _ok_response('{"from": "minimax"}')
             out = asyncio.run(c.complete(system="s", user="u"))
@@ -218,6 +235,72 @@ class TestFallbackBehaviour:
         c = create_ai_client(_make_primary(fallbacks=[inner]))
         # children are built via _build_one, not the public factory, so the
         # inner fallbacks field is ignored — chain is [minimax, deepseek].
-        assert len(c._clients) == 2
-        assert isinstance(c._clients[1], OpenAIClient)
-        assert c._clients[1].config.provider == AIProvider.DEEPSEEK
+        assert len(c._configs) == 2
+        # Build lazily to confirm dispatch path.
+        built = c._get_client(1)
+        assert isinstance(built, OpenAIClient)
+        assert built.config.provider == AIProvider.DEEPSEEK
+
+    def test_missing_fallback_key_does_not_break_primary(self, monkeypatch, capsys):
+        """Real-world scenario: monthly-summary GHA job sets MINIMAX_API_KEY
+        only. Fallback chain [minimax, deepseek] must still complete via
+        primary when DEEPSEEK_API_KEY is absent."""
+        monkeypatch.setenv("MINIMAX_API_KEY", "k")
+        monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+
+        with patch.object(
+            primary.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_primary:
+            m_primary.return_value = _ok_response('{"from": "minimax"}')
+            out = asyncio.run(c.complete(system="s", user="u"))
+            assert "minimax" in out
+            # backup never built because primary succeeded
+            assert c._clients[1] is None
+
+    def test_missing_primary_key_falls_through_to_fallback(self, monkeypatch, capsys):
+        """If primary key is missing, build of primary raises ValueError
+        (Missing API key); wrapper must skip to the fallback client."""
+        monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+
+        # patch backup path: after primary build fails, backup is built lazily.
+        # We can't pre-patch backup's create because backup isn't built yet —
+        # so patch _build_one's downstream OpenAIClient constructor output.
+        from src.ai import client as client_mod
+
+        built_clients = []
+        orig_build_one = client_mod.FallbackAIClient._build_one
+
+        @staticmethod
+        def tracked_build_one(cfg):
+            cl = orig_build_one(cfg)
+            built_clients.append(cl)
+            return cl
+
+        with patch.object(client_mod.FallbackAIClient, "_build_one", tracked_build_one):
+            out_holder = {}
+
+            async def fake_complete(self, system, user, temperature=None, max_tokens=None):
+                return '{"from": "deepseek"}'
+
+            # Build via _get_client inside complete(); stub the *second* client's
+            # complete via patching its class after build.
+            # Simpler: stub the deepseek client's complete method post-build.
+            async def run():
+                try:
+                    return await c.complete(system="s", user="u")
+                except Exception:
+                    raise
+
+            # Patch at the OpenAIClient level so the built backup returns ok.
+            with patch.object(
+                client_mod.OpenAIClient, "complete", new=fake_complete
+            ):
+                out = asyncio.run(run())
+                assert "deepseek" in out
+
+        captured = capsys.readouterr().out
+        assert "build failed" in captured or "trying next provider" in captured

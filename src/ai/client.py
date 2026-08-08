@@ -559,10 +559,13 @@ class FallbackAIClient(AIClient):
         if not configs:
             raise ValueError("FallbackAIClient requires at least one config")
         self.config = configs[0]  # primary — what analyzer/enricher see
-        # Bypass the public factory for children to avoid recursion when a
-        # sub-config itself declares fallbacks.  Children are created with
-        # the same dispatch logic that create_ai_client uses internally.
-        self._clients = [self._build_one(c) for c in configs]
+        # Lazy-build: children are NOT constructed here. A missing fallback
+        # key (e.g. MINIMAX_API_KEY set but DEEPSEEK_API_KEY unset in a
+        # monthly-summary job) must not prevent the primary from working.
+        # Building is deferred to complete() where each child is built on
+        # first attempt and cached.
+        self._configs = list(configs)
+        self._clients: list = [None] * len(configs)
 
     @staticmethod
     def _build_one(config: AIConfig) -> AIClient:
@@ -584,6 +587,11 @@ class FallbackAIClient(AIClient):
         else:
             raise ValueError(f"Unsupported AI provider: {config.provider}")
 
+    def _get_client(self, idx: int) -> AIClient:
+        if self._clients[idx] is None:
+            self._clients[idx] = self._build_one(self._configs[idx])
+        return self._clients[idx]
+
     async def complete(
         self,
         system: str,
@@ -593,18 +601,32 @@ class FallbackAIClient(AIClient):
     ) -> str:
         last_exc: Optional[BaseException] = None
         last_provider: Optional[str] = None
-        for idx, client in enumerate(self._clients):
-            provider = getattr(client.config, "provider", "?")
+        for idx in range(len(self._configs)):
+            cfg = self._configs[idx]
+            provider = getattr(cfg, "provider", "?")
+            provider_str = provider.value if hasattr(provider, "value") else str(provider)
+            try:
+                client = self._get_client(idx)
+            except Exception as e:
+                # Build-time failure (e.g. missing API key for this provider).
+                # Treat as skippable — move to next provider in the chain.
+                last_exc = e
+                last_provider = provider_str
+                print(
+                    f"[ai_fallback] {provider_str} build failed "
+                    f"({type(e).__name__}: {e}) — trying next provider"
+                )
+                continue
             try:
                 return await client.complete(system, user, temperature, max_tokens)
             except Exception as e:
                 last_exc = e
-                last_provider = provider.value if hasattr(provider, "value") else str(provider)
+                last_provider = provider_str
                 if not _should_fallback(e):
                     raise
-                if idx < len(self._clients) - 1:
+                if idx < len(self._configs) - 1:
                     print(
-                        f"[ai_fallback] {last_provider} status="
+                        f"[ai_fallback] {provider_str} status="
                         f"{getattr(e, 'status_code', '?')} — trying next provider"
                     )
         assert last_exc is not None
