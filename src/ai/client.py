@@ -493,6 +493,14 @@ def create_ai_client(config: AIConfig) -> AIClient:
     Raises:
         ValueError: If provider is not supported
     """
+    # 2026-08-08: provider fallback chain. When config.fallbacks is non-
+    # empty, wrap [config, *fallbacks] in FallbackAIClient so any 401/429/5xx
+    # (quota/auth/provider-side failures) cascades to the next provider.
+    # wrapper.config stays pointed at the primary config so analyzer/enricher
+    # keep reading throttle/concurrency/prompt_overrides from the primary.
+    if config.fallbacks:
+        return FallbackAIClient([config, *config.fallbacks])
+
     if config.provider == AIProvider.ANTHROPIC:
         return AnthropicClient(config)
     elif config.provider == AIProvider.AZURE:
@@ -510,3 +518,95 @@ def create_ai_client(config: AIConfig) -> AIClient:
         return OpenAIClient(config)
     else:
         raise ValueError(f"Unsupported AI provider: {config.provider}")
+
+
+# 2026-08-08: fallback trigger codes. 401 = quota/auth exhausted (minimax
+# token-plan outage returns 401 + "invalid api key (2049)"); 429 = rate
+# limit / quota; 5xx = provider-side fault. 400 and network/timeout errors
+# deliberately NOT included: 400 is a prompt/schema problem that will fail
+# identically on every fallback; timeout/connection failures are local to
+# the network path, not provider attribution.
+_FALLBACK_STATUS_CODES = {401, 429}
+
+
+def _should_fallback(exc: BaseException) -> bool:
+    """Duck-typed check on SDK errors. Avoids importing SDK-specific error
+    classes (the codebase currently has zero references to openai/anthropic
+    error types). Relies on .status_code attribute set by openai's
+    APIStatusError family; returns False for any other exception shape.
+    """
+    code = getattr(exc, "status_code", None)
+    if code is None:
+        return False
+    if code in _FALLBACK_STATUS_CODES:
+        return True
+    if code >= 500:
+        return True
+    return False
+
+
+class FallbackAIClient(AIClient):
+    """Wrapper that tries multiple AI clients in order on 401/429/5xx.
+
+    self.config points at the primary config so downstream code that reads
+    client.config.throttle_sec / analysis_concurrency / prompt_overrides
+    keeps working unchanged. Fallback progression is logged via print()
+    (matches the codebase's logging pattern in scripts/push_hiboard_daily.py
+    and append_* scripts) so GHA logs show which providers were attempted.
+    """
+
+    def __init__(self, configs):
+        if not configs:
+            raise ValueError("FallbackAIClient requires at least one config")
+        self.config = configs[0]  # primary — what analyzer/enricher see
+        # Bypass the public factory for children to avoid recursion when a
+        # sub-config itself declares fallbacks.  Children are created with
+        # the same dispatch logic that create_ai_client uses internally.
+        self._clients = [self._build_one(c) for c in configs]
+
+    @staticmethod
+    def _build_one(config: AIConfig) -> AIClient:
+        if config.provider == AIProvider.ANTHROPIC:
+            return AnthropicClient(config)
+        elif config.provider == AIProvider.AZURE:
+            return AzureOpenAIClient(config)
+        elif config.provider == AIProvider.GEMINI:
+            return GeminiClient(config)
+        elif config.provider in {
+            AIProvider.OPENAI,
+            AIProvider.ALI,
+            AIProvider.DOUBAO,
+            AIProvider.MINIMAX,
+            AIProvider.DEEPSEEK,
+            AIProvider.OLLAMA,
+        }:
+            return OpenAIClient(config)
+        else:
+            raise ValueError(f"Unsupported AI provider: {config.provider}")
+
+    async def complete(
+        self,
+        system: str,
+        user: str,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> str:
+        last_exc: Optional[BaseException] = None
+        last_provider: Optional[str] = None
+        for idx, client in enumerate(self._clients):
+            provider = getattr(client.config, "provider", "?")
+            try:
+                return await client.complete(system, user, temperature, max_tokens)
+            except Exception as e:
+                last_exc = e
+                last_provider = provider.value if hasattr(provider, "value") else str(provider)
+                if not _should_fallback(e):
+                    raise
+                if idx < len(self._clients) - 1:
+                    print(
+                        f"[ai_fallback] {last_provider} status="
+                        f"{getattr(e, 'status_code', '?')} — trying next provider"
+                    )
+        assert last_exc is not None
+        print(f"[ai_fallback] all providers exhausted (last={last_provider})")
+        raise last_exc

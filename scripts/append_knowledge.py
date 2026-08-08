@@ -119,13 +119,29 @@ def _load_ai_config_from_file() -> "AIConfig":
 
 
 def _load_api_key_env_from_config() -> str:
-    """Return the env var name configured for the AI API key."""
+    """Return the env var name configured for the AI API key.
+
+    2026-08-08: if config.fallbacks is non-empty, accept *any* of the
+    chain's api_key_env values being present in the environment — a missing
+    primary key no longer means "skip" when a fallback key exists.
+    """
     config_path = Path("data/config.json")
     if not config_path.exists():
         return "MINIMAX_API_KEY"
     try:
         raw = json.loads(config_path.read_text(encoding="utf-8"))
-        return raw.get("ai", {}).get("api_key_env", "MINIMAX_API_KEY")
+        ai = raw.get("ai", {})
+        primary = ai.get("api_key_env", "MINIMAX_API_KEY")
+        candidates = [primary]
+        for fb in ai.get("fallbacks") or []:
+            fb_env = fb.get("api_key_env")
+            if fb_env:
+                candidates.append(fb_env)
+        # Return first candidate whose env var is actually set; else primary.
+        for name in candidates:
+            if os.environ.get(name):
+                return name
+        return primary
     except Exception:
         return "MINIMAX_API_KEY"
 

@@ -15,7 +15,22 @@
     ],
     "prompt_overrides": {
       "analysis_system": "You are an expert content curator helping filter important technical and academic information.\n\nScore content on a 0-10 scale based on importance and relevance:\n\n**9-10: Groundbreaking** - Major breakthroughs, paradigm shifts, or highly significant announcements\n- New major version releases of widely-used technologies\n- Significant research breakthroughs\n- Important industry-changing announcements\n\n**7-8: High Value** - Important developments worth immediate attention\n- Interesting technical deep-dives\n- Novel approaches to known problems\n- Insightful analysis or commentary\n- Valuable tools or libraries\n\n**5-6: Interesting** - Worth knowing but not urgent\n- Incremental improvements\n- Useful tutorials\n- Moderate community interest\n\n**3-4: Low Priority** - Generic or routine content\n- Minor updates\n- Common knowledge\n- Overly promotional content\n\n**0-2: Noise** - Not relevant or low quality\n- Spam or purely promotional\n- Off-topic content\n- Trivial updates\n\nConsider:\n- Global significance: impact on international relations, major economies, supply chains, energy, security, or the technology landscape\n- China angle: events that affect China's interests, industry, policy, or developers deserve higher scores\n- Scale and novelty: how many people/countries are affected; prefer new developments over routine commentary and op-eds\n- Hard news over opinion: factual reporting of events outranks analysis pieces\n- Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance\n"
-    }
+    },
+    "fallbacks": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "temperature": 0.3,
+        "max_tokens": 4096,
+        "throttle_sec": 0,
+        "analysis_concurrency": 1,
+        "enrichment_concurrency": 1,
+        "languages": [
+          "zh"
+        ]
+      }
+    ]
   },
   "sources": {
     "github": [],

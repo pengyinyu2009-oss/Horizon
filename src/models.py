@@ -1,5 +1,7 @@
 """Core data models for Horizon."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -100,6 +102,13 @@ class AIConfig(BaseModel):
     # Azure OpenAI specific; required when provider == AZURE
     azure_endpoint_env: Optional[str] = None
     api_version: Optional[str] = None
+    # 2026-08-08: provider fallback chain. When non-empty, create_ai_client
+    # wraps a FallbackAIClient that tries [this, *fallbacks] in order on
+    # 401/429/5xx (quota/auth/provider-side failures). Sub-configs inherit
+    # no parent fields — each fallback entry must be fully self-contained
+    # (provider/model/api_key_env at minimum). Empty list = no fallback,
+    # preserving current single-provider behaviour for all legacy configs.
+    fallbacks: List[AIConfig] = Field(default_factory=list)
 
 
 class GitHubSourceConfig(BaseModel):
