@@ -25,10 +25,14 @@ name: Daily Notify (Hiboard)
 # — final backstop if GHA misses the whole window.
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes. Window + state dedup inside
-                            # the job filters down to a single 9:30 BJT
-                            # run per day.
+  # 2026-08-08: scheduled trigger DISABLED per owner directive.
+  # GitHub repo is now backup-only — no automated runs. The */5 cron
+  # (up to 288 fires/day) plus failure-notification emails was a daily
+  # error-mail flood source. workflow_dispatch kept for manual runs.
+  # To re-enable, revert this commit.
+  #
+  # schedule:
+  #   - cron: '*/5 * * * *'  # window gate 09:00–10:00 BJT
   workflow_dispatch:
     inputs:
       date:

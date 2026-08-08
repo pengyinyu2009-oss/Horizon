@@ -30,39 +30,19 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes. Window + state dedup inside
-                            # the job filters down to a single daily
-                            # run per day — primary window 23:00–23:55 UTC
-                            # (= 07:00–07:55 BJT, lands before VPS sync at
-                            # 08:17 BJT), legacy safety-net window
-                            # 00:00–01:00 UTC (= 08:00–09:00 BJT).
-    - cron: '0 10 * * 1'   # Weekly: every Monday 10:00 Asia/Shanghai.
-                            #   10:00 BJT = 02:00 UTC. Picked to land AFTER
-                            #   the daily run finishes (08:00–09:00 window)
-                            #   so the prereq check finds all 7 daily posts
-                            #   from the previous Mon..Sun already on master.
-      timezone: 'Asia/Shanghai'
-    - cron: '0 10 8 * *'   # Monthly: 8th of each month 10:00 Asia/Shanghai.
-                            #   Why the 8th (not the 1st): if the previous
-                            #   month's last ISO week spills into the new
-                            #   month (e.g. 2026-06 ends on Tue 06-30, which
-                            #   belongs to ISO week 2026-W27 starting Mon
-                            #   06-29), the monthly prereq needs that final
-                            #   weekly, and the weekly cron only fires on
-                            #   Monday. So we wait a full week into the new
-                            #   month to be safe.
-      timezone: 'Asia/Shanghai'
-    - cron: '0 10 15 7 *'  # Yearly H1: 15 July 10:00 Asia/Shanghai.
-                            #   Why the 15th (not 1 July): the H1 prereq
-                            #   includes the June monthly, which now fires
-                            #   on 8 July. +1 week buffer so H1 doesn't
-                            #   race the June monthly on the same morning.
-      timezone: 'Asia/Shanghai'
-    - cron: '0 10 15 1 *'  # Yearly H2: 15 January 10:00 Asia/Shanghai.
-                            #   Same buffer: H2 needs Dec monthly, which
-                            #   fires on 8 January.
-      timezone: 'Asia/Shanghai'
+  # 2026-08-08: ALL scheduled triggers DISABLED per owner directive.
+  # GitHub repo is now backup-only — no automated runs. The two */5 crons
+  # fired up to 288 times/day and every failure sent an email, which was
+  # the source of the daily error-mail flood. workflow_dispatch is kept
+  # so a run can still be triggered manually (gh workflow run ...).
+  # To re-enable automation, revert this commit (restores the 5 crons below).
+  #
+  # schedule:
+  #   - cron: '*/5 * * * *'  # daily window gate (23:00-01:00 UTC = 07:00-09:00 BJT)
+  #   - cron: '0 10 * * 1'   # weekly rollup, Monday 10:00 Asia/Shanghai
+  #   - cron: '0 10 8 * *'   # monthly rollup, 8th 10:00 Asia/Shanghai
+  #   - cron: '0 10 15 7 *'  # yearly H1, 15 July 10:00 Asia/Shanghai
+  #   - cron: '0 10 15 1 *'  # yearly H2, 15 January 10:00 Asia/Shanghai
   workflow_dispatch:
     inputs:
       force:
