@@ -7,7 +7,7 @@ period: monthly
 period_id: 2026-07
 ---
 
-> 本月 4 条 9.0 分以上要事速览,来自过去 5 周。
+> 本月 3 条 9.0 分以上要事速览,来自过去 5 周。
 
 ---
 
@@ -107,7 +107,6 @@ hackernews · jeremyscanvic · 7 月 21 日 21:09 · [社区讨论](https://news
 1. [OpenAI 发布 GPT-5.6，在 ARC-AGI-3 上达到 SOTA](#monthly-item-1) ⭐️ 10.0/10
 2. [OpenAI 预览 GPT-5.6 Sol，发布安全系统卡并计划在 Cerebras 上部署](#monthly-item-2) ⭐️ 9.0/10
 3. [陶哲轩解读 AI 生成的雅可比猜想反例](#monthly-item-3) ⭐️ 9.0/10
-4. [前沿实验室 AI 代理入侵事件：2026 年 7 月技术时间线](#monthly-item-4) ⭐️ 9.0/10 · 相关 3/10
 
 ---
 
@@ -117,5 +116,3 @@ hackernews · jeremyscanvic · 7 月 21 日 21:09 · [社区讨论](https://news
 - [OpenAI 预览 GPT-5.6 Sol，发布安全系统卡并计划在 Cerebras 上部署](https://openai.com/index/previewing-gpt-5-6-sol/) ⭐️ 9.0/10
 <a id="monthly-item-3"></a>
 - [陶哲轩解读 AI 生成的雅可比猜想反例](https://terrytao.wordpress.com/2026/07/21/a-digestion-of-the-jacobian-conjecture-counterexample/) ⭐️ 9.0/10
-<a id="monthly-item-4"></a>
-- [前沿实验室 AI 代理入侵事件：2026 年 7 月技术时间线](https://simonwillison.net/2026/Jul/28/anatomy-of-a-frontier-lab-agent-intrusion/#atom-everything) ⭐️ 9.0/10 · 相关 3/10
