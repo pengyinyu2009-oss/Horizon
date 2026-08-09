@@ -179,6 +179,40 @@ def test_local_wrapper_leaves_locking_to_python_pipeline(tmp_path):
     assert result.returncode == 0
 
 
+def test_wrapper_defaults_to_vps_local_pipeline(tmp_path):
+    log_path = tmp_path / "cron.log"
+    capture_path = tmp_path / "script.txt"
+    fake_python = tmp_path / "fake-python"
+    fake_python.write_text(
+        '#!/bin/sh\nprintf "%s" "$1" > "$HORIZON_SCRIPT_CAPTURE"\n',
+        encoding="utf-8",
+    )
+    fake_python.chmod(0o755)
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "HORIZON_REPO": str(tmp_path),
+            "HORIZON_RUN_LOG": str(log_path),
+            "HORIZON_RUN_LOCK": str(tmp_path / "horizon.lock"),
+            "HORIZON_PYTHON": str(fake_python),
+            "HORIZON_SCRIPT_CAPTURE": str(capture_path),
+        }
+    )
+    environment.pop("HORIZON_EXECUTION_MODE", None)
+
+    result = subprocess.run(
+        ["bash", "run-daily.sh"],
+        cwd=Path(__file__).resolve().parents[1],
+        env=environment,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert capture_path.read_text(encoding="utf-8").endswith(
+        "scripts/vps_daily.py"
+    )
+
+
 def test_failed_publish_is_resumed_without_regenerating_boards(tmp_path, monkeypatch):
     repo = _prepare_repo(tmp_path)
     posts_repo = tmp_path / "Horizon-posts"

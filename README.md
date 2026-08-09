@@ -299,6 +299,10 @@ The generated report will be saved to `data/summaries/`.
 
 Horizon works great as a **GitHub Actions** cron job. See [`.github/workflows/daily-summary.yml`](.github/workflows/daily-summary.yml) for a ready-to-use workflow that generates and deploys your daily briefing to GitHub Pages automatically.
 
+This deployment uses a VPS-owned four-board production schedule instead. Its
+single-owner model, publication recovery behavior, manual GitHub dispatch path,
+and log rotation policy are documented in [VPS operations](docs/vps-operations.md).
+
 ## Supported Sources
 
 | Source | What it fetches | Comments |

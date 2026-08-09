@@ -1,7 +1,8 @@
 #!/bin/bash
-# VPS-owned scheduler. GitHub Actions generates with repository Secrets, then
-# the VPS pulls and atomically publishes. Set HORIZON_EXECUTION_MODE=local to
-# use scripts/vps_daily.py after installing a valid VPS model credential.
+# VPS-owned production scheduler. Local mode generates and atomically publishes
+# all four boards and is the safe default. GitHub workflow dispatch is a manual
+# recovery path only; select it explicitly with HORIZON_EXECUTION_MODE=github
+# and provide a token that can dispatch Actions workflows.
 set -Eeuo pipefail
 
 REPO=${HORIZON_REPO:-/home/pengyinyu/Horizon}
@@ -17,10 +18,9 @@ if [ ! -x "$PYTHON" ]; then
   PYTHON=$(command -v python3)
 fi
 
-SCRIPT=$REPO/scripts/dispatch_daily_github.py
-if [ "${HORIZON_EXECUTION_MODE:-github}" = "local" ]; then
-  SCRIPT=$REPO/scripts/vps_daily.py
-else
+SCRIPT=$REPO/scripts/vps_daily.py
+if [ "${HORIZON_EXECUTION_MODE:-local}" = "github" ]; then
+  SCRIPT=$REPO/scripts/dispatch_daily_github.py
   exec 9>"$LOCK"
   if ! flock -n 9; then
     echo "[$(date -Is)] run skipped: lock busy ($LOCK)"
