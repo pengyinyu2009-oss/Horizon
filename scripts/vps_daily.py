@@ -214,6 +214,38 @@ def publish_reports(
         if not merged.is_file() or merged.stat().st_size == 0:
             raise PipelineError(f"final merged report missing from publish overlay: {merged}")
 
+        final_lineage = repo / "output" / "lineage" / f"{date}-lineage.json"
+        if not final_lineage.is_file():
+            raise PipelineError(f"final lineage result missing: {final_lineage}")
+        index_path = posts / "index.md"
+        index_updater = repo / "scripts" / "update_reports_index.py"
+        if not index_path.is_file() or not index_updater.is_file():
+            raise PipelineError(
+                f"reports index updater inputs missing: {index_path} {index_updater}"
+            )
+        try:
+            runner.run(
+                [
+                    sys.executable,
+                    index_updater,
+                    "--index",
+                    index_path,
+                    "--date",
+                    date,
+                    "--lineage",
+                    final_lineage,
+                ],
+                cwd=repo,
+            )
+        except Exception as exc:
+            raise PipelineError(f"reports navigation index update failed: {exc}") from exc
+        index_text = index_path.read_text(encoding="utf-8")
+        if (
+            f"最新日报（{date}" not in index_text
+            or f"/reports-html/{date}.html" not in index_text
+        ):
+            raise PipelineError(f"reports navigation index is stale for {date}")
+
         publish_env = os.environ.copy()
         publish_env.update(
             {
@@ -225,9 +257,6 @@ def publish_reports(
         )
         runner.run([sync_script], cwd=posts_repo, env=publish_env)
 
-        final_lineage = repo / "output" / "lineage" / f"{date}-lineage.json"
-        if not final_lineage.is_file():
-            raise PipelineError(f"final lineage result missing: {final_lineage}")
         site_root = Path(
             os.environ.get("HORIZON_SITE_ROOT", "/var/www/horizon-site")
         )

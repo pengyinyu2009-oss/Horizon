@@ -16,6 +16,7 @@ from scripts.vps_daily import (
     PipelineError,
     _publication_is_current,
     generate_boards,
+    publish_reports,
 )
 
 
@@ -27,6 +28,10 @@ def _prepare_repo(tmp_path: Path) -> Path:
     summaries.mkdir(parents=True)
     scripts.mkdir()
     (scripts / "merge_boards.py").write_text("# fake merge script\n", encoding="utf-8")
+    shutil.copy2(
+        Path(__file__).resolve().parents[1] / "scripts/update_reports_index.py",
+        scripts / "update_reports_index.py",
+    )
     (data / "config.json").write_text("original-config", encoding="utf-8")
     for _, config_name in BOARD_CONFIGS:
         (data / config_name).write_text(config_name, encoding="utf-8")
@@ -67,6 +72,47 @@ class FakeRunner:
         elif "check_four_board_lineage.py" in " ".join(call):
             output = Path(call[call.index("--json-out") + 1])
             output.write_text('{"passed": true}\n', encoding="utf-8")
+
+
+class FakePublishRunner:
+    def __init__(self, date: str):
+        self.date = date
+        self.worktree: Path | None = None
+        self.synced_index = ""
+
+    def run(self, args, *, cwd=None, env=None, check=True):
+        call = tuple(str(arg) for arg in args)
+        if "worktree" in call and "add" in call:
+            self.worktree = Path(call[call.index("--detach") + 1])
+            posts = self.worktree / "docs/_posts"
+            posts.mkdir(parents=True)
+            (posts / "index.md").write_text(
+                """---
+date: 2026-08-06
+---
+
+# 🌅 Horizon · 4 榜单日报导航
+
+## 📅 最新日报（2026-08-06 周四）
+
+[**2026-08-06 4 榜单汇总**](/reports-html/2026-08-06-榜单汇总-zh.html)
+- 共 64+ 条
+
+---
+
+## 🛠 数据流
+
+- **发布**：每日 09:30 BJT 同步（GHA 自动）
+""",
+                encoding="utf-8",
+            )
+        elif "update_reports_index.py" in " ".join(call):
+            subprocess.run(call, cwd=cwd, env=env, check=check)
+        elif call and call[0].endswith("sync-posts.sh"):
+            assert self.worktree is not None
+            self.synced_index = (
+                self.worktree / "docs/_posts/index.md"
+            ).read_text(encoding="utf-8")
 
 
 def test_generate_boards_publishes_five_artifacts_only_after_all_succeed(tmp_path):
@@ -152,6 +198,49 @@ def test_publication_is_current_requires_marker_html_and_passed_lineage(tmp_path
 
     lineage.write_text('{"date": "2026-08-10", "passed": false}', encoding="utf-8")
     assert _publication_is_current(repo, date) is False
+
+
+def test_publish_reports_refreshes_navigation_index_before_sync(tmp_path, monkeypatch):
+    repo = _prepare_repo(tmp_path)
+    posts_repo = tmp_path / "Horizon-posts"
+    posts_repo.mkdir()
+    sync_script = posts_repo / "sync-posts.sh"
+    sync_script.write_text("#!/bin/sh\n", encoding="utf-8")
+    date = "2026-08-10"
+    summaries = repo / "data/summaries"
+    for suffix, _ in BOARD_CONFIGS:
+        (summaries / f"{date}-{suffix}-zh.md").write_text(
+            f"{suffix}\n", encoding="utf-8"
+        )
+    (summaries / f"{date}-榜单汇总-zh.md").write_text(
+        "merged\n", encoding="utf-8"
+    )
+    lineage = repo / "output/lineage" / f"{date}-lineage.json"
+    lineage.parent.mkdir(parents=True)
+    lineage.write_text(
+        json.dumps(
+            {
+                "date": date,
+                "passed": True,
+                "total_items": 58,
+                "boards": {
+                    name: {"passed": True}
+                    for name in ("global", "ai", "github", "ee")
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    site_root = tmp_path / "site"
+    runner = FakePublishRunner(date)
+    monkeypatch.setenv("HORIZON_SITE_ROOT", str(site_root))
+
+    publish_reports(repo, posts_repo, date, runner=runner)
+
+    assert "最新日报（2026-08-10 周一）" in runner.synced_index
+    assert "/reports-html/2026-08-10.html" in runner.synced_index
+    assert "共 58 条" in runner.synced_index
+    assert "GHA 自动" not in runner.synced_index
 
 
 def test_local_wrapper_leaves_locking_to_python_pipeline(tmp_path):
