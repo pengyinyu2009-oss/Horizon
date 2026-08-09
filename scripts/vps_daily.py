@@ -291,6 +291,21 @@ def _existing_artifacts(repo: Path, date: str) -> list[Path]:
     return artifacts
 
 
+def _pending_publication_artifacts(repo: Path, date: str) -> list[Path] | None:
+    """Return a complete generated set awaiting publication, if one exists."""
+    marker = _read_json(repo / "output" / "last-success.json")
+    if marker.get("date") != date or marker.get("published") is not False:
+        return None
+    try:
+        return _existing_artifacts(repo, date)
+    except PipelineError as exc:
+        print(
+            f"Horizon VPS daily pending publication is invalid; regenerating: {exc}",
+            flush=True,
+        )
+        return None
+
+
 def _write_success_marker(
     repo: Path,
     date: str,
@@ -336,10 +351,20 @@ def main() -> int:
             return 0
 
         publish_only = os.environ.get("HORIZON_PUBLISH_ONLY") == "1"
+        pending_artifacts = None
+        if os.environ.get("HORIZON_FORCE") != "1" and not publish_only:
+            pending_artifacts = _pending_publication_artifacts(repo, date)
+
         if publish_only:
             artifacts = _existing_artifacts(repo, date)
+        elif pending_artifacts is not None:
+            artifacts = pending_artifacts
+            print(
+                f"Horizon VPS daily resume publication date={date}", flush=True
+            )
         else:
             artifacts = generate_boards(repo, date, hours=hours)
+            _write_success_marker(repo, date, artifacts, published=False)
 
         should_publish = os.environ.get("HORIZON_SKIP_PUBLISH") != "1"
         if should_publish:

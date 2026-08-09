@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 import fcntl
+import json
 import os
 import shutil
 import subprocess
+from unittest.mock import Mock
 
 import pytest
 
+import scripts.vps_daily as vps_daily
 from scripts.vps_daily import (
     BOARD_CONFIGS,
     PipelineError,
@@ -141,3 +144,54 @@ def test_local_wrapper_leaves_locking_to_python_pipeline(tmp_path):
         )
 
     assert result.returncode == 0
+
+
+def test_failed_publish_is_resumed_without_regenerating_boards(tmp_path, monkeypatch):
+    repo = _prepare_repo(tmp_path)
+    posts_repo = tmp_path / "Horizon-posts"
+    posts_repo.mkdir()
+    date = "2026-08-10"
+    summaries = repo / "data/summaries"
+    artifacts = [
+        summaries / f"{date}-{suffix}-zh.md" for suffix, _ in BOARD_CONFIGS
+    ]
+    artifacts.append(summaries / f"{date}-榜单汇总-zh.md")
+    for artifact in artifacts:
+        artifact.write_text("complete\n", encoding="utf-8")
+    lineage = repo / "output/lineage" / f"{date}-lineage.json"
+    lineage.parent.mkdir(parents=True)
+    lineage.write_text(
+        json.dumps({"date": date, "passed": True}), encoding="utf-8"
+    )
+
+    generate = Mock(return_value=artifacts)
+    publish = Mock(side_effect=PipelineError("network down"))
+    monkeypatch.setattr(vps_daily, "generate_boards", generate)
+    monkeypatch.setattr(vps_daily, "publish_reports", publish)
+    monkeypatch.setattr(vps_daily, "_publication_is_current", lambda *_: False)
+    monkeypatch.setenv("HORIZON_REPO", str(repo))
+    monkeypatch.setenv("HORIZON_POSTS_REPO", str(posts_repo))
+    monkeypatch.setenv("HORIZON_DATE", date)
+    monkeypatch.setenv("HORIZON_RUN_LOCK", str(tmp_path / "daily.lock"))
+    monkeypatch.delenv("HORIZON_FORCE", raising=False)
+    monkeypatch.delenv("HORIZON_PUBLISH_ONLY", raising=False)
+    monkeypatch.delenv("HORIZON_SKIP_PUBLISH", raising=False)
+
+    with pytest.raises(PipelineError, match="network down"):
+        vps_daily.main()
+
+    marker = json.loads(
+        (repo / "output/last-success.json").read_text(encoding="utf-8")
+    )
+    assert marker["date"] == date
+    assert marker["published"] is False
+
+    publish.side_effect = None
+    assert vps_daily.main() == 0
+
+    assert generate.call_count == 1
+    assert publish.call_count == 2
+    marker = json.loads(
+        (repo / "output/last-success.json").read_text(encoding="utf-8")
+    )
+    assert marker["published"] is True
