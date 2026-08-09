@@ -17,15 +17,15 @@ if [ ! -x "$PYTHON" ]; then
   PYTHON=$(command -v python3)
 fi
 
-exec 9>"$LOCK"
-if ! flock -n 9; then
-  echo "[$(date -Is)] run skipped: lock busy ($LOCK)"
-  exit 75
-fi
-
 SCRIPT=$REPO/scripts/dispatch_daily_github.py
 if [ "${HORIZON_EXECUTION_MODE:-github}" = "local" ]; then
   SCRIPT=$REPO/scripts/vps_daily.py
+else
+  exec 9>"$LOCK"
+  if ! flock -n 9; then
+    echo "[$(date -Is)] run skipped: lock busy ($LOCK)"
+    exit 75
+  fi
 fi
 
 set +e

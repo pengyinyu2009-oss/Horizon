@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+import fcntl
+import os
+import shutil
+import subprocess
 
 import pytest
 
@@ -112,3 +116,28 @@ def test_publication_is_current_requires_marker_html_and_passed_lineage(tmp_path
 
     lineage.write_text('{"date": "2026-08-10", "passed": false}', encoding="utf-8")
     assert _publication_is_current(repo, date) is False
+
+
+def test_local_wrapper_leaves_locking_to_python_pipeline(tmp_path):
+    lock_path = tmp_path / "horizon.lock"
+    log_path = tmp_path / "cron.log"
+    with lock_path.open("w") as held_lock:
+        fcntl.flock(held_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        environment = os.environ.copy()
+        environment.update(
+            {
+                "HORIZON_REPO": str(tmp_path),
+                "HORIZON_RUN_LOG": str(log_path),
+                "HORIZON_RUN_LOCK": str(lock_path),
+                "HORIZON_PYTHON": str(shutil.which("true")),
+                "HORIZON_EXECUTION_MODE": "local",
+            }
+        )
+        result = subprocess.run(
+            ["bash", "run-daily.sh"],
+            cwd=Path(__file__).resolve().parents[1],
+            env=environment,
+            check=False,
+        )
+
+    assert result.returncode == 0
