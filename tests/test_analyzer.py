@@ -1,13 +1,15 @@
 import asyncio
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 from tenacity import wait_none
 
 import src.ai.analyzer as analyzer_module
 from src.ai.analyzer import ContentAnalyzer, scoring_failure_context
-from src.models import ContentItem, SourceType
+from src.ai.client import FallbackAIClient
+from src.models import AIConfig, AIProvider, ContentItem, SourceType
 
 
 def _make_item(item_id: str) -> ContentItem:
@@ -155,6 +157,42 @@ def test_analyze_item_reraises_root_cause_after_retries(monkeypatch):
         asyncio.run(analyzer._analyze_item(_make_item("rss:test:failed")))
 
     assert attempts == 3
+
+
+def test_analyzer_tenacity_does_not_retry_a_recovered_primary_401():
+    class StatusError(Exception):
+        status_code = 401
+
+    primary_config = AIConfig(
+        provider=AIProvider.MINIMAX,
+        model="MiniMax-M3",
+        api_key_env="MINIMAX_API_KEY",
+    )
+    fallback_config = AIConfig(
+        provider=AIProvider.DEEPSEEK,
+        model="deepseek-chat",
+        api_key_env="DEEPSEEK_API_KEY",
+    )
+    primary_complete = AsyncMock(side_effect=StatusError("quota exhausted"))
+    fallback_complete = AsyncMock(
+        return_value=(
+            '{"score": 8, "reason": "important", '
+            '"summary": "summary", "tags": ["ai"]}'
+        )
+    )
+    client = FallbackAIClient([primary_config, fallback_config])
+    client._clients = [
+        SimpleNamespace(complete=primary_complete),
+        SimpleNamespace(complete=fallback_complete),
+    ]
+    analyzer = ContentAnalyzer(client)
+    item = _make_item("rss:test:fallback")
+
+    asyncio.run(analyzer._analyze_item(item))
+
+    assert item.ai_score == 8.0
+    assert primary_complete.await_count == 1
+    assert fallback_complete.await_count == 1
 
 
 @pytest.mark.parametrize("response", ["{}", '{"score": "not-a-number"}', '{"score": 11}'])
