@@ -39,12 +39,22 @@ class FakeRunner:
         self.date = date
         self.fail_on = fail_on
         self.calls: list[tuple[str, ...]] = []
+        self.host_configs_seen: list[str] = []
 
     def run(self, args, *, cwd=None, env=None):
         call = tuple(str(arg) for arg in args)
         self.calls.append(call)
-        config = (self.repo / "data/config.json").read_text(encoding="utf-8")
-        if call[:4] == ("docker", "compose", "run", "--rm"):
+        if call[:3] == ("docker", "compose", "run"):
+            host_config = (self.repo / "data/config.json").read_text(
+                encoding="utf-8"
+            )
+            self.host_configs_seen.append(host_config)
+            if "--volume" in call:
+                volume = call[call.index("--volume") + 1]
+                source = volume.removesuffix(":/app/data/config.json:ro")
+                config = Path(source).read_text(encoding="utf-8")
+            else:
+                config = host_config
             if self.fail_on and self.fail_on in config:
                 raise RuntimeError(f"simulated failure for {config}")
             output = self.repo / "data/summaries" / f"{self.date}-horizon-zh.md"
@@ -99,6 +109,29 @@ def test_generate_boards_keeps_previous_publication_when_one_board_fails(tmp_pat
 
     assert {path: path.read_text(encoding="utf-8") for path in previous} == previous
     assert (repo / "data/config.json").read_text(encoding="utf-8") == "original-config"
+
+
+def test_generate_boards_mounts_each_config_without_mutating_host_config(tmp_path):
+    repo = _prepare_repo(tmp_path)
+    date = "2026-08-10"
+    runner = FakeRunner(repo, date)
+
+    generate_boards(repo, date, hours=24, runner=runner)
+
+    assert runner.host_configs_seen == ["original-config"] * len(BOARD_CONFIGS)
+    docker_calls = [
+        call for call in runner.calls if call[:3] == ("docker", "compose", "run")
+    ]
+    mounted_sources = {
+        call[call.index("--volume") + 1].removesuffix(
+            ":/app/data/config.json:ro"
+        )
+        for call in docker_calls
+    }
+    assert mounted_sources == {
+        str((repo / "data" / config_name).resolve())
+        for _, config_name in BOARD_CONFIGS
+    }
 
 
 def test_publication_is_current_requires_marker_html_and_passed_lineage(tmp_path, monkeypatch):

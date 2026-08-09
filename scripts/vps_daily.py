@@ -79,9 +79,6 @@ def generate_boards(
     data_dir = repo / "data"
     summaries_dir = data_dir / "summaries"
     summaries_dir.mkdir(parents=True, exist_ok=True)
-    config_path = data_dir / "config.json"
-    config_existed = config_path.exists()
-    original_config = config_path.read_bytes() if config_existed else None
 
     run_root = repo / "output" / "runs"
     run_root.mkdir(parents=True, exist_ok=True)
@@ -99,7 +96,6 @@ def generate_boards(
             board_config = data_dir / config_name
             if not board_config.is_file():
                 raise PipelineError(f"board {suffix}: missing config {board_config}")
-            shutil.copy2(board_config, config_path)
             canonical.unlink(missing_ok=True)
             try:
                 runner.run(
@@ -108,6 +104,8 @@ def generate_boards(
                         "compose",
                         "run",
                         "--rm",
+                        "--volume",
+                        f"{board_config.resolve()}:/app/data/config.json:ro",
                         "horizon",
                         "--hours",
                         str(hours),
@@ -175,12 +173,6 @@ def generate_boards(
         if not completed:
             canonical.unlink(missing_ok=True)
             _restore_previous(previous, summaries_dir, date)
-        if original_config is not None:
-            temporary = config_path.with_name(f".{config_path.name}.restore.{os.getpid()}")
-            temporary.write_bytes(original_config)
-            os.replace(temporary, config_path)
-        elif not config_existed:
-            config_path.unlink(missing_ok=True)
         shutil.rmtree(staging, ignore_errors=True)
 
 
