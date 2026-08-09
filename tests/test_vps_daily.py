@@ -213,6 +213,35 @@ def test_wrapper_defaults_to_vps_local_pipeline(tmp_path):
     )
 
 
+def test_wrapper_trims_oversized_log_before_appending(tmp_path):
+    log_path = tmp_path / "cron.log"
+    log_path.write_text("A" * 256 + "TAIL-MARKER\n", encoding="utf-8")
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "HORIZON_REPO": str(tmp_path),
+            "HORIZON_RUN_LOG": str(log_path),
+            "HORIZON_RUN_LOG_MAX_BYTES": "64",
+            "HORIZON_RUN_LOCK": str(tmp_path / "horizon.lock"),
+            "HORIZON_PYTHON": str(shutil.which("true")),
+        }
+    )
+    environment.pop("HORIZON_EXECUTION_MODE", None)
+
+    result = subprocess.run(
+        ["bash", "run-daily.sh"],
+        cwd=Path(__file__).resolve().parents[1],
+        env=environment,
+        check=False,
+    )
+
+    contents = log_path.read_text(encoding="utf-8")
+    assert result.returncode == 0
+    assert "A" * 128 not in contents
+    assert "TAIL-MARKER" in contents
+    assert "VPS four-board run done" in contents
+
+
 def test_failed_publish_is_resumed_without_regenerating_boards(tmp_path, monkeypatch):
     repo = _prepare_repo(tmp_path)
     posts_repo = tmp_path / "Horizon-posts"
