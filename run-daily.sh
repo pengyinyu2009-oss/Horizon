@@ -1,10 +1,13 @@
 #!/bin/bash
-# VPS-owned daily pipeline: generate four boards, validate, then publish.
+# VPS-owned scheduler. GitHub Actions generates with repository Secrets, then
+# the VPS pulls and atomically publishes. Set HORIZON_EXECUTION_MODE=local to
+# use scripts/vps_daily.py after installing a valid VPS model credential.
 set -Eeuo pipefail
 
 REPO=${HORIZON_REPO:-/home/pengyinyu/Horizon}
 LOG=${HORIZON_RUN_LOG:-$REPO/data/cron.log}
 PYTHON=${HORIZON_PYTHON:-$REPO/.venv/bin/python}
+LOCK=${HORIZON_RUN_LOCK:-/home/pengyinyu/.horizon-run-daily.lock}
 
 mkdir -p "$(dirname "$LOG")"
 exec >> "$LOG" 2>&1
@@ -14,8 +17,19 @@ if [ ! -x "$PYTHON" ]; then
   PYTHON=$(command -v python3)
 fi
 
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "[$(date -Is)] run skipped: lock busy ($LOCK)"
+  exit 75
+fi
+
+SCRIPT=$REPO/scripts/dispatch_daily_github.py
+if [ "${HORIZON_EXECUTION_MODE:-github}" = "local" ]; then
+  SCRIPT=$REPO/scripts/vps_daily.py
+fi
+
 set +e
-"$PYTHON" "$REPO/scripts/vps_daily.py"
+"$PYTHON" "$SCRIPT"
 rc=$?
 set -e
 

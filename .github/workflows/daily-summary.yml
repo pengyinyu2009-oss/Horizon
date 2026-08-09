@@ -35,7 +35,8 @@ on:
   # fired up to 288 times/day and every failure sent an email, which was
   # the source of the daily error-mail flood. workflow_dispatch is kept
   # so a run can still be triggered manually (gh workflow run ...).
-  # To re-enable automation, revert this commit (restores the 5 crons below).
+  # Do not restore these mixed schedules without adding schedule-specific job
+  # conditions. Production scheduling is owned by the VPS at 08:17 BJT.
   #
   # schedule:
   #   - cron: '*/5 * * * *'  # daily window gate (23:00-01:00 UTC = 07:00-09:00 BJT)
@@ -45,6 +46,16 @@ on:
   #   - cron: '0 10 15 1 *'  # yearly H2, 15 January 10:00 Asia/Shanghai
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'Run exactly one pipeline mode.'
+        required: true
+        default: 'daily'
+        type: choice
+        options:
+          - 'daily'
+          - 'weekly'
+          - 'monthly'
+          - 'yearly'
       force:
         description: 'Bypass state dedup and regenerate today even if the post already exists on master.'
         required: false
@@ -56,6 +67,7 @@ on:
 
 jobs:
   daily-summary:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'daily'
     runs-on: ubuntu-latest
     # Serialize per-day so two */5 triggers in the same window can't both
     # run LLM generation + push the same post.
@@ -168,6 +180,7 @@ jobs:
           # sees only 1/4 boards.
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
           cp "data/summaries/${DATE}-horizon-zh.md" "/tmp/${DATE}-horizon-zh.md.bak" || true
+          rm -f "data/summaries/${DATE}-horizon-zh.md"
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -186,6 +199,7 @@ jobs:
         run: |
           cp data/config.global.json data/config.json
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          rm -f "data/summaries/${DATE}-horizon-zh.md"
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -204,6 +218,7 @@ jobs:
         run: |
           cp data/config.github-trending.json data/config.json
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
+          rm -f "data/summaries/${DATE}-horizon-zh.md"
           set +e
           uv run horizon --hours 24
           RUN_RC=$?
@@ -234,7 +249,14 @@ jobs:
         if: steps.gate.outputs.should_run == 'true'
         run: |
           DATE=$(TZ=Asia/Shanghai date +'%Y-%m-%d')
-          test -s "data/summaries/${DATE}-horizon-zh.md"
+          for report in \
+            "${DATE}-horizon-zh.md" \
+            "${DATE}-global-zh.md" \
+            "${DATE}-github-trending-zh.md" \
+            "${DATE}-ee-zh.md" \
+            "${DATE}-榜单汇总-zh.md"; do
+            test -s "data/summaries/${report}"
+          done
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # -f: force discard local changes when switching branches
@@ -269,6 +291,7 @@ jobs:
           exit 1
 
   weekly-summary:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'weekly'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -327,6 +350,7 @@ jobs:
           fi
 
   monthly-summary:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'monthly'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -379,6 +403,7 @@ jobs:
           fi
 
   yearly-summary:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'yearly'
     runs-on: ubuntu-latest
     permissions:
       contents: write
