@@ -122,6 +122,47 @@ class TestFactoryDispatch:
 
 
 class TestFallbackBehaviour:
+    def test_build_failure_is_disabled_for_rest_of_run(self, monkeypatch):
+        """A missing primary key should be logged once, not once per AI call."""
+        monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+
+        backup = c._get_client(1)
+        with patch.object(
+            backup.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_backup:
+            m_backup.return_value = _ok_response('{"from": "deepseek"}')
+
+            asyncio.run(c.complete(system="s", user="first"))
+            asyncio.run(c.complete(system="s", user="second"))
+
+        assert c._disabled_indices == {0}
+        assert m_backup.call_count == 2
+
+    def test_401_disables_primary_for_rest_of_run(self, monkeypatch):
+        """A permanent auth/quota failure should trip a run-scoped circuit."""
+        monkeypatch.setenv("MINIMAX_API_KEY", "k")
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
+
+        with patch.object(
+            primary.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_primary, patch.object(
+            backup.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_backup:
+            m_primary.side_effect = _StatusError(401, "quota")
+            m_backup.return_value = _ok_response('{"from": "deepseek"}')
+
+            asyncio.run(c.complete(system="s", user="first"))
+            asyncio.run(c.complete(system="s", user="second"))
+
+        assert c._disabled_indices == {0}
+        assert m_primary.call_count == 1
+        assert m_backup.call_count == 2
+
     def test_primary_401_then_fallback_succeeds(self, monkeypatch, capsys):
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")

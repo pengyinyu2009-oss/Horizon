@@ -566,6 +566,12 @@ class FallbackAIClient(AIClient):
         # first attempt and cached.
         self._configs = list(configs)
         self._clients: list = [None] * len(configs)
+        # Run-scoped circuit breaker. Authentication/quota failures and
+        # build-time configuration failures cannot recover between two
+        # adjacent completion calls, so retrying them for every item only
+        # adds latency and log noise. Transient 429/5xx errors are not kept
+        # here; a later request may probe the primary again.
+        self._disabled_indices: set[int] = set()
 
     @staticmethod
     def _build_one(config: AIConfig) -> AIClient:
@@ -602,6 +608,8 @@ class FallbackAIClient(AIClient):
         last_exc: Optional[BaseException] = None
         last_provider: Optional[str] = None
         for idx in range(len(self._configs)):
+            if idx in self._disabled_indices:
+                continue
             cfg = self._configs[idx]
             provider = getattr(cfg, "provider", "?")
             provider_str = provider.value if hasattr(provider, "value") else str(provider)
@@ -612,6 +620,7 @@ class FallbackAIClient(AIClient):
                 # Treat as skippable — move to next provider in the chain.
                 last_exc = e
                 last_provider = provider_str
+                self._disabled_indices.add(idx)
                 print(
                     f"[ai_fallback] {provider_str} build failed "
                     f"({type(e).__name__}: {e}) — trying next provider"
@@ -624,11 +633,14 @@ class FallbackAIClient(AIClient):
                 last_provider = provider_str
                 if not _should_fallback(e):
                     raise
+                if getattr(e, "status_code", None) == 401:
+                    self._disabled_indices.add(idx)
                 if idx < len(self._configs) - 1:
                     print(
                         f"[ai_fallback] {provider_str} status="
                         f"{getattr(e, 'status_code', '?')} — trying next provider"
                     )
-        assert last_exc is not None
+        if last_exc is None:
+            raise RuntimeError("All AI providers are disabled for this run")
         print(f"[ai_fallback] all providers exhausted (last={last_provider})")
         raise last_exc
