@@ -257,14 +257,54 @@ def publish_reports(
         shutil.rmtree(worktree, ignore_errors=True)
 
 
-def _write_success_marker(repo: Path, date: str, artifacts: list[Path]) -> None:
+def _read_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def _publication_is_current(repo: Path, date: str) -> bool:
+    marker = _read_json(repo / "output" / "last-success.json")
+    site_root = Path(os.environ.get("HORIZON_SITE_ROOT", "/var/www/horizon-site"))
+    html = site_root / "reports-html" / f"{date}.html"
+    lineage = _read_json(
+        site_root / "reports-html" / "data" / f"{date}-lineage.json"
+    )
+    return (
+        marker.get("date") == date
+        and marker.get("published") is True
+        and html.is_file()
+        and lineage.get("date") == date
+        and lineage.get("passed") is True
+    )
+
+
+def _existing_artifacts(repo: Path, date: str) -> list[Path]:
+    artifacts = _artifact_paths(repo / "data" / "summaries", date)
+    missing = [path.name for path in artifacts if not path.is_file() or path.stat().st_size == 0]
+    if missing:
+        raise PipelineError(f"publish retry has incomplete artifacts: {', '.join(missing)}")
+    lineage = _read_json(repo / "output" / "lineage" / f"{date}-lineage.json")
+    if lineage.get("date") != date or lineage.get("passed") is not True:
+        raise PipelineError("publish retry has no passed four-board lineage result")
+    return artifacts
+
+
+def _write_success_marker(
+    repo: Path,
+    date: str,
+    artifacts: list[Path],
+    *,
+    published: bool,
+) -> None:
     marker = repo / "output" / "last-success.json"
     marker.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "date": date,
         "completed_at": datetime.now(BJT).isoformat(),
         "artifacts": [path.name for path in artifacts],
-        "published": True,
+        "published": published,
     }
     temporary = marker.with_name(f".{marker.name}.tmp.{os.getpid()}")
     temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -291,10 +331,25 @@ def main() -> int:
             return 75
 
         print(f"Horizon VPS daily start date={date} hours={hours}", flush=True)
-        artifacts = generate_boards(repo, date, hours=hours)
-        if os.environ.get("HORIZON_SKIP_PUBLISH") != "1":
+        if os.environ.get("HORIZON_FORCE") != "1" and _publication_is_current(repo, date):
+            print(f"Horizon VPS daily skip: {date} is already published", flush=True)
+            return 0
+
+        publish_only = os.environ.get("HORIZON_PUBLISH_ONLY") == "1"
+        if publish_only:
+            artifacts = _existing_artifacts(repo, date)
+        else:
+            artifacts = generate_boards(repo, date, hours=hours)
+
+        should_publish = os.environ.get("HORIZON_SKIP_PUBLISH") != "1"
+        if should_publish:
             publish_reports(repo, posts_repo, date)
-        _write_success_marker(repo, date, artifacts)
+        _write_success_marker(
+            repo,
+            date,
+            artifacts,
+            published=should_publish,
+        )
         print(f"Horizon VPS daily complete date={date} artifacts={len(artifacts)}", flush=True)
     return 0
 

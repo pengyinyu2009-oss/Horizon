@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from scripts.vps_daily import BOARD_CONFIGS, PipelineError, generate_boards
+from scripts.vps_daily import (
+    BOARD_CONFIGS,
+    PipelineError,
+    _publication_is_current,
+    generate_boards,
+)
 
 
 def _prepare_repo(tmp_path: Path) -> Path:
@@ -87,3 +92,23 @@ def test_generate_boards_keeps_previous_publication_when_one_board_fails(tmp_pat
 
     assert {path: path.read_text(encoding="utf-8") for path in previous} == previous
     assert (repo / "data/config.json").read_text(encoding="utf-8") == "original-config"
+
+
+def test_publication_is_current_requires_marker_html_and_passed_lineage(tmp_path, monkeypatch):
+    repo = tmp_path / "Horizon"
+    site = tmp_path / "site"
+    date = "2026-08-10"
+    (repo / "output").mkdir(parents=True)
+    (site / "reports-html/data").mkdir(parents=True)
+    (repo / "output/last-success.json").write_text(
+        '{"date": "2026-08-10", "published": true}', encoding="utf-8"
+    )
+    (site / "reports-html" / f"{date}.html").write_text(date, encoding="utf-8")
+    lineage = site / "reports-html/data" / f"{date}-lineage.json"
+    lineage.write_text('{"date": "2026-08-10", "passed": true}', encoding="utf-8")
+    monkeypatch.setenv("HORIZON_SITE_ROOT", str(site))
+
+    assert _publication_is_current(repo, date) is True
+
+    lineage.write_text('{"date": "2026-08-10", "passed": false}', encoding="utf-8")
+    assert _publication_is_current(repo, date) is False
