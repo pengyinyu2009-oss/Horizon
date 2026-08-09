@@ -39,13 +39,18 @@ process kill cannot leave the next run on the wrong board configuration.
 
 ## Log rotation
 
-Install the checked-in policy once on the VPS, then validate it without forcing
-a rotation:
+`run-daily.sh` trims the active log to its most recent 1 MiB before appending.
+This user-level safety limit is active without root access. Override it with
+`HORIZON_RUN_LOG_MAX_BYTES` when needed.
+
+For compressed historical generations, install the optional checked-in policy
+once on a host that has `logrotate`, then validate it without forcing a rotation:
 
 ```bash
 sudo install -m 0644 deploy/horizon-logrotate.conf /etc/logrotate.d/horizon
 sudo logrotate --debug /etc/logrotate.d/horizon
 ```
 
-The policy rotates daily or at 1 MiB, retains 14 compressed generations, and
-uses `copytruncate` so the shell redirection can remain open safely.
+The optional policy rotates daily or at 1 MiB, retains 14 compressed
+generations, and uses `copytruncate` so the shell redirection can remain open
+safely.
