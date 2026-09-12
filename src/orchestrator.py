@@ -1,6 +1,7 @@
 """Main orchestrator coordinating the entire workflow."""
 
 import asyncio
+import os
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 try:
@@ -659,6 +660,7 @@ class HorizonOrchestrator:
         lookback_label_en: str,
         save_method_name: str,
         period_id_factory,
+        period_id_override: Optional[str] = None,
     ) -> None:
         """Chain-mode implementation for weekly / monthly / yearly reports.
 
@@ -704,8 +706,19 @@ class HorizonOrchestrator:
 
         # Resolve the period_id early — we need it for the prereq check
         # (which decides whether to proceed for each language).
+        # 2026-09-12: ``period_id_override`` supports historical backfill
+        # (e.g. the 2026-08-03..08-08 daily gap left W32 without its full
+        # upstream set). The override is format-validated so a typo can
+        # never turn into a garbage filename under data/summaries/.
         now = datetime.now(timezone.utc)
-        period_id = period_id_factory(now)
+        if period_id_override is not None:
+            if not self.storage._period_id_matches(period_id_override, period):
+                raise ValueError(
+                    f"invalid {period} period_id override: {period_id_override!r}"
+                )
+            period_id = period_id_override
+        else:
+            period_id = period_id_factory(now)
         self.console.print(
             f"   target {period} id = {period_id}\n"
         )
@@ -755,10 +768,19 @@ class HorizonOrchestrator:
                 if not self._check_prerequisites(period, period_id, lang, board=board):
                     summaries_by_lang[lang] = []
                     continue
+                # 2026-09-12: bound the read to the target period's own
+                # upstream window. ``list_recent_summaries`` alone returns
+                # every matching file, so ``files[-lookback_count:]`` only
+                # lines up with the target period when "now" is right after
+                # it — a historical backfill would otherwise read the most
+                # recent reports instead of the window's own ones.
+                expected_window = self._expected_prereq_ids(period, period_id)
                 files = self.storage.list_recent_summaries(
                     period=prior_period,
                     language=lang,
                     board=board,
+                    since_id=min(expected_window),
+                    until_id=max(expected_window),
                 )
                 summaries_by_lang[lang] = files[-lookback_count:]
                 self.console.print(
@@ -933,7 +955,22 @@ class HorizonOrchestrator:
         self._deploy_file(f"{period_id}-{board}-{lang}.md")
 
     def _deploy_file(self, filename: str) -> None:
-        """Copy a file from data/summaries/ into docs/_posts/."""
+        """Copy a file from data/summaries/ into docs/_posts/.
+
+        2026-09-12: this legacy copy only made sense on GitHub Actions,
+        where docs/_posts/ of the Horizon checkout WAS the Pages source.
+        VPS-local production publishes through Horizon-posts worktrees
+        (vps_daily.publish_reports → sync-posts.sh) instead, so the copy
+        is skipped unless HORIZON_LEGACY_DEPLOY=1 — otherwise it dirties
+        the VPS repo with untracked files that nothing consumes.
+        """
+        if os.environ.get("HORIZON_LEGACY_DEPLOY", "") != "1":
+            self.console.print(
+                f"⏭  legacy docs/_posts deploy skipped for {filename} "
+                f"(VPS publishes via Horizon-posts; set HORIZON_LEGACY_DEPLOY=1 "
+                f"to restore the GitHub Actions behaviour)"
+            )
+            return
         try:
             from pathlib import Path
 
@@ -1045,6 +1082,18 @@ class HorizonOrchestrator:
         missing = [e for e in expected if e not in existing]
         if missing:
             preview = ", ".join(missing[:3]) + ("..." if len(missing) > 3 else "")
+            # 2026-09-12: opt-in partial gate for historical backfill of
+            # windows whose upstream can no longer be complete (the
+            # 2026-08-03..08-08 daily gap). Scheduled runs must never set
+            # this — the hard gate stays the default.
+            if os.environ.get("HORIZON_ROLLUP_ALLOW_PARTIAL") == "1":
+                self.console.print(
+                    f"[yellow]⚠️  {period} {period_id} ({board}/{lang.upper()}): "
+                    f"partial backfill allowed by HORIZON_ROLLUP_ALLOW_PARTIAL — "
+                    f"{len(missing)}/{len(expected)} upstream {prior_period} report(s) "
+                    f"missing: {preview}[/yellow]"
+                )
+                return True
             self.console.print(
                 f"[yellow]⏭  {period} {period_id} ({board}/{lang.upper()}) skipped: "
                 f"{len(missing)}/{len(expected)} upstream {prior_period} report(s) "
@@ -1057,8 +1106,12 @@ class HorizonOrchestrator:
         )
         return True
 
-    async def run_weekly(self) -> None:
-        """Run the weekly roll-up. Reads ``config.weekly`` for settings."""
+    async def run_weekly(self, period_id: Optional[str] = None) -> None:
+        """Run the weekly roll-up. Reads ``config.weekly`` for settings.
+
+        ``period_id`` (e.g. ``2026-W32``) overrides the default
+        "most recently completed week" target for historical backfill.
+        """
         cfg = self.config.weekly
         if cfg is None:
             self.console.print("[yellow]weekly config missing; nothing to do.[/yellow]")
@@ -1086,10 +1139,15 @@ class HorizonOrchestrator:
             lookback_label_en=f"{cfg.lookback_days} days",
             save_method_name="save_weekly_summary",
             period_id_factory=_last_iso_week_id,
+            period_id_override=period_id,
         )
 
-    async def run_monthly(self) -> None:
-        """Run the monthly roll-up. Reads ``config.monthly`` for settings."""
+    async def run_monthly(self, period_id: Optional[str] = None) -> None:
+        """Run the monthly roll-up. Reads ``config.monthly`` for settings.
+
+        ``period_id`` (e.g. ``2026-08``) overrides the default
+        "most recently completed month" target for historical backfill.
+        """
         cfg = self.config.monthly
         if cfg is None:
             self.console.print("[yellow]monthly config missing; nothing to do.[/yellow]")
@@ -1107,9 +1165,10 @@ class HorizonOrchestrator:
             lookback_label_en=f"{cfg.lookback_weeks} weeks",
             save_method_name="save_monthly_summary",
             period_id_factory=_last_month_id,
+            period_id_override=period_id,
         )
 
-    async def run_yearly(self) -> None:
+    async def run_yearly(self, period_id: Optional[str] = None) -> None:
         """Run the yearly roll-up. Reads ``config.yearly`` for settings.
 
         Yearly now runs twice a year (per user directive 2026-07-02):
@@ -1117,6 +1176,9 @@ class HorizonOrchestrator:
         ships on next-year 1-1. The half is decided by ``now.month``
         at trigger time. ``_expected_prereq_ids`` enforces that all
         monthly reports in the corresponding 6-month window exist.
+
+        ``period_id`` (``2026-H1`` / ``2026-H2``) overrides the default
+        half-year target for historical backfill.
         """
         cfg = self.config.yearly
         if cfg is None:
@@ -1151,4 +1213,5 @@ class HorizonOrchestrator:
             lookback_label_en=f"{cfg.lookback_months} months",
             save_method_name="save_yearly_summary",
             period_id_factory=_half_year_id,
+            period_id_override=period_id,
         )

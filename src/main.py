@@ -44,6 +44,15 @@ def main():
         help="Which report to generate. Default: daily.",
     )
     parser.add_argument("--hours", type=int, help="Force fetch from last N hours (daily mode only)")
+    parser.add_argument(
+        "--period-id",
+        default=None,
+        help=(
+            "Override the target period id for weekly/monthly/yearly modes "
+            "(historical backfill), e.g. 2026-W32 / 2026-08 / 2026-H1. "
+            "Without it each rollup targets the most recently completed period."
+        ),
+    )
     args = parser.parse_args()
 
     try:
@@ -84,11 +93,11 @@ def main():
         if args.mode == "daily":
             asyncio.run(orchestrator.run(force_hours=args.hours))
         elif args.mode == "weekly":
-            asyncio.run(orchestrator.run_weekly())
+            asyncio.run(orchestrator.run_weekly(period_id=args.period_id))
         elif args.mode == "monthly":
-            asyncio.run(orchestrator.run_monthly())
+            asyncio.run(orchestrator.run_monthly(period_id=args.period_id))
         elif args.mode == "yearly":
-            asyncio.run(orchestrator.run_yearly())
+            asyncio.run(orchestrator.run_yearly(period_id=args.period_id))
 
     except KeyboardInterrupt:
         console.print("\n[yellow]⚠️  Interrupted by user[/yellow]")
