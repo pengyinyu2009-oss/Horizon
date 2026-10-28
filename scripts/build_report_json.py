@@ -142,7 +142,7 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
         url = m.group(3).strip()
         try:
             score = float(m.group(4))
-        except ValueError:
+        except (TypeError, ValueError):
             continue
         try:
             subjective_score = float(m.group(5)) if m.group(5) else None
@@ -162,6 +162,7 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
             "score": score,
             "subjective_score": subjective_score,
             "pick_reason": _extract_labeled(block, "入选理由") or _extract_labeled(block, "Why this pick"),
+            "background": _extract_labeled(block, "背景") or _extract_labeled(block, "Background"),
             "china_impact": _extract_labeled(block, "对中国影响") or _extract_labeled(block, "China impact"),
             "local_impact": _extract_local_impact(block),
             "personal_relevance": (
@@ -251,7 +252,7 @@ def derive_news_fields(item: dict) -> dict:
     return {
         "anchor": item["item_id"],
         "title": title,
-        "url": url,
+        "url": item["url"],
         "importance": item["score"],
         "relevance": relevance,
         "source": "Horizon Daily 采集",
@@ -275,7 +276,12 @@ def derive_news_fields(item: dict) -> dict:
 
 
 def derive_tech_fields(item: dict) -> dict:
-    """派生技术类 4 字段（基于原文 summary，禁止脱离原文自由发挥）。"""
+    """派生技术类字段（基于原文 summary，禁止脱离原文自由发挥）。
+
+    2026-10-28: tech 榜（ai/embedded/finance/github，占大多数条目）与
+    news 榜对齐同一套统一版式字段——入选理由 / 背景 / 对中国影响 /
+    对所在地影响 / 对我影响；缺字段时给如实占位，不编造。
+    """
     summary = item["summary"]
     title = item["title"]
     tags = item.get("tags", [])
@@ -299,7 +305,11 @@ def derive_tech_fields(item: dict) -> dict:
         "what": summary[:280],
         "highlight": "；".join([f"#{t}" for t in tags[:5]]) if tags else "（原文无 tags，详见原文摘要）",
         "judge_me": judge,
-        "background": f"原始 AI 评分标签：{tag_str}。背景以原文摘要为准：{summary[:200]}",
+        "pick_reason": item.get("pick_reason") or f"客观分 {item['score']}/10 入选，标签：{tag_str}。",
+        "background": item.get("background") or f"原始 AI 评分标签：{tag_str}。背景以原文摘要为准：{summary[:200]}",
+        "impact_cn": item.get("china_impact") or "（待人工/AI 二次解读，原文未明确涉及中国影响）",
+        "impact_local": item.get("local_impact") or "（所在地影响未在原文体现，待人工/AI 二次解读）",
+        "impact_me": item.get("personal_relevance") or "（待人工/AI 二次解读，原文未明确涉及个人影响）",
         "source_ref": {
             "summary_file": item["summary_file"],
             "item_id": item["item_id"],
