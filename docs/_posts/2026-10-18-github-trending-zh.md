@@ -1,0 +1,652 @@
+---
+layout: default
+title: "Horizon Daily: 2026-10-18 (ZH)"
+date: 2026-10-18
+lang: zh
+period: daily
+period_id: 2026-10-18
+---
+
+> 从 44 条内容中筛选出 37 条重要资讯。
+
+本榜含 📅 日榜 / 📆 周榜 / 🗓 月榜 三个子榜，各取客观分前 10 与画像精选。
+
+---
+
+## 📅 日榜（9 条）
+
+1. [Orca：开源编码代理编排工具，支持多代理并行](#item-daily-1) ⭐️ 7.0/10 · 相关 6/10
+2. [opencode：TypeScript 开源编码 Agent 单日新增 438 星，登顶 GitHub 趋势榜](#item-daily-2) ⭐️ 7.0/10 · 相关 6/10
+3. [ruflo：TypeScript 多智能体编排框架今日在 GitHub 获 420 星](#item-daily-3) ⭐️ 7.0/10 · 相关 4/10
+4. [MadsLorentzen/ai-job-search：基于 Claude Code 的求职申请框架](#item-daily-4) ⭐️ 6.0/10 · 相关 3/10
+5. [HKUDS/CLI-Anything：让所有软件成为 AI Agent 原生工具](#item-daily-5) ⭐️ 6.0/10 · 相关 5/10
+6. [K-Dense-AI 发布 177 个科研 Agent 技能，可将任意 AI Agent 变为 AI 科学家](#item-daily-6) ⭐️ 6.0/10 · 相关 4/10
+7. [Rust 编写的 ai-memory 项目走红，为代理 CLI 提供长期记忆](#item-daily-7) ⭐️ 6.0/10 · 相关 5/10
+8. [Android 官方发布面向 AI Agent 的 Skills 仓库](#item-daily-8) ⭐️ 6.0/10 · 相关 5/10
+9. [XERJ：基于 Rust 的 AI 搜索工具，号称以 40 倍更少 token 替代 ElasticSearch](#item-daily-9) ⭐️ 6.0/10 · 相关 6/10
+
+---
+
+<a id="item-daily-1"></a>
+## [Orca：开源编码代理编排工具，支持多代理并行](https://github.com/stablyai/orca) ⭐️ 7.0/10 · 相关 6/10
+
+Orca 是 stablyai 推出的开源 TypeScript 工具，单日新增 830 个 GitHub 星标，总星标数约 9.5 万。它允许开发者使用自己的订阅在桌面、移动和远程运行时中运行多个编码代理（如 Claude Code 和 Grok Bot）。 随着 AI 编码代理的增多，开发者需要一种方式来同时管理多个代理，而不被锁定在单一供应商的订阅中。Orca 的自带订阅模式和跨平台支持可能使其成为代理驱动开发工作流的中心枢纽。 Orca 使用 TypeScript 编写，提供 CLI 让代理控制 IDE、添加项目、创建 Git worktree 并发布进度检查点。它支持跨多个 worktree 的并行代理，并可通过 macOS 的 Homebrew 或 Arch Linux 的 AUR 安装。
+
+github_trending · stablyai · 10月18日 00:49
+
+**背景**: 像 Claude Code 和 Grok Bot 这样的编码代理是能够理解代码库、编辑文件并自主运行命令的 AI 工具。Orca 充当编排器，提供统一界面来启动和管理多个此类代理，每个代理可能使用不同的 AI 模型，而无需单独订阅。
+
+**对中国影响**: Orca 的开源特性以及对多代理的支持，可以通过提供灵活且避免供应商锁定的编排层，使中国开发者受益，但其对中国硬件或嵌入式生态系统的影响有限。
+
+**对我有什么用**: 对于电子工程师来说，Orca 可以通过并行运行多个 AI 代理来帮助自动化嵌入式项目或脚本中的重复编码任务，尽管它与硬件设计或 EDA 没有直接关系。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/stablyai/orca">stablyai / orca : Orca is the place for working with a fleet of agents ...</a></li>
+<li><a href="https://www.everydev.ai/tools/orca-ide">Orca - Open Source Parallel Agent IDE | EveryDev. ai</a></li>
+<li><a href="https://www.sourcepulse.org/projects/27429804">orca by stablyai - SourcePulse</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI agents`, `#coding agent`, `#dev toolchain`, `#TypeScript`, `#automation`
+
+---
+
+<a id="item-daily-2"></a>
+## [opencode：TypeScript 开源编码 Agent 单日新增 438 星，登顶 GitHub 趋势榜](https://github.com/anomalyco/opencode) ⭐️ 7.0/10 · 相关 6/10
+
+anomalyco/opencode 是一个用 TypeScript 编写的开源 AI 编码 Agent，单日新增 438 颗星，总星数已超过 21.5 万，fork 数达 28,864，登上 GitHub 日趋势榜。 这一热度反映出开发者对可本地运行、可定制的开源 AI 编码 Agent 的强烈兴趣，使 opencode 成为快速增长的 AI 开发工具链领域中一个值得关注的开源替代方案。 opencode 内置两个可通过 Tab 键切换的 Agent：默认的“build”Agent 拥有完整开发权限，而只读的“plan”Agent 用于分析和代码探索，默认拒绝文件编辑；它面向终端使用，并已发布 V2 版本及迁移文档。
+
+github_trending · anomalyco · 10月18日 00:49
+
+**背景**: AI 编码 Agent 是一种利用大语言模型在循环中决定并执行操作（如读取文件、编写代码或运行命令）以完成开发任务的程序。TypeScript 是微软开发的 JavaScript 静态类型超集，广泛用于构建大型应用和工具。opencode 是一个将此类 Agent 能力直接带入开发者终端的开源项目。
+
+**对中国影响**: 对中国开发者社区而言，opencode 提供了一个可本地运行、不依赖国外 SaaS 服务的开源 AI 编码 Agent，有望加速 AI 辅助开发在国内嵌入式和软件项目中的落地。
+
+**对我有什么用**: 作为硬件开发者，你可以用 opencode 自动化嵌入式编码任务、生成驱动样板代码或探索大型代码库，其开源特性还允许你针对自己的工具链进行定制。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/anomalyco/opencode">GitHub - anomalyco / opencode : The open source coding agent .</a></li>
+<li><a href="https://opencode.ai/docs/">Intro | AI coding agent built for the terminal</a></li>
+<li><a href="https://en.wikipedia.org/wiki/TypeScript_(programming_language)">TypeScript (programming language)</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI coding agent`, `#开源工具`, `#TypeScript`, `#AI 开发工具链`, `#GitHub Trending`
+
+---
+
+<a id="item-daily-3"></a>
+## [ruflo：TypeScript 多智能体编排框架今日在 GitHub 获 420 星](https://github.com/ruvnet/ruflo) ⭐️ 7.0/10 · 相关 4/10
+
+ruvnet/ruflo 是一个基于 TypeScript 的智能体编排框架，今日在 GitHub 新增 420 颗星，总星数超过 7.6 万，分支数达 9000。该框架支持多智能体协作、自适应记忆、联邦、向量 RAG 集成，并原生集成 Claude Code、Codex 和 Hermes。 随着 AI 智能体从演示走向生产，像 ruflo 这样的编排框架为协调多个智能体、管理记忆和集成检索增强生成（RAG）提供了基础架构。其高星数和活跃社区使其成为构建复杂智能体系统的开发者的参考项目。 ruflo 使用 TypeScript 编写，提供自适应记忆、自学习智能、联邦和向量 RAG 集成等功能。它原生集成 Claude Code、Codex、Hermes 等工具，定位为部署智能多玩家集群和对话式 AI 系统的通用框架。
+
+github_trending · ruvnet · 10月18日 00:49
+
+**背景**: 智能体编排框架帮助开发者协调多个 AI 智能体共同处理复杂任务，管理通信、记忆和工具使用。检索增强生成（RAG）通过从外部知识库检索相关信息来增强大语言模型，通常使用向量数据库进行语义搜索。自适应记忆使智能体能够保留并学习过去的交互，从而随时间提升个性化和上下文感知能力。
+
+**对中国影响**: 对 AI 智能体框架感兴趣的中国开发者可能会探索 ruflo 来构建多智能体系统，但其对 Claude Code 和 Codex 等西方 AI 工具的依赖可能在中国带来集成挑战。该项目的开源性质允许本地化适配，可能为中国不断增长的智能体编排工具生态做出贡献。
+
+**对我有什么用**: 作为电子工程师，您可能不会直接在硬件项目中使用 ruflo，但其多智能体协调和 RAG 等概念可以启发嵌入式开发工作流中的自动化，例如管理工具链或生成文档。不过，该框架主要面向软件，对开源硬件复刻的即时适用性可能有限。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://www.capellasolutions.com/blog/rag-and-vector-search-better-together-for-ai">RAG and Vector Search: Better Together for AI</a></li>
+<li><a href="https://medium.com/@ameliaswank99/ai-ml-agents-frameworks-orchestrating-intelligence-efficiently-d4c78da39957">AI/ML Agents & Frameworks : Orchestrating Intelligence... | Medium</a></li>
+<li><a href="https://mem0.ai/">Mem0 - AI Memory Layer for your Agents & Apps | Persistent Context</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI agents`, `#multi-agent`, `#TypeScript`, `#RAG`, `#developer tools`
+
+---
+
+<a id="item-daily-4"></a>
+### *（简报）* [MadsLorentzen/ai-job-search：基于 Claude Code 的求职申请框架](https://github.com/MadsLorentzen/ai-job-search) ⭐️ 6.0/10 · 相关 3/10
+
+MadsLorentzen/ai-job-search 是一个用 Python 编写、在本地运行的 AI 求职申请框架，基于 Claude Code 构建，可评估职位发布、定制简历、撰写求职信并帮助用户准备面试。该项目单日新增 1365 个 GitHub 星标，总星标数超过 5 万，分支数接近 1.7 万。 该项目展示了在 Claude Code 之上构建垂直 AI 工作流的实用范式，说明通用编程智能体可以被改造用于求职等特定领域。其星标数的快速增长反映出社区对可分支、自持的 AI 自动化工具抱有浓厚兴趣。 该框架完全在用户本地机器上运行，设计上鼓励用户分支后填入自己的个人资料并拥有整个工作流。它使用 Python 编写，并利用 Claude Code 的智能体能力来理解文件并执行任务。
+
+---
+
+<a id="item-daily-5"></a>
+### *（简报）* [HKUDS/CLI-Anything：让所有软件成为 AI Agent 原生工具](https://github.com/HKUDS/CLI-Anything) ⭐️ 6.0/10 · 相关 5/10
+
+HKUDS/CLI-Anything 是一个自动生成 CLI 封装、让任何软件都能被 AI Agent 调用的开源项目，今日在 GitHub Trending 单日新增 574 星，总星数已超过 5.4 万，Fork 数达 4905。 随着 AI Agent 逐渐成为软件的一等用户，该项目降低了传统软件和图形界面应用被自动化的门槛，可能改变开发者将工具集成到 Agent 工作流的方式，并加速 Agent 原生生态的发展。 该项目采用七阶段流水线（分析、设计、实现、规划测试、编写测试、文档、发布）来生成 CLI，采用 Apache 2.0 许可证，并提供 CLI-Hub 注册中心（clianything.cc），用户可通过 pip 或 npx skills 浏览和安装社区构建的 CLI。
+
+---
+
+<a id="item-daily-6"></a>
+### *（简报）* [K-Dense-AI 发布 177 个科研 Agent 技能，可将任意 AI Agent 变为 AI 科学家](https://github.com/K-Dense-AI/scientific-agent-skills) ⭐️ 6.0/10 · 相关 4/10
+
+K-Dense-AI 开源了 scientific-agent-skills 库，提供 177 个经验证的技能和 100+ 个科学数据库，可将任意 AI Agent 转变为 AI 科学家。该项目单日新增 878 星，总星数已超过 5.2 万。 该库降低了科研人员利用 AI Agent 进行科学工作的门槛，有望加速生物、化学和医学领域的发现。其与 Cursor、Claude Code 等主流 Agent 框架的兼容性，也表明 Agent Skills 生态正逐步走向标准化。 这些技能覆盖生物、化学、医学、物理、工程、地球科学、数据分析和科学传播等领域，并兼容 Cursor、Claude Code、Codex、Pi、Antigravity 以及开放的 Agent Skills 标准。项目使用 Python 编写，全球已有超过 25 万名科学家使用。
+
+---
+
+<a id="item-daily-7"></a>
+### *（简报）* [Rust 编写的 ai-memory 项目走红，为代理 CLI 提供长期记忆](https://github.com/akitaonrails/ai-memory) ⭐️ 6.0/10 · 相关 5/10
+
+开源项目 akitaonrails/ai-memory 今日在 GitHub 趋势榜新增 178 星，总星数达到 9920。该项目用 Rust 编写，为 AI 编程代理提供长期记忆服务器，能捕获会话内容、整理成 Markdown 页面，并在不同供应商或运行环境之间传递上下文。 随着开发者越来越多地使用来自不同供应商的编程代理，会话和工具之间的上下文丢失成为主要痛点。一个供应商中立的记忆层有望提升连续性和生产力，而采用 Rust 实现则表明其注重性能和可移植性。 该项目已有 716 个 fork，据作者介绍，它在 24 天内从个人 MVP 发展为跨平台、多用户系统。记忆以 Markdown 页面形式存储，并发布了与其他方案对比的基准测试。
+
+---
+
+<a id="item-daily-8"></a>
+### *（简报）* [Android 官方发布面向 AI Agent 的 Skills 仓库](https://github.com/android/skills) ⭐️ 6.0/10 · 相关 5/10
+
+谷歌 Android 团队在 GitHub 上发布了名为 android/skills 的新仓库，其中包含经过 AI 优化的模块化指令和资源，帮助 AI 代理遵循 Android 开发最佳实践。这个用 Kotlin 编写的仓库单日新增 355 星，总星数已超过 8400。 这标志着谷歌正推动将 AI 代理直接集成到 Android 开发工具链中，可能改变数百万 Android 开发者编写和审查代码的方式。同时，它为 AI 辅助 Android 开发设立了官方标准，可能影响第三方工具和代理框架。 该仓库提供可复用的、针对特定任务的指令（技能），兼容的 AI 代理可以调用这些指令来执行解释 Kotlin 代码或编写测试等任务，并遵循 developer.android.com 的指导。仓库用 Kotlin 编写，已获得 555 次 fork，表明社区正在积极尝试。
+
+---
+
+<a id="item-daily-9"></a>
+### *（简报）* [XERJ：基于 Rust 的 AI 搜索工具，号称以 40 倍更少 token 替代 ElasticSearch](https://github.com/xerj-org/xerj) ⭐️ 6.0/10 · 相关 6/10
+
+XERJ 是一款用 Rust 编写的 AI 数据搜索工具，单日获得 1160 个 GitHub 星标，总星标数接近 7800。它声称只需一条命令即可索引代码、文档、日志和 PDF，使用的 token 比 grep 少 40 倍，并能以十分之一的基础设施成本替代 ElasticSearch。 如果这些声明属实，XERJ 可以显著降低 AI 代理的 token 成本，并通过将搜索、向量数据库、嵌入和代理记忆整合到一个二进制文件中来简化 RAG 技术栈。这对于构建 AI 工具的开发者来说意义重大，因为他们希望减少基础设施的复杂性和开支。 XERJ 以单个 Rust 二进制文件形式分发，并包含“autoindex”功能，可自动索引任何文件夹。该项目声称具有持久性，并能服务于搜索、RAG、安全审计和代理记忆，但这些性能声明（token 少 40 倍、基础设施成本低 10 倍）尚未得到独立验证。
+
+---
+
+## 📆 周榜（7 条）
+
+1. [AnyPS5：用 C++自动将 PS5 可执行文件移植到 Linux 和 Windows 的工具](#item-weekly-1) ⭐️ 8.0/10 · 相关 6/10
+2. [Anthropic 官方 Claude Code 插件目录在 GitHub 上热度飙升](#item-weekly-2) ⭐️ 7.0/10 · 相关 6/10
+3. [morluto/rea：用 AI 智能体逆向工程，从应用行为到原生二进制](#item-weekly-3) ⭐️ 7.0/10 · 相关 6/10
+4. [面向 AI 编码助手的 Diagram Design 技能包单周新增 8382 星](#item-weekly-4) ⭐️ 7.0/10 · 相关 6/10
+5. [ArtCraft：基于 Rust 的 AI 创意引擎在 GitHub 上走红](#item-weekly-5) ⭐️ 6.0/10 · 相关 3/10
+6. [mattpocock/skills：Shell 脚本技能库登顶 GitHub 趋势榜](#item-weekly-6) ⭐️ 6.0/10 · 相关 5/10
+7. [billion-context：面向超长会话的上下文压缩插件](#item-weekly-7) ⭐️ 6.0/10 · 相关 5/10
+
+---
+
+<a id="item-weekly-1"></a>
+## [AnyPS5：用 C++自动将 PS5 可执行文件移植到 Linux 和 Windows 的工具](https://github.com/boykopovar/AnyPS5) ⭐️ 8.0/10 · 相关 6/10
+
+boykopovar/AnyPS5 是一个用 C++ 编写的工具，可自动将 PS5 可执行文件移植到 Linux 和 Windows，本周在 GitHub 上新增超过 16,000 颗星。它包含一个重链接器，可将可执行文件转换为目标系统的原生格式，并提供系统 PRX 库的实现以支持动态链接，无需模拟器或单独的运行时进程。 该工具可能大幅降低将 PS5 游戏移植到 PC 平台的门槛，有望改变游戏移植和逆向工程领域的格局。其社区关注度极高（一周内新增 1.6 万+星），表明开发者和模组制作者对此有浓厚兴趣。 该工具使用着色器重编译器将 GPU 着色器转换为 SPIR-V 以供 Vulkan 使用，键盘和鼠标控制可通过 anyps5-input.ini 文件配置。它采用 GPL-2.0 许可证，总星数超过 41,000，分支数达 3,700。
+
+github_trending · boykopovar · 10月18日 00:49
+
+**背景**: PS5 可执行文件是为游戏机定制硬件和操作系统编译的，因此与标准 PC 不兼容。移植通常需要逆向工程二进制文件并重新实现系统库，过程复杂且耗时。AnyPS5 通过重链接可执行文件并提供兼容库来自动化这一过程，使其无需模拟即可在 Linux 和 Windows 上原生运行。
+
+**对中国影响**: 该工具可能影响中国的游戏开发和逆向工程社区，使 PS5 游戏更容易移植到 PC，从而促进本地模组制作和游戏保存工作。然而，法律和版权问题可能限制其在商业环境中的应用。
+
+**对我有什么用**: 作为电子工程师/硬件开发者，该工具与您关注的开源硬件、EDA 或嵌入式系统等核心兴趣不直接相关。不过，它展示了先进的二进制翻译和逆向工程技术，可能对底层系统开发或工具链项目有所启发。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/boykopovar/AnyPS5">GitHub - boykopovar / AnyPS 5 : Tool for automatic PS5 executables...</a></li>
+<li><a href="https://stargazers.cn/boykopovar/AnyPS5">boykopovar / AnyPS 5 - 观星指南 Stargazers.cn</a></li>
+
+</ul>
+</details>
+
+**标签**: `#PS5`, `#逆向工程`, `#跨平台移植`, `#C++`, `#游戏移植`
+
+---
+
+<a id="item-weekly-2"></a>
+## [Anthropic 官方 Claude Code 插件目录在 GitHub 上热度飙升](https://github.com/anthropics/claude-plugins-official) ⭐️ 7.0/10 · 相关 6/10
+
+Anthropic 官方维护的 Claude Code 插件目录仓库本周新增约 3581 颗星，总星数已超过 4.17 万，fork 数达 4464，成为 GitHub Trending 上蹿升最快的 Python 仓库之一。 这一快速增长表明 Claude Code 的插件生态正成为 AI 辅助开发的重要枢纽，为开发者提供了一个由官方背书、经过筛选的渠道，用来发现可复用的斜杠命令、智能体、钩子和 MCP 服务器。 该仓库本质上是一个经过筛选的索引目录，而非代码库本身，使用 Python 编写；插件通过自定义斜杠命令、专用智能体、钩子和 MCP 服务器来扩展 Claude Code，并可在项目和团队之间共享。
+
+github_trending · anthropics · 10月18日 00:49
+
+**背景**: Claude Code 是 Anthropic 推出的 AI 编码助手，提供命令行工具和 VS Code 扩展两种形态。插件是用于定制其行为的附加组件，而 MCP（模型上下文协议）是一种将 AI 模型连接到外部工具和数据源的开放标准。在已有数千个社区插件的快速扩张生态中，官方目录能帮助开发者找到可信赖的插件。
+
+**对中国影响**: 使用 Claude Code 的中国开发者可以通过官方目录在团队内统一工具链，但 Anthropic 的服务在中国大陆仍受限，因此其影响主要通过模仿插件模式的国产 AI 编码工具间接体现。
+
+**对我有什么用**: 对硬件和嵌入式工程师而言，该目录是寻找自动化重复编码、数据手册查询或构建脚本生成等插件的捷径，但对 EDA 或开源硬件设计工作本身帮助有限。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/anthropics/claude-code/blob/main/plugins/README.md">claude - code / plugins /README.md at main · anthropics/ claude - code</a></li>
+<li><a href="https://claude.com/marketplace/plugins">Plugins | Claude Marketplace | Claude by Anthropic</a></li>
+<li><a href="https://grokipedia.com/page/Claude_Code_VS_Code_extension">Claude Code (VS Code extension)</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI 工具链`, `#Claude Code`, `#插件生态`, `#开发者工具`, `#GitHub Trending`
+
+---
+
+<a id="item-weekly-3"></a>
+## [morluto/rea：用 AI 智能体逆向工程，从应用行为到原生二进制](https://github.com/morluto/rea) ⭐️ 7.0/10 · 相关 6/10
+
+TypeScript 项目 morluto/rea 本周新增约 239,923 个星标，总星标数超过 30.7 万，fork 数达 77,883。该项目将 AI 智能体连接到检查原生二进制、JavaScript/Electron 应用、.NET 程序集和网站的工具，分析在本地运行。 该项目降低了逆向工程的门槛，让开发者能用自然语言智能体分析复杂软件，可能加速安全研究、恶意软件分析和遗留代码理解。其星标数的快速增长反映了人们对 AI 辅助逆向工程工具的浓厚兴趣。 REA 支持 Ghidra 12.1.x 及 JDK 21 或更高版本进行原生二进制分析，也能在没有引擎的情况下分析 JavaScript、.NET 和网站。结果包含每个结论背后的证据和局限性，同样的工具也可从终端使用。
+
+github_trending · morluto · 10月18日 00:49
+
+**背景**: 逆向工程是分析软件以理解其结构、行为和功能的过程，通常在没有源代码的情况下进行。Ghidra（美国国家安全局发布的开源套件）、IDA Pro 和 Binary Ninja 等传统工具需要大量专业知识；AI 智能体可以通过对代码和二进制进行推理来自动化部分分析工作。
+
+**对中国影响**: 中国开发者和安全研究人员可以采用 REA 进行恶意软件分析和软件审计，但应注意当地关于逆向工程和数据安全的法规。该项目的开源性质也可能启发国内 AI 辅助安全工具的发展。
+
+**对我有什么用**: 作为电子工程师，您可以使用 REA 分析固件或嵌入式二进制文件，但其主要关注点是软件逆向工程而非硬件设计。它可能是理解专有协议或设备固件的有用工具，尽管与开源硬件或 EDA 没有直接关系。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/morluto/rea">GitHub - morluto/rea: Reverse engineer anything with agents ...</a></li>
+<li><a href="https://rea.tools/">REA — Reverse Engineering for Your Coding Agent</a></li>
+<li><a href="https://dev.to/itxtayab/an-agent-that-reverse-engineers-by-guessing-is-worse-than-useless-52bg">An agent that reverse engineers by guessing is... - DEV Community</a></li>
+
+</ul>
+</details>
+
+**标签**: `#reverse-engineering`, `#AI-agents`, `#binary-analysis`, `#TypeScript`, `#GitHub-Trending`
+
+---
+
+<a id="item-weekly-4"></a>
+## [面向 AI 编码助手的 Diagram Design 技能包单周新增 8382 星](https://github.com/cathrynlavery/diagram-design) ⭐️ 7.0/10 · 相关 6/10
+
+开源仓库 cathrynlavery/diagram-design 在一周内新增 8382 个 GitHub 星标，总星数达到 57020，fork 数为 3626。该项目为 Claude Code、Codex、GitHub Copilot、Cursor、Factory Droid 和 Pi 等 AI 编码助手提供 44 种编辑级图表类型，输出为自包含的 HTML + SVG。 AI 编码助手越来越多地用于生成文档和架构图，但其默认的文本转图表输出（通常是 Mermaid）往往显得千篇一律。一个经过精心设计、具备编辑级品质的技能包能提升 AI 生成文档的视觉质量，也说明提示词/技能库正在成为 AI 开发工具链中的新一层。 该项目以 HTML 编写，强调自包含输出、不使用阴影，并明确拒绝“Mermaid 式粗制滥造”，将自己定位为比文本图表语法更高保真的替代方案。其星标快速增长表明，市场对可插入多个 AI 编码代理（而非单一厂商）的可复用技能定义有强烈需求。
+
+github_trending · cathrynlavery · 10月18日 00:49
+
+**背景**: Claude Code 是 Anthropic 推出的基于终端的 AI 编码助手，Cursor 是基于 VS Code 分支的 AI 优先代码编辑器，GitHub Copilot 和 Codex 则是其他 AI 编码工具。Mermaid 是一款流行的开源文本转图表工具，开发者可用类 Markdown 语法生成流程图和时序图。该项目瞄准的正是 Mermaid 的便捷性与手工编辑级图表的精致外观之间的差距。
+
+**对中国影响**: 使用 Cursor、Claude Code 或国内 AI 编码助手的中国开发者可以采纳该技能包来提升文档质量，它也可能启发面向国产 AI 编码工具的类似中文技能库。不过，该项目对中国硬件产业没有直接的供应链或政策影响。
+
+**对我有什么用**: 对电子工程师而言，这个技能包可直接借助 AI 编码助手为硬件文档生成整洁的框图、引脚图和系统架构图。它是一个实用的自动化工具，无需在 Visio 或 draw.io 中手动绘图，即可产出数据手册、README 和设计评审材料。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://claude.com/solutions/coding">Coding | Claude by Anthropic</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cursor_(code_editor)">Cursor (code editor)</a></li>
+<li><a href="https://mermaid.js.org/">Mermaid | Diagramming and charting tool</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI 工具链`, `#图表设计`, `#SVG`, `#GitHub Trending`, `#开发效率`
+
+---
+
+<a id="item-weekly-5"></a>
+### *（简报）* [ArtCraft：基于 Rust 的 AI 创意引擎在 GitHub 上走红](https://github.com/storytold/artcraft) ⭐️ 6.0/10 · 相关 3/10
+
+用 Rust 编写的、面向艺术家、设计师和电影制作人的创意制作引擎 storytold/artcraft 本周新增约 18479 个星标，总星标数已超过 31781，fork 数达 5033。 这反映出社区对开源、基于 Rust 的工具抱有浓厚兴趣，这类工具让创意专业人士在 AI 辅助图像和视频生成中拥有更多控制权，而该领域目前主要由封闭的、仅靠提示词的产品主导。 ArtCraft 被描述为交互式 AI 图像与视频创作的 IDE，用户可以在 2D 中构图、在 3D 中布置场景，并自行选择模型以获得精确、可重复的结果；不过仓库页面提供的技术细节较少。
+
+---
+
+<a id="item-weekly-6"></a>
+### *（简报）* [mattpocock/skills：Shell 脚本技能库登顶 GitHub 趋势榜](https://github.com/mattpocock/skills) ⭐️ 6.0/10 · 相关 5/10
+
+GitHub 仓库 mattpocock/skills 是作者 Matt Pocock 从其个人 .agents 目录中整理出的 Shell 脚本技能集合，本周新增 11,272 颗星标，目前总星标约 295,110，Fork 数达 24,755。 这表明可复用的“代理技能”（agent skills）——即教会 AI 编码代理工作流的小型、可组合指令集——已成为开发者分享工程经验的主流方式，而一位知名开发者的个人工具集如今也能吸引数万关注。 这些技能刻意保持小巧、可组合且不绑定特定模型，其中包含一个 /setup-matt-pocock-skills 命令，用于配置仓库以便其他技能理解其约定；该仓库以 Shell 编写，本质上是一个经过整理的个人目录，而非全新的框架。
+
+---
+
+<a id="item-weekly-7"></a>
+### *（简报）* [billion-context：面向超长会话的上下文压缩插件](https://github.com/ranxianglei/billion-context) ⭐️ 6.0/10 · 相关 5/10
+
+ranxianglei/billion-context 是一个用 TypeScript 编写的上下文压缩插件，本周在 GitHub 上新增 888 颗星（总计 1719 星、137 次 fork）。项目宣称可节省 5 倍 token，100K 上下文窗口即可使用，并支持跨越数月、累计几十亿 token 的单次会话。 长时间的编码与智能体会话经常会超出上下文上限，导致效果下降并推高按 token 计费的成本；一个可直接接入的压缩层有望在不更换更大模型的前提下延长会话寿命。该项目受到关注，说明业界正把压缩视为对“一味扩大上下文”的务实替代方案。 该插件把已消费的对话压缩成分层摘要，并可充当编码智能体与模型 API 之间的代理，例如作为 DeepSeek Harness 的 DSH 插件使用。5 倍节省和几十亿 token 的说法来自项目自述，实际效果很可能因负载而异，需要自行验证。
+
+---
+
+## 🗓 月榜（13 条）
+
+1. [Anthropic 的 Claude Code 总星数突破 15 万，登顶 GitHub 月趋势榜](#item-monthly-1) ⭐️ 8.0/10 · 相关 7/10
+2. [addyosmani/agent-skills 本月新增 12,605 颗星](#item-monthly-2) ⭐️ 8.0/10 · 相关 7/10
+3. [ECC：AI 编码代理 harness 优化系统登顶 GitHub 趋势榜](#item-monthly-3) ⭐️ 7.0/10 · 相关 6/10
+4. [VoiceStudio：本地开源 ElevenLabs 替代品月增 4 万星](#item-monthly-4) ⭐️ 7.0/10 · 相关 5/10
+5. [HeyGen 开源 HyperFrames：用 HTML 渲染视频，专为 AI 代理打造](#item-monthly-5) ⭐️ 7.0/10 · 相关 3/10
+6. [context-mode：优化 AI 编码代理上下文的 MCP 工具](#item-monthly-6) ⭐️ 7.0/10 · 相关 6/10
+7. [NSA 开源逆向工程框架 Ghidra 本月新增 1.2 万星](#item-monthly-7) ⭐️ 7.0/10 · 相关 7/10
+8. [Cloudflare 开源编码代理安全审计技能](#item-monthly-8) ⭐️ 7.0/10 · 相关 5/10
+9. [Paperclip：开源 AI 智能体管理应用星标破 10 万](#item-monthly-9) ⭐️ 7.0/10 · 相关 6/10
+10. [Hindsight：会学习的开源 Agent 记忆系统，一个月新增 2.7 万星](#item-monthly-10) ⭐️ 7.0/10 · 相关 6/10
+11. 🎯 [NVIDIA 开源 OpenShell：Rust 编写的自主 AI 智能体安全运行时，月增约 7956 星](#item-monthly-11) ⭐️ 7.0/10 · 相关 6/10
+12. 🎯 [freellmapi 将 34 家免费 LLM 提供商聚合到单一 API 接口](#item-monthly-12) ⭐️ 7.0/10 · 相关 6/10
+13. 🎯 [Cursor 发布官方插件规范与插件仓库](#item-monthly-13) ⭐️ 7.0/10 · 相关 6/10
+
+---
+
+<a id="item-monthly-1"></a>
+## [Anthropic 的 Claude Code 总星数突破 15 万，登顶 GitHub 月趋势榜](https://github.com/anthropics/claude-code) ⭐️ 8.0/10 · 相关 7/10
+
+Anthropic 官方推出的终端 agentic 编码工具 Claude Code 本月在 GitHub 上新增约 6460 颗星，总星数超过 151750，fork 数达 26877。这个 TypeScript 项目单日还新增 179 星，登上 GitHub 月度趋势榜。 Claude Code 星数的快速增长说明开发者对终端原生 AI 编码代理兴趣浓厚，这类工具能理解代码库并通过自然语言执行任务，与 IDE 内置助手形成快速增长的细分赛道。它的流行表明 agentic 编码正从自动补全式建议转向在真实开发流程中自主执行任务。 Claude Code 可在 macOS、Linux 和 Windows（通过 Git Bash 或 PowerShell）的终端中运行，能编辑文件、执行命令、处理 git 工作流并解释复杂代码。它用 TypeScript 编写，Anthropic 还提供 VS Code 扩展以及面向 Pro、Max、Team 和 Enterprise 套餐的云端会话功能。
+
+github_trending · anthropics · 10月18日 00:49
+
+**背景**: Agentic 编码是指利用大语言模型和 AI 代理来辅助软件开发任务，例如编写代码、调试、测试和撰写文档，这能加快交付速度，但也带来质量风险。Claude Code 是 Anthropic 对这一理念的实现，它以命令行代理的形式存在于开发者的终端中，而不是嵌入编辑器内部。
+
+**对中国影响**: Claude Code 在中国大陆并未正式提供服务，因此其影响主要是间接的：它抬高了人们对终端 AI 编码代理的期待，可能推动国内厂商和开源项目打造类似工具。能够使用它的中国开发者可借此提升效率，但本土替代方案很可能填补这一空白。
+
+**对我有什么用**: 对电子/硬件开发者来说，Claude Code 可以在终端中自动完成编写构建脚本、解析数据手册或日志、管理固件项目的 git 仓库，以及生成嵌入式 C 或 Python 测试框架等日常任务。它也是探索 agentic AI 工具链的实用途径，未来可应用于 EDA 或鸿蒙开发流程。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://claude.com/product/claude-code">Claude Code by Anthropic | AI Coding Agent, Terminal, IDE</a></li>
+<li><a href="https://code.claude.com/docs/en/terminal-guide">Terminal guide for new users - Claude Code Docs</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Agentic_coding">Agentic coding</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI 工具链`, `#agentic coding`, `#开发效率`, `#TypeScript`, `#GitHub Trending`
+
+---
+
+<a id="item-monthly-2"></a>
+## [addyosmani/agent-skills 本月新增 12,605 颗星](https://github.com/addyosmani/agent-skills) ⭐️ 8.0/10 · 相关 7/10
+
+开源项目 addyosmani/agent-skills 为 AI 编码代理提供生产级工程技能，本月在 GitHub 上新增 12,605 颗星，总星数已超过 10.7 万，fork 数达 11,241。该项目主要使用 JavaScript 编写，在 GitHub 月度趋势榜上名列前茅。 随着 Claude Code、Codex、Cursor 等 AI 编码代理在开发流程中日益普及，将资深工程师的最佳实践固化为可复用的技能，有助于团队落实质量门禁和统一流程。星标的快速增长表明社区对标准化、生产就绪的代理能力有强烈需求。 该项目提供 24 项技能，可配合 Claude Code、Codex、Cursor 及 70 多种代理使用，覆盖软件生命周期中的工作流、质量门禁和最佳实践。项目托管在 skills.addy.ie，主要用 JavaScript 实现。
+
+github_trending · addyosmani · 10月18日 00:49
+
+**背景**: AI 编码代理是利用大语言模型自主编写、审查和修改代码的工具。“技能”是可复用的指令集或插件，通过领域特定的工作流和检查来扩展代理的能力。Addy Osmani 是 Web 开发社区知名的 Google 工程师和作者，这很可能提升了项目的关注度。
+
+**对中国影响**: 中国开发者和构建基于代理的编码工作流的 AI 工具团队可以采纳或本地化这些技能，但该项目目前以英文为主，没有明确针对中国的集成。
+
+**对我有什么用**: 对于电子工程师而言，该项目只有间接相关性：在使用 AI 代理时可以辅助自动化固件或工具链代码的生成，但并不直接涉及开源硬件、EDA 或嵌入式开发。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/addyosmani/agent-skills">GitHub - addyosmani / agent - skills : Production-grade engineering...</a></li>
+<li><a href="https://skills.addy.ie/">agent-skills - production-grade engineering skills for AI ...</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI coding agents`, `#developer tools`, `#open source`, `#JavaScript`, `#engineering skills`
+
+---
+
+<a id="item-monthly-3"></a>
+## [ECC：AI 编码代理 harness 优化系统登顶 GitHub 趋势榜](https://github.com/affaan-m/ECC) ⭐️ 7.0/10 · 相关 6/10
+
+affaan-m/ECC 是一个面向 Claude Code、Codex、Cursor、Opencode 等 AI 编码代理的开源 harness 性能优化系统，仅一个月内新增约 2.3 万星，目前总星数已超过 28.2 万，fork 数达 41987。 随着 AI 编码代理逐渐成为开发者工作流的核心，能够跨多种 harness 统一技能、记忆、安全与研究优先开发的工具，有望显著提升代理的可靠性和可复用性，使 ECC 成为 AI 开发工具链中颇具影响力的一环。 ECC 使用 JavaScript 编写，为 AI 编码 harness 增加代理、技能、记忆、钩子和安全扫描等功能；其文档提到一个已针对 Kimi Code 0.31.x 验证的适配器，用户可自带 Kimi API 密钥或自行托管开放权重的 Kimi 模型。
+
+github_trending · affaan-m · 10月18日 00:49
+
+**背景**: Agent harness（代理 harness）是将语言模型转变为可执行工作的代理的运行时脚手架：它驱动模型与工具调用、管理对话状态和上下文、执行审批策略，并推动多步骤任务持续进行。Harness 工程专注于设计约束、反馈循环和质量门禁，以提升 AI 编码代理的可靠性。ECC 则构建在这些 harness 之上，用于优化其性能并增加结构化能力。
+
+**对中国影响**: ECC 针对中国月之暗面（Moonshot AI）旗下 Kimi Code 的已验证适配器，表明该项目正在与中国 AI 模型集成，这有助于中国开发者在使用国内模型 API 或自托管开放权重模型的同时采用 harness 优化方案。
+
+**对我有什么用**: 对于电子工程师而言，ECC 并不直接涉及硬件，但它可以通过为编码代理提供持久记忆和可复用技能，改善嵌入式固件、EDA 脚本或自动化工具的 AI 辅助编写；如果你已经在使用 Claude Code 或 Cursor 进行开发，值得一试。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/agent-framework/concepts/harness">Agent Harness | Microsoft Learn</a></li>
+<li><a href="https://github.com/affaan-m/ecc">affaan-m/ ECC : The agent harness performance optimization system .</a></li>
+<li><a href="https://www.augmentcode.com/guides/harness-engineering-ai-coding-agents">Harness Engineering for AI Coding Agents: Constraints That ...</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI 工具链`, `#coding agent`, `#developer tools`, `#JavaScript`, `#GitHub Trending`
+
+---
+
+<a id="item-monthly-4"></a>
+## [VoiceStudio：本地开源 ElevenLabs 替代品月增 4 万星](https://github.com/debpalash/VoiceStudio) ⭐️ 7.0/10 · 相关 5/10
+
+开源 Python 项目 VoiceStudio 在一个月内获得超过 4 万颗 GitHub 星标，它提供完全本地的语音克隆、语音设计、视频配音、听写、转录和有声书制作功能，支持 646 种语言。 该项目为 ElevenLabs 等云服务提供了免费且保护隐私的替代方案，使开发者和创作者能够在自己的硬件上完全运行先进的语音 AI，无需支付 API 费用，数据也不会离开本地设备。 VoiceStudio 用 Python 编写，累计获得 73,378 颗星标和 8,032 次复刻，单日新增 2,125 颗星，表明社区采用迅速；不过作为应用层工具，它基于现有语音模型构建，而非引入新的核心技术。
+
+github_trending · debpalash · 10月18日 00:49
+
+**背景**: 语音克隆利用深度学习分析语音模式，生成模仿个人音调和特征的合成语音。ElevenLabs 是此类服务的流行商业产品，但需要将音频上传到云端。像 VoiceStudio 这样的开源替代品旨在本地复现这些功能，为用户提供更多控制权和隐私。
+
+**对中国影响**: 该项目可能通过提供本地开源语音 AI 工具链，避免依赖外国云服务并符合数据本地化政策，从而使中国开发者社区受益，有望加速国内语音应用的创新。
+
+**对我有什么用**: 作为硬件开发者，你可以将 VoiceStudio 部署在本地 GPU 或边缘设备上，为嵌入式项目添加离线语音接口，或使用它为自动化工具生成语音提示，而无需依赖云 API。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://elevenlabs.io/voice-cloning">AI Voice Cloning: Clone Your Voice in Minutes - ElevenLabs</a></li>
+<li><a href="https://murf.ai/blog/how-does-ai-voice-cloning-work">What is Voice Cloning ? Understanding the Technology and Its Impact</a></li>
+<li><a href="https://tts.ai/voice-design/">Voice Design Studio - Create Custom AI Voices with Sliders | TTS .ai</a></li>
+
+</ul>
+</details>
+
+**标签**: `#open-source`, `#TTS`, `#voice-cloning`, `#AI-toolchain`, `#Python`
+
+---
+
+<a id="item-monthly-5"></a>
+## [HeyGen 开源 HyperFrames：用 HTML 渲染视频，专为 AI 代理打造](https://github.com/heygen-com/hyperframes) ⭐️ 7.0/10 · 相关 3/10
+
+HeyGen 开源了 HyperFrames，这是一个用 TypeScript 编写的框架，可将 HTML、CSS 和 GSAP 动画渲染为可拖动进度的 MP4 视频，并且专为 AI 代理驱动而设计。该项目一个月内新增超过 1.5 万颗 GitHub 星（单周新增 5639 颗），总星数约 6.6 万，Fork 数接近 6000。 它把视频制作重新定义为代码生成问题：代理编写 HTML，框架负责渲染出确定性的视频，这非常适合接入自动化内容流水线和代理工具链。其星数暴涨说明开发者对“代理优先”的创作工具兴趣浓厚，而非传统的时间线式剪辑软件。 HyperFrames 通过 CLI 在本地运行，借助 MCP 和 skills.sh 与 AI 代理集成（可用 `npx skills add heygen-com/hyperframes` 安装），并提供在线演练场；代理工作流涵盖规划、编写合法 HTML、接入可拖动动画、添加媒体、检查、预览和渲染。输出为可拖动进度的 MP4，渲染结果可逐帧定位，而非不可控的生成帧。
+
+github_trending · heygen-com · 10月18日 00:49
+
+**背景**: 传统的程序化视频工具需要学习专用 API 或时间线格式，而生成式视频模型产出的像素又难以精确编辑。HyperFrames 走了第三条路：以 Web 标准（HTML/CSS 加 GSAP 动画库）作为创作格式，让人和 LLM 代理都能把视频场景当作代码来编写和修改。MCP（模型上下文协议）是让代理调用外部工具的新兴标准，skills.sh 则用于打包可复用的代理指令。
+
+**对中国影响**: 国内做 AI 代理产品和短视频/内容自动化的开发者可以直接采用这一开源框架，其基于 HTML 的创作方式对拥有大量 Web 前端人才的国内团队门槛较低。同时，它也会给依赖端到端生成模型、而非确定性渲染的国内 AI 视频生成创业公司带来一定竞争压力。
+
+**对我有什么用**: 对硬件工程师而言，这条新闻的重点不在视频本身，而在于一种值得借鉴的模式：把本地 CLI 渲染器封装成代理技能，让 LLM 自动完成重复性的输出任务。它可以用来为板卡调试自动生成演示或文档视频，但与 EDA、嵌入式固件或开源硬件设计没有直接关系。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://hyperframes.heygen.com/introduction">What is HyperFrames ? - HyperFrames</a></li>
+<li><a href="https://github.com/heygen-com/hyperframes">GitHub - heygen-com/hyperframes: Write HTML. Render video ...</a></li>
+<li><a href="https://dev.to/mech_app_ai/hyperframes-html-to-mp4-rendering-as-an-agent-first-primitive-33k7">HyperFrames: HTML-to-MP4 Rendering as an Agent-First ...</a></li>
+
+</ul>
+</details>
+
+**标签**: `#TypeScript`, `#视频生成`, `#AI工具链`, `#GitHub趋势`, `#程序化渲染`
+
+---
+
+<a id="item-monthly-6"></a>
+## [context-mode：优化 AI 编码代理上下文的 MCP 工具](https://github.com/mksglu/context-mode) ⭐️ 7.0/10 · 相关 6/10
+
+mksglu/context-mode 是一个基于 TypeScript 的 MCP 服务器，本月在 GitHub 上新增 7,235 颗星（本周 4,438 颗），总星数已超过 30,500。它通过沙箱化工具输出将上下文窗口占用减少 98%，持久化会话记忆，并借助 MCP 和 hooks 在 17 个平台上实现路由。 AI 编码代理通常会将 20-40% 的上下文窗口浪费在代码库探索和原始工具输出上，因此一个能减少 98% 占用的工具可以显著提升效率并降低成本。其跨平台支持（17 个平台）使其成为 MCP 生态中有价值的补充，该生态旨在标准化 AI 与工具的连接。 该工具使用 MCP 加 hooks 来沙箱化工具输出，采用带有 BM25 排序的 FTS5 知识库进行意图驱动搜索，并支持 11 种语言的沙箱化代码执行。它可与 Claude Code、Codex、Copilot 和 Antigravity 等平台集成。
+
+github_trending · mksglu · 10月18日 00:49
+
+**背景**: MCP（模型上下文协议）是 Anthropic 于 2024 年底推出的开放标准，用于将 AI 应用与外部数据源和工具连接起来，取代碎片化的集成方式。像 Claude Code 和 GitHub Copilot 这样的 AI 编码代理使用大语言模型来编写代码，但其有效性受限于上下文窗口——即它们一次能处理的文本量。context-mode 通过将原始工具输出排除在上下文窗口之外并自动恢复状态来解决这一问题。
+
+**对中国影响**: 中国开发者和构建 AI 编码工具或使用基于 MCP 工作流的公司可以采用 context-mode 来优化其代理，尤其是随着国内 AI 模型和平台日益支持 MCP。然而，该工具目前的集成主要面向西方平台，因此针对鸿蒙等中国生态的本地化可能需要社区努力。
+
+**对我有什么用**: 作为电子工程师，你可以使用 context-mode 让 AI 编码助手在编写嵌入式固件或脚本时更高效，降低 token 成本并提高响应准确性。其对多平台的支持意味着它可以集成到你现有的 AI 工具链中，且开源特性允许自定义。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://modelcontextprotocol.io/">What is the Model Context Protocol ( MCP )? - Model Context Protocol</a></li>
+<li><a href="https://www.anthropic.com/news/model-context-protocol">Introducing the Model Context Protocol \ Anthropic</a></li>
+<li><a href="https://stoneforge.ai/blog/ai-coding-agent-context-window-hill-climbing/">Why AI Coding Agents Waste Half Their Context Window</a></li>
+<li><a href="https://github.com/mksglu/context-mode">GitHub - mksglu / context - mode : Context window optimization for AI...</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI 工具链`, `#MCP`, `#上下文优化`, `#开发工具`, `#TypeScript`
+
+---
+
+<a id="item-monthly-7"></a>
+## [NSA 开源逆向工程框架 Ghidra 本月新增 1.2 万星](https://github.com/NationalSecurityAgency/ghidra) ⭐️ 7.0/10 · 相关 7/10
+
+美国国家安全局（NSA）开源的软件逆向工程框架 Ghidra 本月在 GitHub 上新增约 12,003 颗星，总星数突破 90,269 颗，分支数达到 10,104 个。 Ghidra 的持续热度凸显了它作为 IDA Pro 等商业逆向工程工具免费替代品的地位，降低了全球安全研究员、恶意软件分析师和嵌入式开发者的使用门槛。 Ghidra 支持多种处理器指令集和可执行文件格式，可在 Windows、macOS 和 Linux 上运行，并支持交互式和自动化两种模式；用户可以使用 Java 或 Python 编写脚本和插件来扩展其功能。
+
+github_trending · NationalSecurityAgency · 10月18日 00:49
+
+**背景**: Ghidra 是由美国国家安全局研究部门创建和维护的软件逆向工程（SRE）框架。它于 2019 年 3 月在 RSA 大会上首次发布二进制版本，一个月后在 GitHub 上公开源代码。软件逆向工程是指通过分析已编译的软件来提取设计和实现信息，常用于安全研究、漏洞发现和互操作性开发。
+
+**对中国影响**: Ghidra 的开源特性为中国安全研究员和嵌入式开发者提供了免费且强大的逆向工程工具，减少了对昂贵商业软件的依赖，有助于国内网络安全人才的培养。
+
+**对我有什么用**: 对于电子工程师和硬件开发者来说，Ghidra 是分析专有固件和嵌入式设备二进制文件的宝贵工具，可用于对自有硬件进行安全审计和逆向工程。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Ghidra">Ghidra - Wikipedia</a></li>
+<li><a href="https://github.com/NationalSecurityAgency/ghidra">GitHub - NationalSecurityAgency/ghidra: Ghidra is a software reverse ...</a></li>
+
+</ul>
+</details>
+
+**标签**: `#reverse-engineering`, `#open-source`, `#security`, `#embedded`, `#Ghidra`
+
+---
+
+<a id="item-monthly-8"></a>
+## [Cloudflare 开源编码代理安全审计技能](https://github.com/cloudflare/security-audit-skill) ⭐️ 7.0/10 · 相关 5/10
+
+Cloudflare 开源了 security-audit-skill，这是一个基于 JavaScript 的编码代理技能，通过六个阶段编排隔离的代理执行安全审计：侦察、覆盖驱动的漏洞挖掘、候选验证、结构化输出、独立记录验证和目标无关的报告。该仓库在一个月内获得超过 2.2 万星标，总星标数达到 30,715，fork 数为 1,921。 该工具将通用编码代理转变为结构化的安全审计员，能够交叉验证自身发现，使 AI 辅助的安全审计对开发者和安全团队更可信。其星标数的快速增长表明社区对实用、机器可读的 AI 安全工具需求强烈。 该技能使用多个并行代理，生成包含严重性表格和验证步骤的机器可读发现，因此结果可以集成到 CI/CD 流水线中。安装只需一条 `npx skills add` 命令，使用也只需让代理“安全审计这个代码库”。
+
+github_trending · cloudflare · 10月18日 00:49
+
+**背景**: 编码代理是能够读取、修改和执行代码库中代码的 AI 助手。“技能”是一种打包的能力，用于扩展此类代理的功能。安全审计传统上需要人类专家手动审查代码中的漏洞；该项目自动化了大部分流程，并加入独立验证以减少误报。
+
+**对中国影响**: 中国开发者和安全团队可以采用这一开源技能来增强 AI 辅助的代码审计，其机器可读输出与国内的 CI/CD 和 DevSecOps 实践契合良好。它也可能激发中国开发者社区中类似的开源安全代理项目。
+
+**对我有什么用**: 作为硬件/嵌入式开发者，你可以使用该技能在部署前审计固件和工具链代码库的安全问题，或研究其多代理验证流水线，作为构建自己的自动化审计工作流的参考。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/cloudflare/security-audit-skill">GitHub - cloudflare/security-audit-skill: A coding-agent ...</a></li>
+<li><a href="https://cldnavi.com/en/blog/cloudflare-security-audit-skill-2026/">Cloudflare's security-audit-skill (2026): Turning Your Coding ...</a></li>
+<li><a href="https://runany.dev/blog/security-audit-skill/">Cloudflare's Security Audit Skill for Coding Agents</a></li>
+
+</ul>
+</details>
+
+**标签**: `#security-audit`, `#coding-agent`, `#AI-toolchain`, `#Cloudflare`, `#open-source`
+
+---
+
+<a id="item-monthly-9"></a>
+## [Paperclip：开源 AI 智能体管理应用星标破 10 万](https://github.com/paperclipai/paperclip) ⭐️ 7.0/10 · 相关 6/10
+
+Paperclip（paperclipai/paperclip）是一个基于 Node.js 和 React 的开源应用，用于编排 AI 智能体团队，本月在 GitHub 上新增 22,891 颗星标，总星标数达到 103,651，分支数为 17,332。 随着 AI 智能体的普及，团队需要一个中央控制平面来分配目标、管理权限并跟踪成本；Paperclip 的快速流行表明开发者社区对此类编排工具的需求旺盛。 Paperclip 允许用户自带智能体，为每个智能体选择模型和运行框架，并通过单一仪表板管理任务、技能、权限和历史记录；它使用 TypeScript 编写，以 Node.js 服务器和 React 界面运行。
+
+github_trending · paperclipai · 10月18日 00:49
+
+**背景**: AI 智能体是能够代表用户执行任务的自主软件程序。随着组织部署多个智能体，管理它们——分配目标、控制访问和监控支出——变得复杂。Paperclip 通过提供一个开源的“控制平面”来解决这个问题，它看起来像任务管理器，但在后台编排智能体。
+
+**对中国影响**: Paperclip 的开源特性和 TypeScript 技术栈使其易于被中国开发者使用，他们可以用它来管理国内项目中的 AI 智能体团队；然而，其对西方大模型 API 的依赖可能需要适应中国的监管环境。
+
+**对我有什么用**: 虽然 Paperclip 与硬件开发没有直接关系，但使用 AI 智能体进行代码生成或数据分析等任务的电子工程师可以采用它来组织和监控智能体工作流，并有可能将其与嵌入式工具链集成。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/paperclipai/paperclip">GitHub - paperclipai/paperclip: The open-source app everyone ...</a></li>
+<li><a href="https://paperclipai.net/">Paperclip — The control plane for AI agents</a></li>
+<li><a href="https://paperclip.ing/">Paperclip – The app people use to manage AI agents for work</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI agents`, `#TypeScript`, `#open-source`, `#developer tools`, `#GitHub trending`
+
+---
+
+<a id="item-monthly-10"></a>
+## [Hindsight：会学习的开源 Agent 记忆系统，一个月新增 2.7 万星](https://github.com/vectorize-io/hindsight) ⭐️ 7.0/10 · 相关 6/10
+
+vectorize-io/hindsight 是一个基于 Python 的开源 Agent 记忆系统，过去一个月在 GitHub 上新增 27,228 颗星，总星数达到 50,869，fork 数为 6,129。与仅回放对话历史的传统记忆工具不同，Hindsight 旨在让 Agent 跨会话学习并持续改进。 Agent 记忆正成为构建可靠、长期运行的 AI 应用的关键层，Hindsight 的快速走红表明开发者对“能学习”而非仅“能回忆”的记忆方案有强烈需求。它与 Mem0、Zep、Cognee、LangMem 等框架同台竞争，可能影响 Agent 架构处理持久化上下文的方式。 Hindsight 采用 MIT 许可证，以 Python 实现；它通过 token 预算（例如 4,096 个 token）来控制注入提示的记忆量，从而让上下文窗口占用和 API 成本可预测，并且在事实发生变化时保留带时间戳的旧状态与新状态。
+
+github_trending · vectorize-io · 10月18日 00:49
+
+**背景**: AI Agent 通常在会话结束后丢失全部上下文，因此记忆框架致力于长期存储和检索相关信息。CoALA 等研究框架将 Agent 记忆分为工作记忆、情景记忆、语义记忆和程序性记忆等类型，而 Hindsight 这类工具通过实现长期记忆，让 Agent 更一致、更有能力。
+
+**对中国影响**: 中国开发者在构建 AI Agent 时可以采用 Hindsight 这一 MIT 许可的 Python 记忆组件，有望减少对专有记忆服务的依赖；不过该项目对硬件或供应链没有直接影响。
+
+**对我有什么用**: 作为硬件/嵌入式工程师，这条新闻并不直接涉及开源硬件或 EDA，但如果你在构建 AI 辅助工具或自动化脚本，Hindsight 可以作为现成的记忆后端，让 Agent 跨会话记住项目上下文。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/vectorize-io/hindsight">GitHub - vectorize-io/hindsight: Hindsight: Agent Memory That ...</a></li>
+<li><a href="https://hindsight.vectorize.io/">Overview | Hindsight</a></li>
+<li><a href="https://vectorize.io/product">How Hindsight Works — Agent Memory That Learns | Vectorize</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI Agent`, `#记忆框架`, `#Python`, `#开源项目`, `#GitHub Trending`
+
+---
+
+## 🎯 猜你感兴趣
+
+以下 3 条未进客观分前 10，但与你的兴趣画像高度相关。
+
+---
+
+<a id="item-monthly-11"></a>
+## [NVIDIA 开源 OpenShell：Rust 编写的自主 AI 智能体安全运行时，月增约 7956 星](https://github.com/NVIDIA/OpenShell) ⭐️ 7.0/10 · 相关 6/10
+
+NVIDIA 开源了 OpenShell，这是一个用 Rust 编写的、面向自主 AI 智能体的安全私有运行时。该项目本月在 GitHub 上新增约 7956 颗星，总星数达到 16539，fork 数为 1807。 随着 AI 智能体越来越多地需要读取文件、安装软件包、调用 API 和使用凭证，赋予它们对数据和网络的无限制访问权限会带来重大安全风险。OpenShell 通过将可强制执行的安全控制放在运行时环境中（而非模型或应用内）来解决这一痛点，有望加速企业对智能体 AI 的采用。 OpenShell 0.1.0 允许团队在不重写现有 AI 智能体的情况下为其添加运行时控制，限制 API 操作、保护凭证，并在智能体工作负载之外审查权限变更。安全策略存在于环境层面，管控智能体的执行、访问权限以及推理请求的去向。
+
+github_trending · NVIDIA · 10月18日 00:49
+
+**背景**: 自主 AI 智能体是能够自主规划和执行多步骤任务的软件程序，通常会使用工具和外部服务。运行时是这些智能体执行的环境；沙箱和权限控制对于防止智能体意外或恶意访问敏感数据至关重要。Rust 是一种以内存安全和性能著称的系统编程语言，因此成为安全敏感型基础设施的热门选择。
+
+**对中国影响**: OpenShell 是一个全球可用的开源项目，中国开发者和 AI 公司可以用它来加固其智能体部署。它也可能影响国内智能体运行时和沙箱项目，但从此次发布来看，尚无直接针对中国的政策或市场影响。
+
+**对我有什么用**: 对于电子工程师而言，OpenShell 并非可复刻的硬件项目，但如果你为嵌入式工作流或实验室工具构建 AI 驱动的自动化，它会是一个有用的工具。你可以采用它来沙箱化控制测试设备或访问本地文件的智能体，其 Rust 代码库也值得研究，以学习安全运行时的设计模式。
+
+**入选理由**: 该项目的核心是 AI 智能体安全运行时，与硬件/嵌入式主业关系不大；但它是 NVIDIA 出品、Rust 实现、月增近 8000 星的开源项目，对关注 AI 工具链与自动化效率的读者有一定参考价值，可了解其沙箱/隔离机制设计。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/NVIDIA/OpenShell">GitHub - NVIDIA/OpenShell: OpenShell is the safe, private ...</a></li>
+<li><a href="https://www.nvidia.com/en-us/ai/openshell/">NVIDIA OpenShell | Open, Secure Runtime for AI Agents</a></li>
+<li><a href="https://developer.nvidia.com/blog/add-runtime-controls-to-ai-agents-with-nvidia-openshell/">Add Runtime Controls to AI Agents with NVIDIA OpenShell</a></li>
+
+</ul>
+</details>
+
+**标签**: `#AI agent runtime`, `#Rust`, `#NVIDIA`, `#open source`, `#sandbox security`
+
+---
+
+<a id="item-monthly-12"></a>
+## [freellmapi 将 34 家免费 LLM 提供商聚合到单一 API 接口](https://github.com/tashfeenahmed/freellmapi) ⭐️ 7.0/10 · 相关 6/10
+
+tashfeenahmed/freellmapi 是一个 TypeScript 项目，将 34 家免费 LLM 提供商的 635 个免费模型端点聚合到统一的 /v1 接口之后，并支持智能路由、自动故障转移和加密密钥。该项目本月新增 9,863 颗星，总星数达到 36,638，分叉数为 4,956。 它降低了尝试多种 LLM 的门槛，开发者只需使用一个兼容 OpenAI 的端点，而无需管理数十个提供商各自的 API。星标的快速增长表明，市场对免费、统一的 AI 模型访问方式需求旺盛，尤其是在原型开发和个人项目方面。 该项目声称每月处理 74 亿个 token，并支持流式传输、自动路由策略、工具调用、视觉输入、Gemini Google Search grounding、嵌入以及 Anthropic Messages 接口。它仅限个人实验使用，这可能限制其在生产或商业场景中的应用。
+
+github_trending · tashfeenahmed · 10月18日 00:49
+
+**背景**: 许多 LLM 提供商提供有速率限制的免费套餐，但每家都有自己的 API 格式、认证方式和特殊行为。兼容 OpenAI 的 /v1 端点已成为事实标准，让为 OpenAI 编写的工具和 SDK 只需更改基础 URL 就能与其他提供商配合使用。像 freellmapi 这样的聚合器位于多个提供商之前，负责路由请求并在某个提供商不可用时进行故障转移。
+
+**对中国影响**: 中国开发者常常面临对外国 LLM API 的访问限制，因此这类聚合器可以帮助他们通过单一端点试验多种模型。然而，依赖外国免费套餐可能会给中国的商业使用带来合规性和可靠性方面的顾虑。
+
+**对我有什么用**: 作为硬件开发者，你可以使用 freellmapi 在嵌入式或自动化项目中快速测试由 LLM 驱动的功能，而无需注册多个服务。它是原型开发 AI 辅助工作流的便捷工具，尽管与开源硬件或 EDA 没有直接关系。
+
+**入选理由**: 该项目是聚合免费 LLM API 的工具，与 AI 工具链相关，但并非硬件/嵌入式核心兴趣；对需要低成本调用大模型的开发者有实用价值，属于可了解但不紧急的内容。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/tashfeenahmed/freellmapi">tashfeenahmed/freellmapi: 7.4 billion tokens per month. 34 free LLM ...</a></li>
+<li><a href="https://crazyrouter.com/en/blog/openai-compatible-api-base-url-explained">OpenAI-Compatible API Base URL Explained: How to Configure ...</a></li>
+<li><a href="https://www.requesty.ai/">Requesty: AI Gateway & LLM Router for 600+ Models</a></li>
+
+</ul>
+</details>
+
+**标签**: `#LLM API`, `#AI 工具链`, `#TypeScript`, `#开源项目`, `#API 聚合`
+
+---
+
+<a id="item-monthly-13"></a>
+## [Cursor 发布官方插件规范与插件仓库](https://github.com/cursor/plugins) ⭐️ 7.0/10 · 相关 6/10
+
+Cursor 在 GitHub 上发布了官方插件规范及官方插件仓库（cursor/plugins），本月新增 4213 颗星，目前总星数达 12304，分支数 1197。该仓库使用 TypeScript 编写，为开发者构建 Cursor 插件提供了标准与参考实现。 这表明 Cursor 正在正式构建可扩展生态，允许第三方开发者将规则、技能、智能体、命令、MCP 服务器和钩子打包成可分发的插件包。标准化的插件系统有望加速采用并形成类似 VS Code 扩展市场的网络效应，影响整个 AI 辅助开发工具链。 根据 Cursor 文档，插件遵循 Agent Plugins 规范并在 Cursor IDE 中加载；Cursor 不会展开标准中 mcp.json 里的 ${PLUGIN_ROOT} 和 ${PLUGIN_DATA} 变量，而是使用 ${CURSOR_PLUGIN_ROOT} 作为插件根目录。官方还提供了插件模板仓库，方便从零开始开发。
+
+github_trending · cursor · 10月18日 00:49
+
+**背景**: Cursor 是由 Anysphere 开发的 AI 辅助集成开发环境（IDE），基于 Visual Studio Code 分支构建，集成了生成式 AI 功能，可通过自然语言指令编写代码。插件是代码编辑器让社区扩展功能的常见方式；Cursor 此举借鉴了 VS Code 等编辑器的扩展模式，但针对 AI 智能体工作流进行了定制。Agent Plugins 规范定义了这类插件包的结构与发现方式。
+
+**对中国影响**: 使用 Cursor 的中国开发者现在可以按照官方规范构建和分享插件，有望改善本地 AI 编程工作流；但由于 Cursor 是国外商业产品，对中国本土 AI 工具链生态的影响有限且间接。
+
+**对我有什么用**: 对于电子/硬件开发者而言，这条新闻只有间接相关性：你可以利用 Cursor 插件来自动化嵌入式代码生成、封装 EDA 脚本，或集成 MCP 服务器以查询硬件文档，但新闻本身关注的是软件 IDE 生态，而非开源硬件或嵌入式工具。
+
+**入选理由**: Cursor 插件生态与 AI 开发工具链相关，属于读者关注的 AI 工具链范畴，但并非硬件/嵌入式核心，可作了解。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/cursor/plugins">GitHub - cursor/plugins: Cursor plugin specification and ...</a></li>
+<li><a href="https://cursor.com/docs/plugins">Plugins | Cursor Docs</a></li>
+<li><a href="https://cursor.com/docs/reference/plugins">Plugins Reference | Cursor Docs</a></li>
+
+</ul>
+</details>
+
+**标签**: `#Cursor`, `#AI 工具链`, `#插件生态`, `#开发工具`, `#TypeScript`
+
+---
+
