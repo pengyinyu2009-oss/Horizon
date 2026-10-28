@@ -301,7 +301,9 @@ def test_single_score_render_unchanged_when_no_subjective():
 def test_enrichment_impact_fields_render():
     summarizer = DailySummarizer()
     item = _scored_item(1, objective=8.5, subjective=9.0)
+    item.ai_reason = "重要版本发布。"
     item.metadata["china_impact_zh"] = "利好国产供应链。"
+    item.metadata["local_impact_zh"] = "沈阳硬件社区可关注。"
     item.metadata["personal_relevance_zh"] = "可以复刻其开源方案。"
 
     md = asyncio.run(summarizer.generate_summary(
@@ -309,7 +311,63 @@ def test_enrichment_impact_fields_render():
     ))
 
     assert "**对中国影响**: 利好国产供应链。" in md
-    assert "**对我有什么用**: 可以复刻其开源方案。" in md
+    assert "**对沈阳影响**: 沈阳硬件社区可关注。" in md
+    assert "**对我影响**: 可以复刻其开源方案。" in md
+    assert "**入选理由**: 重要版本发布。" in md
+
+
+def test_unified_layout_full_writeup_for_every_item():
+    """2026-10-12: a sub-8.0 item renders the same full write-up as an 8+ one."""
+    summarizer = DailySummarizer()
+    low = _scored_item(1, objective=7.0, subjective=6.0)
+    low.ai_reason = "增量更新但有参考价值。"
+    low.metadata["background_zh"] = "该工具链的演进背景。"
+    low.metadata["china_impact_zh"] = "国内同类项目可借鉴。"
+    low.metadata["local_impact_zh"] = "对沈阳本地暂无直接影响。"
+    low.metadata["personal_relevance_zh"] = "可纳入个人工具链评估。"
+
+    md = asyncio.run(summarizer.generate_summary(
+        [low], "2026-10-12", total_fetched=5, language="zh",
+    ))
+
+    # No brief-tier marker, full section header instead.
+    assert "（简报）" not in md
+    assert "## [Item rss:scored-1]" in md
+    # All five fixed sections present for the low-score item.
+    for label in ("入选理由", "背景", "对中国影响", "对沈阳影响", "对我影响"):
+        assert f"**{label}**" in md
+    # Header no longer promises a two-tier split.
+    assert "8 分以上" not in md
+    assert "统一版式" in md
+
+
+def test_local_impact_label_follows_persona_location():
+    summarizer = DailySummarizer.from_persona(
+        PersonaConfig(enabled=True, description="d", location="大连")
+    )
+    item = _scored_item(1, objective=8.0, subjective=8.0)
+    item.metadata["local_impact_zh"] = "大连本地暂无直接影响。"
+
+    md = asyncio.run(summarizer.generate_summary(
+        [item], "2026-10-12", total_fetched=5, language="zh",
+    ))
+
+    assert "**对大连影响**: 大连本地暂无直接影响。" in md
+    assert "对沈阳影响" not in md
+
+
+def test_pick_reason_uses_subjective_rationale():
+    summarizer = DailySummarizer()
+    item = _scored_item(1, objective=6.5, subjective=9.0)
+    item.ai_reason = "客观分平平。"
+    item.metadata["persona_pick"] = True
+
+    md = asyncio.run(summarizer.generate_summary(
+        [item], "2026-10-12", total_fetched=5, language="zh",
+    ))
+
+    # Picks cite the subjective rationale, not the objective one.
+    assert "**入选理由**: reason 1" in md
 
 
 # --- parser roundtrip --------------------------------------------------------

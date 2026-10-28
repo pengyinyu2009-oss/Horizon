@@ -250,8 +250,9 @@ class ContentEnricher:
                 val = result[f"community_discussion_{lang}"]
                 item.metadata[f"community_discussion_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
 
-            # 2026-07-28: persona/impact fields ("对我有什么用" / "对中国影响")
-            for field in ("personal_relevance", "china_impact"):
+            # 2026-07-28: persona/impact fields ("对我影响" / "对中国影响"
+            # / "对所在地影响")
+            for field in ("personal_relevance", "china_impact", "local_impact"):
                 if result.get(f"{field}_{lang}"):
                     val = result[f"{field}_{lang}"]
                     item.metadata[f"{field}_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
@@ -272,6 +273,7 @@ class ContentEnricher:
         item.metadata["community_discussion"] = item.metadata.get("community_discussion_en", "")
         item.metadata["personal_relevance"] = item.metadata.get("personal_relevance_en", "")
         item.metadata["china_impact"] = item.metadata.get("china_impact_en", "")
+        item.metadata["local_impact"] = item.metadata.get("local_impact_en", "")
 
     async def _translate_item(self, item: ContentItem) -> None:
         """Lightweight translation fallback: when full enrichment fails, at least

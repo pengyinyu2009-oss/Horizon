@@ -435,18 +435,24 @@ class YearlyConfig(PeriodSummaryConfig):
 
 
 class PersonaConfig(BaseModel):
-    """Owner persona used for subjective scoring and "对我有什么用" text.
+    """Owner persona used for subjective scoring and "对我影响" text.
 
     `description` is injected verbatim into the analysis/enrichment
     prompts; `keywords` bias the subjective score toward matching items
     and drive the "🎯 猜你感兴趣" off-list picks. When `enabled` is
     false the analyser skips subjective scoring entirely (saves tokens)
     and reports render objective score only.
+
+    `location` names the city the reader lives in; it renders the
+    per-item "对<location>影响" section and tells the enrichment model
+    which local ecosystem (industry, supply chain, jobs, community) to
+    assess the news against.
     """
 
     enabled: bool = True
     description: str = ""
     keywords: List[str] = Field(default_factory=list)
+    location: str = "沈阳"
 
 
 class Config(BaseModel):

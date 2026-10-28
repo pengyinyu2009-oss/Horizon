@@ -22,6 +22,12 @@ def build_persona_section(persona) -> str:
     keywords = getattr(persona, "keywords", None) or []
     if keywords:
         parts.append("Key interests: " + ", ".join(str(k) for k in keywords))
+    location = getattr(persona, "location", "") or ""
+    if location.strip():
+        parts.append(
+            f"Location: {location.strip()} (assess local impact against this "
+            "city's ecosystem — industry, supply chain, jobs, community)"
+        )
     return "\n".join(parts) if parts else _NO_PERSONA_TEXT
 
 
@@ -235,6 +241,7 @@ Provide EACH text field in BOTH English and Chinese. Use the following key namin
 - community_discussion_en / community_discussion_zh
 - personal_relevance_en / personal_relevance_zh
 - china_impact_en / china_impact_zh
+- local_impact_en / local_impact_zh
 
 Field definitions:
 0. **title** (one short phrase, ≤15 words): A clear, accurate headline for the news item.
@@ -252,6 +259,8 @@ Field definitions:
 6. **personal_relevance** (1-2 complete sentences): What this news means FOR THE READER PERSONA provided in the user message — what they can use it for, what action it enables (e.g. a project to replicate, a tool to adopt, a skill to learn). If a persona is provided and the item is irrelevant to it, say so honestly in one sentence. If NO persona is provided, return an empty string.
 
 7. **china_impact** (1-2 complete sentences): What this event means for China — its tech industry, supply chain, policy, developers, or market. Be concrete and honest; if the event has no meaningful China angle, return an empty string rather than inventing one.
+
+8. **local_impact** (1-2 complete sentences): What this event means for the reader's CITY (the Location line in the persona) — its local industry, job market, maker/hardware community, supply chain, or study/meetup scene. Be concrete and honest; if the event has no meaningful local angle, say so plainly in one sentence (e.g. "对沈阳本地暂无直接影响") rather than inventing one.
 
 **CRITICAL — Language rules (MUST follow):**
 - All *_en fields MUST be written in English.
@@ -311,5 +320,7 @@ Every field MUST be at least one complete sentence (except community_discussion 
   "personal_relevance_zh": "<1-2句中文，或空字符串>",
   "china_impact_en": "<1-2 sentences in English, or empty string>",
   "china_impact_zh": "<1-2句中文，或空字符串>",
+  "local_impact_en": "<1-2 sentences in English, or empty string>",
+  "local_impact_zh": "<1-2句中文，或空字符串>",
   "sources": ["<url from search results>", "..."]
 }}"""

@@ -1,10 +1,13 @@
 """Daily / weekly / monthly / yearly summary generation — pure programmatic rendering.
 
 All four roll-ups share a small helper layer (Pangu spacing, item
-formatting, follow-up AI analysis). The daily summariser splits items
-into two tiers: those at or above ``full_threshold`` get an expanded
-section, those above the lower ``threshold`` but below
-``full_threshold`` only appear in the table of contents.
+formatting, follow-up AI analysis). The daily summariser renders every
+selected item with the SAME unified write-up: 入选理由 / 背景 /
+对中国影响 / 对所在地影响 / 对我影响. There is no brief tier any more —
+the 2026-07-28 "8+ gets a full section, 7-8 index only" split was
+removed on 2026-10-12 so the report reads uniformly top to bottom.
+(``parse_daily_full_stories`` still skips the legacy "（简报）" markers
+when re-reading historical reports.)
 """
 
 import json
@@ -33,9 +36,10 @@ LABELS = {
         "discussion": "Discussion",
         "references": "References",
         "tags": "Tags",
-        "personal_relevance": "Why it matters to you",
-        "china_impact": "China impact",
         "pick_reason": "Why this pick",
+        "local_impact": "Local impact",
+        "personal_relevance": "Impact on me",
+        "china_impact": "China impact",
         "picks_header": "🎯 Picks for you",
         "picks_intro": (
             "These {n} items missed the objective top {top} but score "
@@ -61,9 +65,10 @@ LABELS = {
         "discussion": "社区讨论",
         "references": "参考链接",
         "tags": "标签",
-        "personal_relevance": "对我有什么用",
-        "china_impact": "对中国影响",
         "pick_reason": "入选理由",
+        "local_impact": "对沈阳影响",
+        "personal_relevance": "对我影响",
+        "china_impact": "对中国影响",
         "picks_header": "🎯 猜你感兴趣",
         "picks_intro": "以下 {n} 条未进客观分前 {top}，但与你的兴趣画像高度相关。",
         "selected_items": "从 {total} 条内容中筛选出 {selected} 条重要资讯。",
@@ -80,7 +85,6 @@ LABELS = {
         ),
     },
 }
-
 
 # 2026-07-28: "top 10 + 3" selection — the objective top N form the main
 # list; up to this many off-list items with the highest subjective
@@ -244,14 +248,30 @@ def _format_followup_prompt(item: ContentItem, language: str) -> Tuple[str, str]
 class DailySummarizer:
     """Generates daily Markdown summaries from pre-analyzed content items.
 
-    Two-tier output:
-    - items scored >= ``threshold`` (default 7.0) appear in the TOC
-    - items scored >= ``full_threshold`` (default 8.0) also get their
-      own expanded section with summary / background / discussion / tags
+    Unified layout (2026-10-12): every selected item — main ranking or
+    persona pick, high or low objective score — renders the same
+    write-up with the five fixed sections 入选理由 / 背景 / 对中国影响 /
+    对<location>影响 / 对我影响. ``location`` comes from the persona
+    config and only names the city in the per-item local-impact label.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, location: str = "沈阳"):
+        self.location = (location or "").strip() or "沈阳"
+
+    @classmethod
+    def from_persona(cls, persona) -> "DailySummarizer":
+        """Build a summarizer whose local-impact label matches the persona city."""
+        location = getattr(persona, "location", "") or ""
+        return cls(location=location or "沈阳")
+
+    def _labels_for(self, language: str) -> dict:
+        """Per-run label dict with the location-derived local-impact label."""
+        labels = dict(LABELS.get(language, LABELS["en"]))
+        if language == "zh":
+            labels["local_impact"] = f"对{self.location}影响"
+        else:
+            labels["local_impact"] = f"Impact on {self.location}"
+        return labels
 
     async def generate_summary(
         self,
@@ -266,7 +286,7 @@ class DailySummarizer:
 
         Items are rendered in score-descending order (already sorted by orchestrator).
         """
-        labels = LABELS.get(language, LABELS["en"])
+        labels = self._labels_for(language)
 
         if scoring_failure:
             return self._generate_scoring_failure_summary(
@@ -288,16 +308,13 @@ class DailySummarizer:
                 groups.setdefault(period, []).append(it)
         if len(groups) > 1 and sum(len(v) for v in groups.values()) == len(sorted_items):
             return self._generate_period_grouped_summary(
-                groups, date, total_fetched, labels, language, full_threshold
+                groups, date, total_fetched, labels, language
             )
 
-        full_items, brief_items, pick_items = self._select_tiers(
-            sorted_items, full_threshold
-        )
+        main_items, pick_items = self._select_tiers(sorted_items)
 
-        n_total = len(full_items) + len(brief_items) + len(pick_items)
-        n_full = len(full_items)
-        subline = self._subline(labels, language, n_full, len(brief_items), len(pick_items))
+        n_total = len(main_items) + len(pick_items)
+        subline = self._subline(labels, language, n_total, len(pick_items))
 
         header = (
             f"# {labels['header']} - {date}\n\n"
@@ -307,33 +324,36 @@ class DailySummarizer:
         )
 
         toc, body = self._render_toc_and_body(
-            full_items, brief_items, pick_items, labels, language, full_threshold
+            main_items, pick_items, labels, language
         )
         return header + toc + body
 
     @staticmethod
-    def _subline(labels: dict, language: str, n_full: int, n_brief: int, n_picks: int) -> str:
+    def _subline(labels: dict, language: str, n_total: int, n_picks: int) -> str:
         if language == "zh":
             subline = (
-                f"其中 **{n_full} 条 8 分以上**展开详细简报，其余 {n_brief} 条"
-                f"仅列于索引。"
+                f"以下 **{n_total} 条**均按统一版式呈现，每条含"
+                f"入选理由 / 背景 / {labels['china_impact']} / "
+                f"{labels['local_impact']} / {labels['personal_relevance']}。"
             )
             if n_picks:
-                subline += f"另有 **{n_picks} 条🎯猜你感兴趣**（按画像主观分入选）。"
+                subline += f"其中 **{n_picks} 条🎯猜你感兴趣**（按画像主观分入选）。"
         else:
             subline = (
-                f"**{n_full} items at 8+** get full write-ups; the other "
-                f"{n_brief} are listed in the index only."
+                f"All **{n_total} items** share one unified layout: "
+                f"{labels['pick_reason']} / {labels['background']} / "
+                f"{labels['china_impact']} / {labels['local_impact']} / "
+                f"{labels['personal_relevance']}."
             )
             if n_picks:
-                subline += f" Plus **{n_picks} 🎯 picks** chosen by persona relevance."
+                subline += f" **{n_picks} 🎯 picks** were chosen by persona relevance."
         return subline
 
     @staticmethod
     def _select_tiers(
-        sorted_items: List[ContentItem], full_threshold: float
-    ) -> Tuple[List[ContentItem], List[ContentItem], List[ContentItem]]:
-        """Split score-sorted items into (full, brief, picks) tiers.
+        sorted_items: List[ContentItem],
+    ) -> Tuple[List[ContentItem], List[ContentItem]]:
+        """Split score-sorted items into (main, picks).
 
         2026-07-28: "top 10 + 3" selection. When dual scoring ran, the
         objective top TOP_N_MAIN form the main list; up to TOP_N_PICKS
@@ -343,6 +363,9 @@ class DailySummarizer:
         always land in the pick pool, never in the main ranking.
         Without subjective scores (persona disabled / legacy runs)
         everything renders as before.
+
+        2026-10-12: the old full/brief split inside the main list is
+        gone — every main item renders the same full write-up.
         """
         has_subjective = any(it.subjective_score is not None for it in sorted_items)
         flagged = [it for it in sorted_items if it.metadata.get("persona_pick")]
@@ -365,21 +388,14 @@ class DailySummarizer:
         else:
             pick_items = []
 
-        full_items = [it for it in main_items if (it.ai_score or 0) >= full_threshold]
-        brief_items = [
-            it for it in main_items
-            if (it.ai_score or 0) < full_threshold
-        ]
-        return full_items, brief_items, pick_items
+        return main_items, pick_items
 
     def _render_toc_and_body(
         self,
-        full_items: List[ContentItem],
-        brief_items: List[ContentItem],
+        main_items: List[ContentItem],
         pick_items: List[ContentItem],
         labels: dict,
         language: str,
-        full_threshold: float,
         anchor_prefix: str = "item",
     ) -> Tuple[str, str]:
         """Render the TOC + body for one (sub-)board.
@@ -393,12 +409,12 @@ class DailySummarizer:
             return _pangu(t) if language == "zh" else t
 
         toc_entries: List[str] = []
-        for display_idx, item in enumerate(full_items + brief_items, start=1):
+        for display_idx, item in enumerate(main_items, start=1):
             toc_entries.append(
                 f"{display_idx}. [{_title(item)}](#{anchor_prefix}-{display_idx}) "
                 + _score_suffix(item.ai_score or "?", item.subjective_score, language)
             )
-        pick_offset = len(full_items) + len(brief_items)
+        pick_offset = len(main_items)
         for pick_idx, item in enumerate(pick_items, start=pick_offset + 1):
             toc_entries.append(
                 f"{pick_idx}. 🎯 [{_title(item)}](#{anchor_prefix}-{pick_idx}) "
@@ -407,16 +423,10 @@ class DailySummarizer:
         toc = "\n".join(toc_entries) + "\n\n---\n\n"
 
         body_parts: List[str] = []
-        for display_idx, item in enumerate(full_items + brief_items, start=1):
-            is_full = (item.ai_score or 0) >= full_threshold
-            if is_full:
-                body_parts.append(
-                    self._format_item(item, labels, language, display_idx, anchor_prefix=anchor_prefix)
-                )
-            else:
-                body_parts.append(
-                    self._format_brief_item(item, labels, language, display_idx, anchor_prefix=anchor_prefix)
-                )
+        for display_idx, item in enumerate(main_items, start=1):
+            body_parts.append(
+                self._format_item(item, labels, language, display_idx, anchor_prefix=anchor_prefix)
+            )
 
         if pick_items:
             body_parts.append(
@@ -438,7 +448,6 @@ class DailySummarizer:
         total_fetched: int,
         labels: dict,
         language: str,
-        full_threshold: float,
     ) -> str:
         """Render a board as per-period sub-boards (GitHub 热榜 style).
 
@@ -454,13 +463,13 @@ class DailySummarizer:
             subline = (
                 "本榜含 "
                 + " / ".join(group_labels[p] for p in present)
-                + " 三个子榜，各取客观分前 10 与画像精选。"
+                + "三个子榜，各取客观分前 10 与画像精选，版式统一。"
             )
         else:
             subline = (
                 "Sub-boards: "
                 + " / ".join(group_labels[p] for p in present)
-                + " — each with its own top 10 + persona picks."
+                + " — each with its own top 10 + persona picks, one unified layout."
             )
 
         header = (
@@ -473,17 +482,15 @@ class DailySummarizer:
         parts: List[str] = []
         for period in present:
             period_items = groups[period]
-            full_items, brief_items, pick_items = self._select_tiers(
-                period_items, full_threshold
-            )
-            shown = len(full_items) + len(brief_items) + len(pick_items)
+            main_items, pick_items = self._select_tiers(period_items)
+            shown = len(main_items) + len(pick_items)
             if language == "zh":
                 parts.append(f"## {group_labels[period]}（{shown} 条）\n\n")
             else:
                 parts.append(f"## {group_labels[period]} ({shown} items)\n\n")
             toc, body = self._render_toc_and_body(
-                full_items, brief_items, pick_items, labels, language,
-                full_threshold, anchor_prefix=f"item-{period}",
+                main_items, pick_items, labels, language,
+                anchor_prefix=f"item-{period}",
             )
             parts.append(toc)
             parts.append(body)
@@ -497,7 +504,7 @@ class DailySummarizer:
         language: str = "en",
     ) -> str:
         """Generate a compact overview for multi-message webhook delivery."""
-        labels = LABELS.get(language, LABELS["en"])
+        labels = self._labels_for(language)
         if not items:
             return self._generate_empty_summary(date, total_fetched, labels)
 
@@ -532,7 +539,7 @@ class DailySummarizer:
         total: int,
     ) -> str:
         """Generate one item message for multi-message webhook delivery."""
-        labels = LABELS.get(language, LABELS["en"])
+        labels = self._labels_for(language)
         prefix = f"第 {index}/{total} 条\n\n" if language == "zh" else f"Item {index}/{total}\n\n"
         return prefix + self._format_item(item, labels, language, index).rstrip("-\n ")
 
@@ -545,7 +552,13 @@ class DailySummarizer:
         is_pick: bool = False,
         anchor_prefix: str = "item",
     ) -> str:
-        """Format a single ContentItem into Markdown (full write-up)."""
+        """Format a single ContentItem into Markdown (unified write-up).
+
+        2026-10-12: one layout for every entry — summary, source line,
+        then the five fixed sections 入选理由 / 背景 / 对中国影响 /
+        对<location>影响 / 对我影响, followed by references, community
+        discussion and tags.
+        """
         _title = item.metadata.get(f"title_{language}") or item.title
         title = str(_title).replace("[", "(").replace("]", ")")
         url = str(item.url)
@@ -564,24 +577,37 @@ class DailySummarizer:
             or meta.get("community_discussion")
             or ""
         )
-        personal_relevance = (
-            meta.get(f"personal_relevance_{language}")
-            or meta.get("personal_relevance")
-            or ""
-        )
         china_impact = (
             meta.get(f"china_impact_{language}")
             or meta.get("china_impact")
             or ""
         )
+        local_impact = (
+            meta.get(f"local_impact_{language}")
+            or meta.get("local_impact")
+            or ""
+        )
+        personal_relevance = (
+            meta.get(f"personal_relevance_{language}")
+            or meta.get("personal_relevance")
+            or ""
+        )
+        # 入选理由: persona picks cite the subjective rationale, main-list
+        # items the objective one (both always produced by the analyser).
+        if is_pick:
+            pick_reason = item.subjective_reason or item.ai_reason or ""
+        else:
+            pick_reason = item.ai_reason or item.subjective_reason or ""
 
         if language == "zh":
             title = _pangu(title)
             summary = _pangu(summary)
             background = _pangu(background)
             discussion = _pangu(discussion)
-            personal_relevance = _pangu(personal_relevance)
             china_impact = _pangu(china_impact)
+            local_impact = _pangu(local_impact)
+            personal_relevance = _pangu(personal_relevance)
+            pick_reason = _pangu(pick_reason)
 
         source_type = item.source_type.value
         source_parts = [source_type]
@@ -617,6 +643,10 @@ class DailySummarizer:
             source_line,
         ]
 
+        if pick_reason:
+            lines.append("")
+            lines.append(f"**{labels['pick_reason']}**: {pick_reason}")
+
         if background:
             lines.append("")
             lines.append(f"**{labels['background']}**: {background}")
@@ -625,13 +655,13 @@ class DailySummarizer:
             lines.append("")
             lines.append(f"**{labels['china_impact']}**: {china_impact}")
 
+        if local_impact:
+            lines.append("")
+            lines.append(f"**{labels['local_impact']}**: {local_impact}")
+
         if personal_relevance:
             lines.append("")
             lines.append(f"**{labels['personal_relevance']}**: {personal_relevance}")
-
-        if is_pick and item.subjective_reason:
-            lines.append("")
-            lines.append(f"**{labels['pick_reason']}**: {item.subjective_reason}")
 
         sources = meta.get("sources") or []
         if sources:
@@ -654,48 +684,6 @@ class DailySummarizer:
         lines.append("---")
 
         return "\n".join(lines) + "\n\n"
-
-    def _format_brief_item(
-        self,
-        item: ContentItem,
-        labels: dict,
-        language: str,
-        index: int,
-        anchor_prefix: str = "item",
-    ) -> str:
-        """Format a sub-full-threshold item as a one-paragraph note.
-
-        The item is already in the TOC; this is just a short reference so
-        the page reads top-to-bottom without losing context. ``background``
-        and ``discussion`` are dropped to keep the file short.
-        """
-        _title = item.metadata.get(f"title_{language}") or item.title
-        title = str(_title).replace("[", "(").replace("]", ")")
-        url = str(item.url)
-        score_badge = _score_suffix(item.ai_score or "?", item.subjective_score, language)
-        meta = item.metadata
-
-        summary = (
-            meta.get(f"detailed_summary_{language}")
-            or meta.get("detailed_summary")
-            or item.ai_summary
-            or ""
-        )
-        if language == "zh":
-            title = _pangu(title)
-            summary = _pangu(summary)
-
-        if language == "zh":
-            note = "*（简报）*"
-        else:
-            note = "*(brief)*"
-
-        return (
-            f'<a id="{anchor_prefix}-{index}"></a>\n'
-            f"### {note} [{title}]({url}) {score_badge}\n\n"
-            f"{summary}\n\n"
-            "---\n\n"
-        )
 
     def _generate_empty_summary(self, date: str, total_fetched: int, labels: dict) -> str:
         """Generate summary when no high-scoring items were found."""
@@ -1148,11 +1136,12 @@ _DAILY_ITEM_HEADER_RE = re.compile(
 def parse_daily_full_stories(markdown: str, language: str = "zh") -> List[Story]:
     """Extract 8+ stories from a daily summary markdown blob.
 
-    The daily file layout (after the front matter is stripped) starts
-    with a TOC and then has a per-item section for every item at or
-    above ``full_threshold``. The brief-tier items (between the lower
-    ``threshold`` and ``full_threshold``) are written with a
-    "*(简报)*" / "*(brief)*" prefix; we skip those.
+    Since 2026-10-12 the daily file renders every selected item as a
+    full ``## [title](url) ⭐️ X/10`` section, so this simply keeps the
+    items at or above 8.0. Legacy pre-2026-10-12 files additionally
+    carry a brief tier written with a "*(简报)*" / "*(brief)*" prefix
+    for 7-8 items; those are skipped so historical roll-ups behave the
+    same as they did before the unified layout.
 
     Returns a list of ``Story`` records. The ``summary`` field captures
     everything between the item header and the next "---" separator.

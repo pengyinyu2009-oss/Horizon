@@ -142,7 +142,7 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
         url = m.group(3).strip()
         try:
             score = float(m.group(4))
-        except (TypeError, ValueError):
+        except ValueError:
             continue
         try:
             subjective_score = float(m.group(5)) if m.group(5) else None
@@ -161,8 +161,14 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
             "url": url,
             "score": score,
             "subjective_score": subjective_score,
+            "pick_reason": _extract_labeled(block, "入选理由") or _extract_labeled(block, "Why this pick"),
             "china_impact": _extract_labeled(block, "对中国影响") or _extract_labeled(block, "China impact"),
-            "personal_relevance": _extract_labeled(block, "对我有什么用") or _extract_labeled(block, "Why it matters to you"),
+            "local_impact": _extract_local_impact(block),
+            "personal_relevance": (
+                _extract_labeled(block, "对我影响")
+                or _extract_labeled(block, "对我有什么用")
+                or _extract_labeled(block, "Why it matters to you")
+            ),
             "summary": summary_text,
             "tags": tags,
             "published": published,
@@ -176,6 +182,16 @@ def parse_items_from_summary(summary_path: Path) -> list[dict]:
 def _extract_labeled(block: str, label: str) -> str:
     """从 item 块里抽取 `**标签**: 内容` 行（双评分新增的字段段落）。"""
     m = re.search(rf"\*\*{re.escape(label)}\*\*:\s*(.+)", block)
+    return m.group(1).strip() if m else ""
+
+
+def _extract_local_impact(block: str) -> str:
+    """抽取「对<城市>影响」段（2026-10-12 统一版式新增）。
+
+    城市名来自 persona.location，因此匹配「对中国影响」之外的
+    `对XX影响` 模式，兼容任意所在地。
+    """
+    m = re.search(r"\*\*对(?!中国)\S{1,10}?影响\*\*:\s*(.+)", block)
     return m.group(1).strip() if m else ""
 
 
@@ -229,10 +245,13 @@ def derive_news_fields(item: dict) -> dict:
         if len(summary) < 80
         else f"基于原文判断：{summary[:120]}"
     )
+    impact_local = item.get("local_impact") or (
+        "（所在地影响未在原文体现，待人工/AI 二次解读）"
+    )
     return {
         "anchor": item["item_id"],
         "title": title,
-        "url": item["url"],
+        "url": url,
         "importance": item["score"],
         "relevance": relevance,
         "source": "Horizon Daily 采集",
@@ -241,8 +260,10 @@ def derive_news_fields(item: dict) -> dict:
         "language_note": "派生自 daily summary 真实采集",
         "summary": summary,
         "impact_cn": impact_cn,
+        "impact_local": impact_local,
         "impact_me": impact_me,
         "judge_me": judge,
+        "pick_reason": item.get("pick_reason") or "",
         "source_ref": {
             "summary_file": item["summary_file"],
             "item_id": item["item_id"],

@@ -188,7 +188,7 @@ class HorizonOrchestrator:
             today = datetime.now(BJT).strftime("%Y-%m-%d")
             full_threshold = self.config.filtering.ai_score_full_threshold
             for lang in self.config.ai.languages:
-                summarizer = DailySummarizer()
+                summarizer = DailySummarizer.from_persona(self.config.persona)
                 summary = await summarizer.generate_summary(
                     important_items,
                     today,
@@ -647,7 +647,7 @@ class HorizonOrchestrator:
         """
         self.console.print("📝 Generating daily summary...")
 
-        summarizer = DailySummarizer()
+        summarizer = DailySummarizer.from_persona(self.config.persona)
 
         return await summarizer.generate_summary(items, date, total_fetched, language=language)
 
