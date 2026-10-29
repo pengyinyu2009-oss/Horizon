@@ -277,6 +277,7 @@ Field definitions:
 
 Guidelines:
 - EVERY field (except community_discussion when no comments exist) must contain at least one complete sentence — no field may be empty or contain just a phrase
+- **Keep the whole JSON compact: every field at most 2 sentences (background at most 4). Do not pad, repeat the input, restate the title, or write anything outside the JSON fields** — an over-long response gets truncated and the item loses its entire enrichment
 - Base your explanation on the provided content and web search results — do NOT fabricate information
 - ONLY explain concepts and terms that are explicitly mentioned in the title, summary, or content
 - Use the web search results to ensure accuracy, especially for recent projects, tools, or events
