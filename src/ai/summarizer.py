@@ -40,6 +40,8 @@ LABELS = {
         "local_impact": "Local impact",
         "personal_relevance": "Impact on me",
         "china_impact": "China impact",
+        "project_usage": "What this project is for",
+        "total_stars": "total stars",
         "picks_header": "🎯 Picks for you",
         "picks_intro": (
             "These {n} items missed the objective top {top} but score "
@@ -69,6 +71,8 @@ LABELS = {
         "local_impact": "对沈阳影响",
         "personal_relevance": "对我影响",
         "china_impact": "对中国影响",
+        "project_usage": "对这个项目有什么用",
+        "total_stars": "总星标",
         "picks_header": "🎯 猜你感兴趣",
         "picks_intro": "以下 {n} 条未进客观分前 {top}，但与你的兴趣画像高度相关。",
         "selected_items": "从 {total} 条内容中筛选出 {selected} 条重要资讯。",
@@ -121,6 +125,67 @@ def _score_suffix(score, subjective_score, language: str) -> str:
         rel = "相关" if language == "zh" else "relevance"
         suffix += f" · {rel} {_fmt_score(subjective_score)}/10"
     return suffix
+
+
+# --- GitHub 热榜：项目用途 / 评星 / 必看标记 -------------------------------
+
+# 2026-10-29: recommendation blend — the objective importance and the
+# persona relevance carry equal weight, so a niche project the reader
+# can act on today ranks beside a big-but-irrelevant announcement.
+MUST_SEE_REC = 4.0
+
+
+def _recommendation(item) -> Optional[float]:
+    """0-5 recommendation from the dual scores (None when unscored)."""
+    score = item.ai_score
+    if score is None:
+        return None
+    subjective = (
+        item.subjective_score if item.subjective_score is not None else score
+    )
+    return (float(score) + float(subjective)) / 4.0
+
+
+def _star_badge(rec: float, language: str) -> str:
+    """Render `推荐 ⭐⭐⭐⭐☆ 4.0/5` for a 0-5 recommendation."""
+    full = min(5, max(0, int(rec + 0.5)))
+    stars = "\u2b50\ufe0f" * full + "\u2606" * (5 - full)
+    label = "推荐" if language == "zh" else "pick"
+    return f"{label} {stars} {rec:.1f}/5"
+
+
+def _is_project_item(item) -> bool:
+    """True for repository/project entries (GitHub 热榜)."""
+    return item.source_type.value == "github_trending"
+
+
+def _must_see_prefix(item, language: str) -> str:
+    """🔥 prefix for projects the reader should not miss."""
+    if not _is_project_item(item):
+        return ""
+    rec = _recommendation(item)
+    if rec is not None and rec >= MUST_SEE_REC:
+        return "\U0001f525 "
+    return ""
+
+
+def _compact_count(value, language: str) -> str:
+    """306000 -> '30.6万' (zh) / '306k' (en); '' when absent/zero."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return ""
+    if n <= 0:
+        return ""
+    if language == "zh":
+        if n >= 10000:
+            return f"{n / 10000:.1f}".rstrip("0").rstrip(".") + "万"
+        return str(n)
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}".rstrip("0").rstrip(".") + "M"
+    if n >= 1000:
+        return f"{n / 1000:.1f}".rstrip("0").rstrip(".") + "k"
+    return str(n)
 
 
 # --- Roll-up labels (weekly / monthly / yearly) ----------------------------
@@ -314,7 +379,10 @@ class DailySummarizer:
         main_items, pick_items = self._select_tiers(sorted_items)
 
         n_total = len(main_items) + len(pick_items)
-        subline = self._subline(labels, language, n_total, len(pick_items))
+        subline = self._subline(
+            labels, language, n_total, len(pick_items),
+            has_projects=any(_is_project_item(it) for it in main_items + pick_items),
+        )
 
         header = (
             f"# {labels['header']} - {date}\n\n"
@@ -329,22 +397,33 @@ class DailySummarizer:
         return header + toc + body
 
     @staticmethod
-    def _subline(labels: dict, language: str, n_total: int, n_picks: int) -> str:
+    def _subline(
+        labels: dict,
+        language: str,
+        n_total: int,
+        n_picks: int,
+        has_projects: bool = False,
+    ) -> str:
         if language == "zh":
-            subline = (
-                f"以下 **{n_total} 条**均按统一版式呈现，每条含"
+            sections = (
                 f"入选理由 / 背景 / {labels['china_impact']} / "
-                f"{labels['local_impact']} / {labels['personal_relevance']}。"
+                f"{labels['local_impact']} / {labels['personal_relevance']}"
             )
+            if has_projects:
+                # 项目榜（GitHub 热榜）每条另有项目用途 + 评星
+                sections += f" / {labels['project_usage']}"
+            subline = f"以下 **{n_total} 条**均按统一版式呈现，每条含{sections}。"
             if n_picks:
                 subline += f"其中 **{n_picks} 条🎯猜你感兴趣**（按画像主观分入选）。"
         else:
-            subline = (
-                f"All **{n_total} items** share one unified layout: "
+            sections = (
                 f"{labels['pick_reason']} / {labels['background']} / "
                 f"{labels['china_impact']} / {labels['local_impact']} / "
-                f"{labels['personal_relevance']}."
+                f"{labels['personal_relevance']}"
             )
+            if has_projects:
+                sections += f" / {labels['project_usage']}"
+            subline = f"All **{n_total} items** share one unified layout: {sections}."
             if n_picks:
                 subline += f" **{n_picks} 🎯 picks** were chosen by persona relevance."
         return subline
@@ -408,17 +487,28 @@ class DailySummarizer:
             t = str(_t).replace("[", "(").replace("]", ")")
             return _pangu(t) if language == "zh" else t
 
+        def _toc_badge(item: ContentItem) -> str:
+            """Score badge plus, for project entries, the star rating."""
+            badge = _score_suffix(item.ai_score or "?", item.subjective_score, language)
+            if _is_project_item(item):
+                rec = _recommendation(item)
+                if rec is not None:
+                    badge += f" · {_star_badge(rec, language)}"
+            return badge
+
         toc_entries: List[str] = []
         for display_idx, item in enumerate(main_items, start=1):
             toc_entries.append(
-                f"{display_idx}. [{_title(item)}](#{anchor_prefix}-{display_idx}) "
-                + _score_suffix(item.ai_score or "?", item.subjective_score, language)
+                f"{display_idx}. {_must_see_prefix(item, language)}"
+                f"[{_title(item)}](#{anchor_prefix}-{display_idx}) "
+                + _toc_badge(item)
             )
         pick_offset = len(main_items)
         for pick_idx, item in enumerate(pick_items, start=pick_offset + 1):
             toc_entries.append(
-                f"{pick_idx}. 🎯 [{_title(item)}](#{anchor_prefix}-{pick_idx}) "
-                + _score_suffix(item.ai_score or "?", item.subjective_score, language)
+                f"{pick_idx}. 🎯 {_must_see_prefix(item, language)}"
+                f"[{_title(item)}](#{anchor_prefix}-{pick_idx}) "
+                + _toc_badge(item)
             )
         toc = "\n".join(toc_entries) + "\n\n---\n\n"
 
@@ -592,6 +682,13 @@ class DailySummarizer:
             or meta.get("personal_relevance")
             or ""
         )
+        # 2026-10-29: "对这个项目有什么用" — project/repo entries only
+        # (GitHub 热榜); empty for news, so the section is simply absent.
+        project_usage = (
+            meta.get(f"project_usage_{language}")
+            or meta.get("project_usage")
+            or ""
+        )
         # 入选理由: persona picks cite the subjective rationale, main-list
         # items the objective one (both always produced by the analyser).
         if is_pick:
@@ -607,6 +704,7 @@ class DailySummarizer:
             china_impact = _pangu(china_impact)
             local_impact = _pangu(local_impact)
             personal_relevance = _pangu(personal_relevance)
+            project_usage = _pangu(project_usage)
             pick_reason = _pangu(pick_reason)
 
         source_type = item.source_type.value
@@ -628,20 +726,41 @@ class DailySummarizer:
                 source_parts.append(item.published_at.strftime(f"%b {day}, %H:%M"))
         source_line = " \u00b7 ".join(source_parts)  # ·
 
+        # 2026-10-29: GitHub 热榜条目的信源行补上仓库总星标（抓取器一直
+        # 在采集，此前没有渲染出来）。
+        if _is_project_item(item):
+            compact_stars = _compact_count(meta.get("total_stars"), language)
+            if compact_stars:
+                source_line += f" · ⭐ {compact_stars} {labels['total_stars']}"
+
         discussion_url = meta.get("discussion_url")
         if discussion_url:
             discussion_url = str(discussion_url)
             if discussion_url != url:
                 source_line += f' · [{labels["discussion"]}]({discussion_url})'
 
+        # 2026-10-29: 评星 + 🔥 必看标记只加在 GitHub 热榜（项目）条目上
+        header_badge = score_badge
+        if _is_project_item(item):
+            rec = _recommendation(item)
+            if rec is not None:
+                header_badge += f" · {_star_badge(rec, language)}"
+
         lines = [
             f'<a id="{anchor_prefix}-{index}"></a>',
-            f"## [{title}]({url}) {score_badge}",
+            f"## {_must_see_prefix(item, language)}[{title}]({url}) {header_badge}",
             "",
             summary,
             "",
             source_line,
         ]
+
+        # 2026-10-29: 项目用途紧跟摘要/信源之后、入选理由之前——GitHub
+        # 热榜读者第一眼就想知道"这东西能干什么"。仅渲染项目类条目，
+        # 其他榜保持统一五栏目不变。
+        if project_usage and _is_project_item(item):
+            lines.append("")
+            lines.append(f"**{labels['project_usage']}**: {project_usage}")
 
         if pick_reason:
             lines.append("")
@@ -1127,6 +1246,7 @@ _DAILY_ITEM_HEADER_RE = re.compile(
     r'^<a id="item-(\d+)"></a>\s*\n'
     r'(?:^###\s+\*[^*]+\*\s*)?'   # optional "(简报)" / "(brief)" prefix
     r'^#{2,3}\s+(?:\*[^*]+\*\s+)?'  # ## or ###, plus optional "*brief*" prefix
+    r'(?:\U0001f525\s+)?'           # optional 🔥 must-see prefix (2026-10-29)
     r'\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10'
     r'(?:\s*·\s*(?:相关|relevance)\s*([\d.]+)/10)?',
     re.MULTILINE,

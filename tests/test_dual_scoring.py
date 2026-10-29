@@ -446,3 +446,74 @@ def test_period_grouped_not_triggered_for_mixed_items():
     # Mixed content falls back to the flat layout.
     assert '<a id="item-1"></a>' in md
     assert "日榜" not in md
+
+
+# --- 2026-10-29: GitHub 热榜 项目用途 + 评星 + 必看标记 ---------------------
+
+
+def _project_item(idx: int, objective: float, subjective: float) -> ContentItem:
+    item = _make_item(f"github_trending:daily:owner/repo-{idx}")
+    item.source_type = SourceType.GITHUB_TRENDING
+    item.ai_score = objective
+    item.subjective_score = subjective
+    item.ai_summary = f"Repo summary {idx}."
+    item.ai_reason = f"热度理由 {idx}。"
+    item.subjective_reason = f"画像理由 {idx}。"
+    item.metadata.update({
+        "repo": f"owner/repo-{idx}",
+        "period": "daily",
+        "total_stars": 306000,
+        "stars_gained": 617,
+    })
+    return item
+
+
+def test_github_trending_item_renders_project_usage_and_star_rating():
+    summarizer = DailySummarizer()
+    item = _project_item(1, objective=8.5, subjective=8.0)
+    item.metadata["project_usage_zh"] = "可以拿来给嵌入式项目做 AI 辅助固件测试。"
+
+    md = asyncio.run(summarizer.generate_summary(
+        [item], "2026-10-29", total_fetched=30, language="zh",
+    ))
+
+    # 项目用途栏目（条目正文里位于入选理由之前）
+    assert "**对这个项目有什么用**: 可以拿来给嵌入式项目做 AI 辅助固件测试。" in md
+    body = md[md.index(f'id="item-1"'):]
+    assert body.index("对这个项目有什么用") < body.index("入选理由")
+    # 评星：均分 8.25 → 4.1/5
+    assert "推荐 ⭐" in md
+    assert "4.1/5" in md
+    # 仓库总星标进入信源行
+    assert "⭐ 30.6万 总星标" in md
+    # 4.1 >= 4.0 → 🔥 必看标记同时出现在目录和正文标题
+    assert md.count("🔥") >= 2
+
+
+def test_github_trending_low_rec_has_no_must_see_marker():
+    summarizer = DailySummarizer()
+    item = _project_item(1, objective=6.5, subjective=6.0)
+    item.metadata["project_usage_zh"] = "可作为构建脚本参考。"
+
+    md = asyncio.run(summarizer.generate_summary(
+        [item], "2026-10-29", total_fetched=30, language="zh",
+    ))
+
+    assert "对这个项目有什么用" in md
+    assert "3.1/5" in md
+    assert "🔥" not in md
+
+
+def test_non_project_items_have_no_star_rating_or_usage_section():
+    summarizer = DailySummarizer()
+    item = _scored_item(1, objective=9.0, subjective=9.0)
+    item.metadata["project_usage_zh"] = "这条不该出现——新闻条目没有项目用途。"
+
+    md = asyncio.run(summarizer.generate_summary(
+        [item], "2026-10-29", total_fetched=30, language="zh",
+    ))
+
+    # 评星与项目用途只属于 GitHub 热榜条目
+    assert "推荐 ⭐" not in md
+    assert "对这个项目有什么用" not in md
+    assert "🔥" not in md

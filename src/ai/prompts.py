@@ -242,6 +242,7 @@ Provide EACH text field in BOTH English and Chinese. Use the following key namin
 - personal_relevance_en / personal_relevance_zh
 - china_impact_en / china_impact_zh
 - local_impact_en / local_impact_zh
+- project_usage_en / project_usage_zh
 
 Field definitions:
 0. **title** (one short phrase, ≤15 words): A clear, accurate headline for the news item.
@@ -261,6 +262,8 @@ Field definitions:
 7. **china_impact** (1-2 complete sentences): What this event means for China — its tech industry, supply chain, policy, developers, or market. Be concrete and honest; if the event has no meaningful China angle, return an empty string rather than inventing one.
 
 8. **local_impact** (1-2 complete sentences): What this event means for the reader's CITY (the Location line in the persona) — its local industry, job market, maker/hardware community, supply chain, or study/meetup scene. Be concrete and honest; if the event has no meaningful local angle, say so plainly in one sentence (e.g. "对沈阳本地暂无直接影响") rather than inventing one.
+
+9. **project_usage** (1-2 complete sentences): ONLY when the item IS a software/hardware project or repository (e.g. a GitHub trending repo, an open-source release): say plainly what this project is, what problem it solves, and concretely what the reader can DO with it — replicate it, integrate it into an existing toolchain, study its implementation, or run it as-is. Name the concrete use, not vague praise. For ordinary news articles, announcements, or discussions that are NOT a project, return an empty string.
 
 **CRITICAL — Language rules (MUST follow):**
 - All *_en fields MUST be written in English.
@@ -322,5 +325,7 @@ Every field MUST be at least one complete sentence (except community_discussion 
   "china_impact_zh": "<1-2句中文，或空字符串>",
   "local_impact_en": "<1-2 sentences in English, or empty string>",
   "local_impact_zh": "<1-2句中文，或空字符串>",
+  "project_usage_en": "<1-2 sentences in English, or empty string>",
+  "project_usage_zh": "<1-2句中文，或空字符串>",
   "sources": ["<url from search results>", "..."]
 }}"""

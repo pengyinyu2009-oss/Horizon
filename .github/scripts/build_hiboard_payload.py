@@ -49,8 +49,10 @@ def main():
 
     # Pull out headlines in the form:
     #   ## [title](url) ⭐ 8.5/10
+    # 2026-10-29: optional 🔥 must-see prefix (GitHub 热榜评星 ≥4.0)
     headlines = re.findall(
-        r"^##\s+\[([^\]]+)\]\(([^)]+)\)\s*\u2b50\ufe0f\s*([\d.]+)/10",
+        r"^##\s+(?:\U0001f525\s+)?\[([^\]]+)\]\(([^)]+)\)"
+        r"\s*\u2b50\ufe0f\s*([\d.]+)/10",
         text,
         re.MULTILINE,
     )

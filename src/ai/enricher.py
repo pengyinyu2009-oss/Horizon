@@ -257,6 +257,13 @@ class ContentEnricher:
                     val = result[f"{field}_{lang}"]
                     item.metadata[f"{field}_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
 
+            # 2026-10-29: "对这个项目有什么用" — project/repo items only
+            # (GitHub 热榜等); empty for ordinary news, so the summarizer
+            # simply omits the section there.
+            if result.get(f"project_usage_{lang}"):
+                val = result[f"project_usage_{lang}"]
+                item.metadata[f"project_usage_{lang}"] = val.get("text") or str(val) if isinstance(val, dict) else str(val)
+
         # Store citation sources — only URLs that actually came from our search results
         if result.get("sources") and available_urls:
             valid = [
@@ -274,6 +281,7 @@ class ContentEnricher:
         item.metadata["personal_relevance"] = item.metadata.get("personal_relevance_en", "")
         item.metadata["china_impact"] = item.metadata.get("china_impact_en", "")
         item.metadata["local_impact"] = item.metadata.get("local_impact_en", "")
+        item.metadata["project_usage"] = item.metadata.get("project_usage_en", "")
 
     async def _translate_item(self, item: ContentItem) -> None:
         """Lightweight translation fallback: when full enrichment fails, at least
