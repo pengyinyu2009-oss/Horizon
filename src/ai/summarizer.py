@@ -784,10 +784,14 @@ class DailySummarizer:
             rec = _recommendation(item)
             if rec is not None:
                 header_badge += f" · {_star_badge(rec, language)}"
+        # NB: keep the emoji out of the f-string expression — the VPS
+        # container runs Python 3.11, where backslashes inside f-string
+        # expressions are a SyntaxError (3.12+ only).
+        fire = "\U0001f525 " if must_see else ""
 
         lines = [
             f'<a id="{anchor_prefix}-{index}"></a>',
-            f"## {'\U0001f525 ' if must_see else ''}[{title}]({url}) {header_badge}",
+            f"## {fire}[{title}]({url}) {header_badge}",
             "",
             summary,
             "",
