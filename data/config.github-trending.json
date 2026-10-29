@@ -123,6 +123,6 @@
       "自动化"
     ],
     "location": "沈阳",
-    "reference_project": "CircuitWorkbench（简称 cw，GitHub 私仓 pengyinyu2009-oss/circuit-workbench，Apache-2.0，pre-alpha 单人维护）——定位是「KiCad 工程师的第二屏」：Tauri v2 + React 19 + Rust/TypeScript 7.0 单体仓桌面应用，原生读写 .kicad 文件。现有能力：原理图模型与 ERC、PCB 数据模型与 DRC/交互布线/差分对/泪滴/铜皮、ngspice 网表生成与自研瞬态引擎（MNA + 稀疏 Jacobian + BiCGSTAB）、Mathcad 风格计算书（单位/符号计算/Given-Find/ODE/蒙特卡洛）、EMI 滤波器与安规、磁设计、热设计、可靠性预计（MIL-HDBK-217F/SN29500）、SI/PI 计算、KiCad s-expression 桥与 SCH→PCB ECO、数据手册 Provider 抽象、设计模式 lint、AI 审图员 MCP 服务器（57 工具）。评估外部项目对 cw 的价值时优先看：可复用的 EDA 算法与几何/网格计算、数值求解器与符号计算库、s-expression/网表解析器、KiCad 生态工具与插件、SPICE 模型与仿真引擎、元件与供应链数据源、MCP/agent 工具链、Tauri/Rust/TypeScript 桌面技术。"
+    "reference_project": "CircuitWorkbench（简称 cw，GitHub 私仓 pengyinyu2009-oss/circuit-workbench，Apache-2.0，pre-alpha 单人维护）——定位是「KiCad 工程师的第二屏」：Tauri v2 + React 19 + Rust/TypeScript 7.0 单体仓桌面应用，原生读写 .kicad 文件。现有能力（括号内为仓库内模块名，评估时直接引用）：原理图模型与 ERC（schematic）、PCB 数据模型与 DRC/交互布线/差分对/泪滴/铜皮（board）、ngspice 网表生成与自研瞬态引擎 MNA+稀疏 Jacobian+BiCGSTAB（sim）、Mathcad 风格计算书：单位/符号计算/Given-Find/ODE/蒙特卡洛（notebook）、EMI 滤波器与安规（emi）、磁设计（magnetics）、热设计（thermal）、可靠性预计 MIL-HDBK-217F/SN29500（reliability）、SI/PI 计算（sipi）、KiCad s-expression 桥与 SCH→PCB ECO（kicad）、数据手册 Provider 抽象（datasheet）、设计模式 lint（designlint）、AI 审图员 MCP 服务器 57 工具（agent-mcp）、器件案例文件（casebook）、复合原理图块（blocks）、仪器/SCPI 模拟驱动（instrument）、拓扑推导模板（topology）、工作台级工具（workspace）。评估外部项目对 cw 的价值时优先看：可复用的 EDA 算法与几何/网格计算、数值求解器与符号计算库、s-expression/网表解析器、KiCad 生态工具与插件、SPICE 模型与仿真引擎、元件与供应链数据源、MCP/agent 工具链、Tauri/Rust/TypeScript 桌面技术。"
   }
 }

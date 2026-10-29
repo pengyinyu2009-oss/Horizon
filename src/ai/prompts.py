@@ -134,7 +134,7 @@ CONTENT_ANALYSIS_USER_DUAL = """Analyze the following content and provide a JSON
 {persona_section}
 
 Subjective scoring guide:
-- 9-10: Directly matches the persona's core interests; actionable for them (e.g. a project they could replicate, a tool they would use daily)
+- 9-10: Directly matches the persona's core interests AND is actionable for their own project — something they could replicate into a concrete module, integrate as a dependency, or adopt as a daily tool
 - 7-8: Closely related to their interests; worth their time today
 - 5-6: Tangentially related; nice to know
 - 3-4: Outside their interests but in a nearby field
@@ -269,7 +269,7 @@ Field definitions:
 
 8. **local_impact** (1-2 complete sentences): What this event means for the reader's CITY (the Location line in the persona) — its local industry, job market, maker/hardware community, supply chain, or study/meetup scene. Be concrete and honest; if the event has no meaningful local angle, say so plainly in one sentence (e.g. "对沈阳本地暂无直接影响") rather than inventing one.
 
-9. **project_usage** (1-2 complete sentences): ONLY when the item IS a software/hardware project or repository (e.g. a GitHub trending repo, an open-source release). Open with one short clause on what the project is and what problem it solves, then — when the persona names the reader's OWN project — say concretely what this repo can do for THAT project: a library/algorithm to adopt, a technique or design to learn from, a data source or format to integrate, an ecosystem tool to track, or plainly that there is no direct use. Name the concrete use, not vague praise. For ordinary news articles, announcements, or discussions that are NOT a project, return an empty string.
+9. **project_usage** (1-2 complete sentences): ONLY when the item IS a software/hardware project or repository (e.g. a GitHub trending repo, an open-source release). Open with one short clause on what the project is and what problem it solves. Then — when the persona names the reader's OWN project — judge it against that project's CONCRETE MODULES: name the specific module/package it could plug into or be learned from (say plainly when none fits), and state whether it is worth REPLICATING (study and rebuild the implementation) or INTEGRATING (adopt as a dependency or tool), with the path in a few words — which module, and what it would replace or extend there. If there is genuinely no fit, say so in one honest sentence; do not invent a use. For ordinary news articles, announcements, or discussions that are NOT a project, return an empty string.
 
 **CRITICAL — Language rules (MUST follow):**
 - All *_en fields MUST be written in English.
