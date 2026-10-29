@@ -98,6 +98,12 @@ def generate_boards(
                 raise PipelineError(f"board {suffix}: missing config {board_config}")
             canonical.unlink(missing_ok=True)
             try:
+                # HORIZON_DATE pins the board's internal report date. Without
+                # it a run that crosses midnight has its later boards write
+                # the next day's filename while this loop still looks for the
+                # pinned one, and the whole run fails at the artifact check.
+                board_env = os.environ.copy()
+                board_env["HORIZON_DATE"] = date
                 runner.run(
                     [
                         "docker",
@@ -111,6 +117,7 @@ def generate_boards(
                         str(hours),
                     ],
                     cwd=repo,
+                    env=board_env,
                 )
             except Exception as exc:
                 raise PipelineError(f"board {suffix} generation failed: {exc}") from exc

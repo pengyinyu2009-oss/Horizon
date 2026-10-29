@@ -185,7 +185,10 @@ class HorizonOrchestrator:
             self.console.print(f"📚 Enriched {len(important_items)} items\n")
 
             # 7. Generate and save daily summaries for each configured language
-            today = datetime.now(BJT).strftime("%Y-%m-%d")
+            # HORIZON_DATE pins the report date so a run that crosses midnight
+            # (late-evening forced runs) keeps writing the date the scheduler
+            # pinned; vps_daily.py passes it through to every board container.
+            today = os.environ.get("HORIZON_DATE") or datetime.now(BJT).strftime("%Y-%m-%d")
             full_threshold = self.config.filtering.ai_score_full_threshold
             for lang in self.config.ai.languages:
                 summarizer = DailySummarizer.from_persona(self.config.persona)

@@ -45,10 +45,12 @@ class FakeRunner:
         self.fail_on = fail_on
         self.calls: list[tuple[str, ...]] = []
         self.host_configs_seen: list[str] = []
+        self.envs_seen: list[dict] = []
 
     def run(self, args, *, cwd=None, env=None):
         call = tuple(str(arg) for arg in args)
         self.calls.append(call)
+        self.envs_seen.append(dict(env or {}))
         if call[:3] == ("docker", "compose", "run"):
             host_config = (self.repo / "data/config.json").read_text(
                 encoding="utf-8"
@@ -380,3 +382,25 @@ def test_failed_publish_is_resumed_without_regenerating_boards(tmp_path, monkeyp
         (repo / "output/last-success.json").read_text(encoding="utf-8")
     )
     assert marker["published"] is True
+
+
+def test_generate_boards_pins_report_date_into_each_board_container(tmp_path):
+    """跨午夜场景：容器内部必须按 vps_daily 钉住的日期落盘。
+
+    2026-10-29 实测：22:06 启动的跑批跨过午夜，最后一个 board 容器按
+    自己的墙上时间写出次日文件名，主循环仍找启动日期的文件 → 整轮失败。
+    """
+    repo = _prepare_repo(tmp_path)
+    date = "2026-10-29"
+    runner = FakeRunner(repo, date)
+
+    generate_boards(repo, date, hours=24, runner=runner)
+
+    board_envs = [
+        env
+        for call, env in zip(runner.calls, runner.envs_seen)
+        if call[:3] == ("docker", "compose", "run")
+    ]
+    assert len(board_envs) == len(BOARD_CONFIGS)
+    for env in board_envs:
+        assert env.get("HORIZON_DATE") == date, env.get("HORIZON_DATE")
