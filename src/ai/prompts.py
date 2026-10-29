@@ -28,6 +28,12 @@ def build_persona_section(persona) -> str:
             f"Location: {location.strip()} (assess local impact against this "
             "city's ecosystem — industry, supply chain, jobs, community)"
         )
+    reference = getattr(persona, "reference_project", "") or ""
+    if reference.strip():
+        parts.append(
+            "The reader's OWN project (judge every external item against "
+            "what it can do for THIS project):\n" + reference.strip()
+        )
     return "\n".join(parts) if parts else _NO_PERSONA_TEXT
 
 
@@ -263,7 +269,7 @@ Field definitions:
 
 8. **local_impact** (1-2 complete sentences): What this event means for the reader's CITY (the Location line in the persona) — its local industry, job market, maker/hardware community, supply chain, or study/meetup scene. Be concrete and honest; if the event has no meaningful local angle, say so plainly in one sentence (e.g. "对沈阳本地暂无直接影响") rather than inventing one.
 
-9. **project_usage** (1-2 complete sentences): ONLY when the item IS a software/hardware project or repository (e.g. a GitHub trending repo, an open-source release): say plainly what this project is, what problem it solves, and concretely what the reader can DO with it — replicate it, integrate it into an existing toolchain, study its implementation, or run it as-is. Name the concrete use, not vague praise. For ordinary news articles, announcements, or discussions that are NOT a project, return an empty string.
+9. **project_usage** (1-2 complete sentences): ONLY when the item IS a software/hardware project or repository (e.g. a GitHub trending repo, an open-source release). Open with one short clause on what the project is and what problem it solves, then — when the persona names the reader's OWN project — say concretely what this repo can do for THAT project: a library/algorithm to adopt, a technique or design to learn from, a data source or format to integrate, an ecosystem tool to track, or plainly that there is no direct use. Name the concrete use, not vague praise. For ordinary news articles, announcements, or discussions that are NOT a project, return an empty string.
 
 **CRITICAL — Language rules (MUST follow):**
 - All *_en fields MUST be written in English.

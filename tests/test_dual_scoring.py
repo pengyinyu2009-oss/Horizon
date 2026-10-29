@@ -517,3 +517,31 @@ def test_non_project_items_have_no_star_rating_or_usage_section():
     assert "推荐 ⭐" not in md
     assert "对这个项目有什么用" not in md
     assert "🔥" not in md
+
+
+# --- 2026-10-29: 参照项目（cw 私仓）注入 persona 段 -----------------------
+
+
+def test_persona_section_includes_reference_project():
+    persona = PersonaConfig(
+        enabled=True,
+        description="电子工程师/硬件开发者",
+        location="沈阳",
+        reference_project="CircuitWorkbench：KiCad 工程师的第二屏，Tauri+Rust。",
+    )
+    text = build_persona_section(persona)
+    assert "CircuitWorkbench" in text
+    assert "OWN project" in text
+    assert "沈阳" in text
+
+
+def test_persona_section_without_reference_project_stays_unchanged():
+    text = build_persona_section(_PERSONA)
+    assert "OWN project" not in text
+    assert "电子工程师" in text
+
+
+def test_enrichment_prompt_field9_targets_reference_project():
+    from src.ai.prompts import CONTENT_ENRICHMENT_SYSTEM
+    assert "project_usage" in CONTENT_ENRICHMENT_SYSTEM
+    assert "reader's OWN project" in CONTENT_ENRICHMENT_SYSTEM

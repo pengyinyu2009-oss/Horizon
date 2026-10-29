@@ -453,6 +453,11 @@ class PersonaConfig(BaseModel):
     description: str = ""
     keywords: List[str] = Field(default_factory=list)
     location: str = "沈阳"
+    # 2026-10-29: the reader's OWN project. When set, the persona block
+    # tells the model to assess every external item against it — "对这个
+    # 项目有什么用" on the GitHub 热榜 board. Empty keeps the generic
+    # reader-persona behaviour.
+    reference_project: str = ""
 
 
 class Config(BaseModel):
