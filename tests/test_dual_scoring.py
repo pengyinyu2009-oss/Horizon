@@ -454,6 +454,7 @@ def test_period_grouped_not_triggered_for_mixed_items():
 def _project_item(idx: int, objective: float, subjective: float) -> ContentItem:
     item = _make_item(f"github_trending:daily:owner/repo-{idx}")
     item.source_type = SourceType.GITHUB_TRENDING
+    item.title = f"owner/repo-{idx} (+100⭐ 今日)"
     item.ai_score = objective
     item.subjective_score = subjective
     item.ai_summary = f"Repo summary {idx}."
@@ -491,17 +492,27 @@ def test_github_trending_item_renders_project_usage_and_star_rating():
 
 
 def test_github_trending_low_rec_has_no_must_see_marker():
+    """榜内前二才标 🔥：三条里最低的那条不标，前二标。"""
     summarizer = DailySummarizer()
-    item = _project_item(1, objective=6.5, subjective=6.0)
-    item.metadata["project_usage_zh"] = "可作为构建脚本参考。"
+    items = [
+        _project_item(1, objective=7.0, subjective=7.0),   # 3.5/5 榜首
+        _project_item(2, objective=7.0, subjective=6.0),   # 3.2/5 第二
+        _project_item(3, objective=6.5, subjective=6.0),   # 3.1/5 落榜
+    ]
+    for i, it in enumerate(items, start=1):
+        it.metadata["project_usage_zh"] = f"用途 {i}。"
 
     md = asyncio.run(summarizer.generate_summary(
-        [item], "2026-10-29", total_fetched=30, language="zh",
+        items, "2026-10-29", total_fetched=30, language="zh",
     ))
 
     assert "对这个项目有什么用" in md
     assert "3.1/5" in md
-    assert "🔥" not in md
+    # 🔥 只落在前二（目录 + 正文各一次）
+    assert md.count("🔥") == 4
+    assert "🔥 [owner/repo-1" in md
+    assert "🔥 [owner/repo-2" in md
+    assert "🔥 [owner/repo-3" not in md
 
 
 def test_non_project_items_have_no_star_rating_or_usage_section():

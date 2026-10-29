@@ -132,7 +132,13 @@ def _score_suffix(score, subjective_score, language: str) -> str:
 # 2026-10-29: recommendation blend — the objective importance and the
 # persona relevance carry equal weight, so a niche project the reader
 # can act on today ranks beside a big-but-irrelevant announcement.
+#
+# 🔥 fires on EITHER rule: an absolute bar (average dual score >= 8.0),
+# or the board's own top N. The absolute bar alone is not enough — this
+# board pre-filters at 6.0 and MiniMax keeps repo scores in the 6-7
+# band, so a fixed 4.0/5 threshold would never fire in practice.
 MUST_SEE_REC = 4.0
+MUST_SEE_TOP_N = 2
 
 
 def _recommendation(item) -> Optional[float]:
@@ -144,6 +150,26 @@ def _recommendation(item) -> Optional[float]:
         item.subjective_score if item.subjective_score is not None else score
     )
     return (float(score) + float(subjective)) / 4.0
+
+
+def _must_see_ids(items) -> set:
+    """Ids of the 🔥-worthy entries among one (sub-)board's items.
+
+    Absolute excellence (>= MUST_SEE_REC) always qualifies; otherwise the
+    board's own top MUST_SEE_TOP_N by recommendation do, so a quiet day
+    still surfaces its best projects instead of flagging nothing.
+    """
+    scored = [(it, _recommendation(it)) for it in items]
+    flagged = {
+        id(it) for it, rec in scored if rec is not None and rec >= MUST_SEE_REC
+    }
+    ranked = sorted(
+        (it for it, rec in scored if rec is not None),
+        key=lambda it: _recommendation(it) or 0.0,
+        reverse=True,
+    )[:MUST_SEE_TOP_N]
+    flagged.update(id(it) for it in ranked)
+    return flagged
 
 
 def _star_badge(rec: float, language: str) -> str:
@@ -159,14 +185,11 @@ def _is_project_item(item) -> bool:
     return item.source_type.value == "github_trending"
 
 
-def _must_see_prefix(item, language: str) -> str:
-    """🔥 prefix for projects the reader should not miss."""
-    if not _is_project_item(item):
-        return ""
-    rec = _recommendation(item)
-    if rec is not None and rec >= MUST_SEE_REC:
-        return "\U0001f525 "
-    return ""
+def _project_must_see_ids(items) -> set:
+    """_must_see_ids, but only for boards that actually carry projects."""
+    if not any(_is_project_item(it) for it in items):
+        return set()
+    return _must_see_ids(items)
 
 
 def _compact_count(value, language: str) -> str:
@@ -496,17 +519,22 @@ class DailySummarizer:
                     badge += f" · {_star_badge(rec, language)}"
             return badge
 
+        must_see = _project_must_see_ids(main_items + pick_items)
+
+        def _fire(item: ContentItem) -> str:
+            return "\U0001f525 " if id(item) in must_see else ""
+
         toc_entries: List[str] = []
         for display_idx, item in enumerate(main_items, start=1):
             toc_entries.append(
-                f"{display_idx}. {_must_see_prefix(item, language)}"
+                f"{display_idx}. {_fire(item)}"
                 f"[{_title(item)}](#{anchor_prefix}-{display_idx}) "
                 + _toc_badge(item)
             )
         pick_offset = len(main_items)
         for pick_idx, item in enumerate(pick_items, start=pick_offset + 1):
             toc_entries.append(
-                f"{pick_idx}. 🎯 {_must_see_prefix(item, language)}"
+                f"{pick_idx}. 🎯 {_fire(item)}"
                 f"[{_title(item)}](#{anchor_prefix}-{pick_idx}) "
                 + _toc_badge(item)
             )
@@ -515,7 +543,10 @@ class DailySummarizer:
         body_parts: List[str] = []
         for display_idx, item in enumerate(main_items, start=1):
             body_parts.append(
-                self._format_item(item, labels, language, display_idx, anchor_prefix=anchor_prefix)
+                self._format_item(
+                    item, labels, language, display_idx,
+                    anchor_prefix=anchor_prefix, must_see=id(item) in must_see,
+                )
             )
 
         if pick_items:
@@ -526,7 +557,10 @@ class DailySummarizer:
             )
             for pick_idx, item in enumerate(pick_items, start=pick_offset + 1):
                 body_parts.append(
-                    self._format_item(item, labels, language, pick_idx, is_pick=True, anchor_prefix=anchor_prefix)
+                    self._format_item(
+                        item, labels, language, pick_idx, is_pick=True,
+                        anchor_prefix=anchor_prefix, must_see=id(item) in must_see,
+                    )
                 )
 
         return toc, "".join(body_parts)
@@ -641,6 +675,7 @@ class DailySummarizer:
         index: int,
         is_pick: bool = False,
         anchor_prefix: str = "item",
+        must_see: bool = False,
     ) -> str:
         """Format a single ContentItem into Markdown (unified write-up).
 
@@ -648,6 +683,10 @@ class DailySummarizer:
         then the five fixed sections 入选理由 / 背景 / 对中国影响 /
         对<location>影响 / 对我影响, followed by references, community
         discussion and tags.
+
+        2026-10-29: project entries additionally carry 对这个项目有什么用
+        and a ⭐ recommendation; ``must_see`` (decided per board by
+        ``_project_must_see_ids``) adds the 🔥 prefix.
         """
         _title = item.metadata.get(f"title_{language}") or item.title
         title = str(_title).replace("[", "(").replace("]", ")")
@@ -748,7 +787,7 @@ class DailySummarizer:
 
         lines = [
             f'<a id="{anchor_prefix}-{index}"></a>',
-            f"## {_must_see_prefix(item, language)}[{title}]({url}) {header_badge}",
+            f"## {'\U0001f525 ' if must_see else ''}[{title}]({url}) {header_badge}",
             "",
             summary,
             "",
