@@ -1,0 +1,306 @@
+{
+ "lesson": 4,
+ "title": "电感设计",
+ "blocks": [
+  {
+   "type": "text",
+   "text": "每日电源基础课 · 第4讲：电感设计（AL、Bpk、气隙）",
+   "style": "Heading1"
+  },
+  {
+   "type": "text",
+   "text": "推送日期：2026-10-18（Asia/Hong_Kong）",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "上讲自测答案",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/01.png",
+   "orig": "image1.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/02.png",
+   "orig": "image2.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/03.png",
+   "orig": "image3.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/04.png",
+   "orig": "image4.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/05.png",
+   "orig": "image5.png"
+  },
+  {
+   "type": "text",
+   "text": "Boost 临界：。 时 ，临界平均电流 ，输入功率约 。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l04/06.png",
+   "orig": "image6.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/07.png",
+   "orig": "image7.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/08.png",
+   "orig": "image8.png"
+  },
+  {
+   "type": "text",
+   "text": "时纹波加倍，，功率约 。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "核心原理",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "电感：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l04/09.png",
+   "orig": "image9.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/10.png",
+   "orig": "image10.png"
+  },
+  {
+   "type": "text",
+   "text": "开气隙后（忽略磁芯磁阻）。峰值磁密与交流磁摆：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l04/11.png",
+   "orig": "image11.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/12.png",
+   "orig": "image12.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/13.png",
+   "orig": "image13.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/14.png",
+   "orig": "image14.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/15.png",
+   "orig": "image15.png"
+  },
+  {
+   "type": "text",
+   "text": "铁氧体  随温度下降，设计常取 。储能主要在气隙：。粉芯软饱和，有效  随直流偏置下降，要用厂家偏置曲线。粗选磁芯可用 AP 法（面积积）。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l04/16.png",
+   "orig": "image16.png"
+  },
+  {
+   "type": "text",
+   "text": "图　开气隙电感磁芯示意",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l04/17.png",
+   "orig": "image17.png"
+  },
+  {
+   "type": "text",
+   "text": "图　峰值电流与磁密关系示意",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "算例",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/18.png",
+   "orig": "image18.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/19.png",
+   "orig": "image19.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/20.png",
+   "orig": "image20.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/21.png",
+   "orig": "image21.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/22.png",
+   "orig": "image22.png"
+  },
+  {
+   "type": "text",
+   "text": "Buck 电感：、、、。取 ：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l04/23.png",
+   "orig": "image23.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/24.png",
+   "orig": "image24.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/25.png",
+   "orig": "image25.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/26.png",
+   "orig": "image26.png"
+  },
+  {
+   "type": "text",
+   "text": "若 ，则 。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "与 OBC 的联系",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/27.png",
+   "orig": "image27.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/28.png",
+   "orig": "image28.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/29.png",
+   "orig": "image29.png"
+  },
+  {
+   "type": "text",
+   "text": "PFC 升压电感、交错相电感、EMI 差模电感都要按  校核 ，并兼顾高频铜损与铁损。SiC 把开关频率推高后， 可减小，但趋肤/邻近效应更重（第6讲）。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "自测题",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/30.png",
+   "orig": "image30.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/31.png",
+   "orig": "image31.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/32.png",
+   "orig": "image32.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/33.png",
+   "orig": "image33.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/34.png",
+   "orig": "image34.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/35.png",
+   "orig": "image35.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/36.png",
+   "orig": "image36.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/37.png",
+   "orig": "image27.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/38.png",
+   "orig": "image28.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l04/39.png",
+   "orig": "image37.png"
+  },
+  {
+   "type": "text",
+   "text": "、、、。求最小匝数 、所需  与气隙 ；若  升到 18 A， 多少？是否超 ？",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "（答案下一讲开头公布。）",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "下一讲预告",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "第5讲（嵌入式穿插）：C2000 ePWM 与 ADC 同步采样（平均电流采样）。",
+   "style": ""
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Horizon 日报与电源课",
+  "short_name": "Horizon",
+  "description": "Horizon 四榜日报 + 每日电源基础课（桌面电源 → OBC）",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f3f5",
+  "theme_color": "#0a59f7",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

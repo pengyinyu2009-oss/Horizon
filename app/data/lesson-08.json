@@ -1,0 +1,201 @@
+{
+ "lesson": 8,
+ "title": "图腾柱无桥PFC",
+ "blocks": [
+  {
+   "type": "text",
+   "text": "每日电源基础课 · 第8讲：图腾柱无桥 PFC",
+   "style": "Heading1"
+  },
+  {
+   "type": "text",
+   "text": "推送日期：2026-10-22（Asia/Hong_Kong）",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "上讲自测答案",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/01.png",
+   "orig": "image1.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/02.png",
+   "orig": "image2.png"
+  },
+  {
+   "type": "text",
+   "text": "核心原理",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "图腾柱无桥 PFC：",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "快管桥臂（SiC/GaN）：高频斩波；",
+   "style": "ListBullet"
+  },
+  {
+   "type": "text",
+   "text": "慢管桥臂（工频 MOSFET）：按市电极性做同步整流。",
+   "style": "ListBullet"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/03.png",
+   "orig": "image3.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/04.png",
+   "orig": "image4.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/05.png",
+   "orig": "image4.png"
+  },
+  {
+   "type": "text",
+   "text": "正半周：下管为主开关，，上管同步；负半周角色互换。CCM 下快管桥臂同步管的体二极管会硬恢复，普通 Si MOSFET 的  太大，快管必须用低  的 SiC/GaN。导通路径通常只有 2 个半导体，省掉整流桥的两串二极管压降。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l08/06.png",
+   "orig": "image5.png"
+  },
+  {
+   "type": "text",
+   "text": "过零尖峰：慢管桥臂切换时开关节点电压跳变约 ，寄生电容充放电叠加主/同步角色与占空比突变，形成电流尖峰。对策：过零死区封波、新主管占空比从 0 软启动、慢管延时导通、极性检测加滞环。电感电流双向，需霍尔或合适 CT。拓扑天然双向，便于 V2G；可两相交错或做到三相 11/22 kW。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l08/07.png",
+   "orig": "image6.png"
+  },
+  {
+   "type": "text",
+   "text": "图　图腾柱无桥 PFC 拓扑示意",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l08/08.png",
+   "orig": "image7.png"
+  },
+  {
+   "type": "text",
+   "text": "图　过零切换时的电流尖峰示意",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "算例",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/09.png",
+   "orig": "image8.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/10.png",
+   "orig": "image9.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/11.png",
+   "orig": "image10.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/12.png",
+   "orig": "image11.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/13.png",
+   "orig": "image12.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/14.png",
+   "orig": "image13.png"
+  },
+  {
+   "type": "text",
+   "text": "6.6 kW、。整流桥两管 ，按正弦半波平均电流 ，损耗约 。慢管示例  损耗约 。省约 39.5 W，约 0.6 个百分点效率。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "与 OBC 的联系",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "量产车载 OBC 前级已大量采用 SiC 图腾柱。过零尖峰、双向电流采样、与后级 LLC/DAB 的母线协同是三大工程点。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "自测题",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/15.png",
+   "orig": "image14.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/16.png",
+   "orig": "image15.png"
+  },
+  {
+   "type": "text",
+   "text": "1. 3.3 kW、230 V（忽略效率）、桥 、慢管 。省多少损耗？约占输入功率比例？",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l08/17.png",
+   "orig": "image16.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l08/18.png",
+   "orig": "image17.png"
+  },
+  {
+   "type": "text",
+   "text": "2. 、 时主开关占空比？为何过零直接切换会出尖峰？",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "（答案下一讲开头公布。）",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "下一讲预告",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "第9讲（嵌入式穿插）：数字 PI 控制器。",
+   "style": ""
+  }
+ ]
+}

@@ -1,0 +1,241 @@
+{
+ "lesson": 5,
+ "title": "C2000-ePWM与ADC同步采样",
+ "blocks": [
+  {
+   "type": "text",
+   "text": "每日电源基础课 · 第5讲：C2000 ePWM 与 ADC 同步采样",
+   "style": "Heading1"
+  },
+  {
+   "type": "text",
+   "text": "推送日期：2026-10-19（Asia/Hong_Kong）",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "上讲自测答案",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/01.png",
+   "orig": "image1.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/02.png",
+   "orig": "image2.png"
+  },
+  {
+   "type": "text",
+   "text": "由  得 ：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/03.png",
+   "orig": "image3.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/04.png",
+   "orig": "image4.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/05.png",
+   "orig": "image5.png"
+  },
+  {
+   "type": "text",
+   "text": "，。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/06.png",
+   "orig": "image6.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/07.png",
+   "orig": "image7.png"
+  },
+  {
+   "type": "text",
+   "text": "时 ，有饱和风险。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "核心原理：中心对齐 PWM 与中点采样",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "C2000 ePWM 增减计数（up-down）实现中心对齐 PWM：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/08.png",
+   "orig": "image8.png"
+  },
+  {
+   "type": "text",
+   "text": "在计数器 CTR=ZERO 或 CTR=PRD 处触发 SOCA，正好落在导通/关断区间中点，CCM 下采到的就是平均电流。偏离中点的误差：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/09.png",
+   "orig": "image9.png"
+  },
+  {
+   "type": "text",
+   "text": "DCM 下中点≠平均值；还要考虑 S+H 窗口与 ADC 转换延迟。交错 PFC 各相用独立 SOC；过零附近进 DCM 会导致采样失真，控制上常做过零区特殊处理。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/10.png",
+   "orig": "image10.png"
+  },
+  {
+   "type": "text",
+   "text": "图　中心对齐 ePWM 与中点采样示意",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/11.png",
+   "orig": "image11.png"
+  },
+  {
+   "type": "text",
+   "text": "图　采样时刻偏离中点的电流误差",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "算例",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/12.png",
+   "orig": "image12.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/13.png",
+   "orig": "image13.png"
+  },
+  {
+   "type": "text",
+   "text": "、：",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/14.png",
+   "orig": "image14.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/15.png",
+   "orig": "image15.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/16.png",
+   "orig": "image16.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/17.png",
+   "orig": "image17.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/18.png",
+   "orig": "image18.png"
+  },
+  {
+   "type": "text",
+   "text": "Buck：、，上升斜率 。采样偏晚 100 ns：误差 。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "与 OBC 的联系",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "图腾柱 PFC 与 DAB 电流环都依赖「PWM 中点同步采样」。采样相位错了，等于给电流环塞进噪声与直流偏置，轻则 THD 变差，重则过流误动作。",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "自测题",
+   "style": "Heading2"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/19.png",
+   "orig": "image19.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/20.png",
+   "orig": "image20.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/21.png",
+   "orig": "image21.png"
+  },
+  {
+   "type": "text",
+   "text": "1. 、，求中心对齐 。",
+   "style": ""
+  },
+  {
+   "type": "img",
+   "src": "img/l05/22.png",
+   "orig": "image22.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/23.png",
+   "orig": "image23.png"
+  },
+  {
+   "type": "img",
+   "src": "img/l05/24.png",
+   "orig": "image24.png"
+  },
+  {
+   "type": "text",
+   "text": "2. Boost PFC：、、。采样比导通中点晚 200 ns 的电流误差？改在关断中点晚 200 ns 呢？",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "（答案下一讲开头公布。）",
+   "style": ""
+  },
+  {
+   "type": "text",
+   "text": "下一讲预告",
+   "style": "Heading2"
+  },
+  {
+   "type": "text",
+   "text": "第6讲：磁芯损耗与铜损（Steinmetz、趋肤/邻近效应）。",
+   "style": ""
+  }
+ ]
+}
