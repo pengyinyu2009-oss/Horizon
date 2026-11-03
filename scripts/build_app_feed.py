@@ -22,11 +22,12 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
 
+# (显示 id, 文件名中缀, 名称) —— 主榜文件中缀是 horizon 而非 ai
 BOARDS = [
-    ("global", "🌍 全球新闻"),
-    ("ai", "🤖 Horizon 总榜"),
-    ("github-trending", "🔥 GitHub 热榜"),
-    ("ee", "🔧 电子工程师"),
+    ("global", "global", "🌍 全球新闻"),
+    ("ai", "horizon", "🤖 Horizon 总榜"),
+    ("github-trending", "github-trending", "🔥 GitHub 热榜"),
+    ("ee", "ee", "🔧 电子工程师"),
 ]
 
 ANCHOR_RE = re.compile(r'^<a id="item-([^"]+)"></a>\s*$', re.M)
@@ -135,8 +136,8 @@ def build_feed(src_dir: Path, date: str) -> dict:
     boards = []
     ok = 0
     total = 0
-    for board_id, name in BOARDS:
-        path = src_dir / f"{date}-{board_id}-zh.md"
+    for board_id, infix, name in BOARDS:
+        path = src_dir / f"{date}-{infix}-zh.md"
         items = []
         if path.is_file():
             ok += 1
