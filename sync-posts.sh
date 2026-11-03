@@ -96,48 +96,16 @@ done
 
 # 侧边栏先写临时文件，再原子替换。
 sidebar_tmp="$ROOT/.sidebar.tmp.$$"
-# 2026-11-01: 侧边栁改为只列汇总页按日报/周报/月报/年报分组。
-# 以前把每个分榜文件都平叙上去（440+ 条），导航基本不可用。
-sidebar_report_links() {
-  # $1 = find 的 -name 模式，$2 = 标签后缀（如 "-周榜-zh"）
-  find "$DST" -maxdepth 1 -name "$1" -printf '%f\n' | sort -r | while read -r f; do
-    stem="${f%.md}"
-    echo "* [${stem%$2}](reports-html/$stem.html)"
-  done
-}
 {
   echo "* [🏠 首页](reports-html/index.html)"
   echo "* [📑 4 榜单导航](reports-html/index.html)"
   echo ""
-  echo "**📅 日报（新→旧）**"
+  echo "**📅 日报 / 周报(新→旧)**"
   echo ""
-  # 日报用短链 {date}.html（与 {date}-榜单汇总-zh.html 同内容）
-  find "$DST" -maxdepth 1 -name '????-??-??-榜单汇总-zh.md' -printf '%f\n' | sort -r | while read -r f; do
-    d="${f:0:10}"
-    echo "* [$d](reports-html/$d.html)"
+  find "$DST" -maxdepth 1 -name '*.md' -printf '%f\n' | sort -r | while read -r f; do
+    b="${f%.md}"
+    echo "* [$b](reports-html/$b.html)"
   done
-  echo ""
-  weekly_count=$(find "$DST" -maxdepth 1 -name '????-W??-周榜-zh.md' | wc -l | tr -d ' ')
-  if [ "$weekly_count" -gt 0 ]; then
-    echo "**📆 周报**"
-    echo ""
-    sidebar_report_links '????-W??-周榜-zh.md' '-周榜-zh'
-    echo ""
-  fi
-  monthly_count=$(find "$DST" -maxdepth 1 -name '????-??-月榜-zh.md' | wc -l | tr -d ' ')
-  if [ "$monthly_count" -gt 0 ]; then
-    echo "**🗓 月报**"
-    echo ""
-    sidebar_report_links '????-??-月榜-zh.md' '-月榜-zh'
-    echo ""
-  fi
-  yearly_count=$(find "$DST" -maxdepth 1 -name '????*-年榜-zh.md' | wc -l | tr -d ' ')
-  if [ "$yearly_count" -gt 0 ]; then
-    echo "**🏆 年报**"
-    echo ""
-    sidebar_report_links '????*-年榜-zh.md' '-年榜-zh'
-    echo ""
-  fi
 } > "$sidebar_tmp"
 mv -f -- "$sidebar_tmp" "$ROOT/_sidebar.md"
 
@@ -155,6 +123,14 @@ rm -f -- "$STAGING_DIR/data/${TODAY}.json" \
 python3 "$REPO_DIR/render-html.py" \
   --src "$DST" \
   --dst "$STAGING_DIR" >> "$LOG" 2>&1
+
+# App 数据源：四榜 markdown → app-latest.json（非致命：失败不阻断发布）
+app_feed="$STAGING_DIR/data/app-latest.json"
+app_py="$HORIZON_REPO/.venv/bin/python"
+[ -x "$app_py" ] || app_py=python3
+if ! "$app_py" "$HORIZON_REPO/scripts/build_app_feed.py" --src "$SRC" --date "$TODAY" --out "$app_feed" >> "$LOG" 2>&1; then
+  echo "WARN: app feed build failed (non-fatal)" >> "$LOG"
+fi
 # mktemp creates the staging root as 0700. The directory becomes nginx's
 # live reports-html after exchange, so make every directory traversable and
 # every artifact readable before it can enter the web root.
