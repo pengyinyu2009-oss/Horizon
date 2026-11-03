@@ -4,33 +4,12 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第3讲：CCM / DCM / BCM",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-17（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l03/01.png",
-   "orig": "image1.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/02.png",
-   "orig": "image2.png"
-  },
-  {
    "type": "text",
-   "text": "Buck-Boost：，。",
-   "style": ""
+   "text": "Buck-Boost：⟦01.png⟧，⟦02.png⟧。"
   },
   {
    "type": "text",
@@ -39,48 +18,33 @@
   },
   {
    "type": "text",
-   "text": "电感电流谷值碰到零即为边界导通（BCM / CRM）；再轻载则进入断续（DCM）。CCM 下三角波中心即平均值；边界条件：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l03/03.png",
-   "orig": "image3.png"
+   "text": "电感电流谷值碰到零即为边界导通（BCM / CRM）；再轻载则进入断续（DCM）。CCM 下三角波中心即平均值；边界条件："
   },
   {
    "type": "text",
-   "text": "对 Buck，临界输出电流：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l03/04.png",
-   "orig": "image4.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/05.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/06.png",
-   "orig": "image6.png"
+   "text": "⟦03.png⟧"
   },
   {
    "type": "text",
-   "text": "也可用无量纲参数 ： 为 CCM，反之为 DCM。DCM 下变比随负载变化，小信号阶次与 RHP 零点行为也与 CCM 不同。",
-   "style": ""
+   "text": "对 Buck，临界输出电流："
+  },
+  {
+   "type": "text",
+   "text": "⟦04.png⟧"
+  },
+  {
+   "type": "text",
+   "text": "也可用无量纲参数 ⟦05.png⟧：⟦06.png⟧ 为 CCM，反之为 DCM。DCM 下变比随负载变化，小信号阶次与 RHP 零点行为也与 CCM 不同。"
   },
   {
    "type": "img",
    "src": "img/l03/07.png",
-   "orig": "image7.png"
+   "w": 1340,
+   "h": 464
   },
   {
    "type": "text",
-   "text": "图　电感电流：CCM / BCM / DCM 对比",
-   "style": ""
+   "text": "图　电感电流：CCM / BCM / DCM 对比"
   },
   {
    "type": "text",
@@ -108,34 +72,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l03/08.png",
-   "orig": "image8.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/09.png",
-   "orig": "image9.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/10.png",
-   "orig": "image10.png"
+   "type": "text",
+   "text": "Buck：⟦08.png⟧、⟦09.png⟧、⟦10.png⟧："
   },
   {
    "type": "text",
-   "text": "Buck：、、：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l03/11.png",
-   "orig": "image11.png"
+   "text": "⟦11.png⟧"
   },
   {
    "type": "text",
-   "text": "低于 2.25 A 即进入 DCM。",
-   "style": ""
+   "text": "低于 2.25 A 即进入 DCM。"
   },
   {
    "type": "text",
@@ -144,8 +90,7 @@
   },
   {
    "type": "text",
-   "text": "6.6 kW OBC 的 SiC 图腾柱 PFC 额定多在 CCM；市电过零附近必然 DCM。交错 PFC 各相独立判断模式。后级 LLC 轻载也会进不同模态，但机制不同于电感 DCM。",
-   "style": ""
+   "text": "6.6 kW OBC 的 SiC 图腾柱 PFC 额定多在 CCM；市电过零附近必然 DCM。交错 PFC 各相独立判断模式。后级 LLC 轻载也会进不同模态，但机制不同于电感 DCM。"
   },
   {
    "type": "text",
@@ -153,39 +98,12 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l03/12.png",
-   "orig": "image12.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/13.png",
-   "orig": "image13.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/14.png",
-   "orig": "image14.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/15.png",
-   "orig": "image15.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l03/16.png",
-   "orig": "image16.png"
+   "type": "text",
+   "text": "Boost：⟦12.png⟧、⟦13.png⟧、⟦14.png⟧。求进入 DCM 的临界电感平均电流与对应输入功率；若 ⟦15.png⟧ 减半到 ⟦16.png⟧ 又如何？"
   },
   {
    "type": "text",
-   "text": "Boost：、、。求进入 DCM 的临界电感平均电流与对应输入功率；若  减半到  又如何？",
-   "style": ""
-  },
-  {
-   "type": "text",
-   "text": "（答案下一讲开头公布。）",
-   "style": ""
+   "text": "（答案下一讲开头公布。）"
   },
   {
    "type": "text",
@@ -194,8 +112,7 @@
   },
   {
    "type": "text",
-   "text": "第4讲：磁件基础——电感设计（AL 值、磁通密度、饱和、气隙）。",
-   "style": ""
+   "text": "第4讲：磁件基础——电感设计（AL 值、磁通密度、饱和、气隙）。"
   }
  ]
 }

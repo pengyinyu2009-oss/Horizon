@@ -56,6 +56,9 @@ def test_feed_parses_all_four_boards(tmp_path):
     assert item["must_see"] is True
     assert item["rec"] == 4.2 and item["rec_stars"] == 4
     assert item["stars"] == "30.6万"
+    # 指标统一：rec10 =（7.0+8.0）/2
+    assert item["rec10"] == 7.5
+    assert g["items"][1]["rec10"] == 8.0  # 无相关分时取客观分
     assert item["sections"]["project_usage"] == "可集成到 cw 的 agent-mcp 模块。"
 
 

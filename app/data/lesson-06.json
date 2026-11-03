@@ -4,58 +4,20 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第6讲：磁芯损耗与铜损",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-20（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l06/01.png",
-   "orig": "image1.png"
+   "type": "text",
+   "text": "⟦01.png⟧。"
   },
   {
    "type": "text",
-   "text": "。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l06/02.png",
-   "orig": "image2.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/03.png",
-   "orig": "image3.png"
+   "text": "导通段斜率 ⟦02.png⟧，晚 200 ns → 读高 ⟦03.png⟧。"
   },
   {
    "type": "text",
-   "text": "导通段斜率 ，晚 200 ns → 读高 。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l06/04.png",
-   "orig": "image4.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/05.png",
-   "orig": "image3.png"
-  },
-  {
-   "type": "text",
-   "text": "关断段斜率 ，晚 200 ns → 读低 。",
-   "style": ""
+   "text": "关断段斜率 ⟦04.png⟧，晚 200 ns → 读低 ⟦03.png⟧。"
   },
   {
    "type": "text",
@@ -64,63 +26,29 @@
   },
   {
    "type": "text",
-   "text": "经典 Steinmetz：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l06/06.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/07.png",
-   "orig": "image6.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/08.png",
-   "orig": "image7.png"
+   "text": "经典 Steinmetz："
   },
   {
    "type": "text",
-   "text": "其中  取交流峰值（常用 ）。非正弦激励用 iGSE；直流偏置会抬高损耗。铁氧体损耗密度常在约 80–100 °C 最低。",
-   "style": ""
+   "text": "⟦05.png⟧"
   },
   {
-   "type": "img",
-   "src": "img/l06/09.png",
-   "orig": "image8.png"
+   "type": "text",
+   "text": "其中 ⟦06.png⟧ 取交流峰值（常用 ⟦07.png⟧）。非正弦激励用 iGSE；直流偏置会抬高损耗。铁氧体损耗密度常在约 80–100 °C 最低。"
   },
   {
-   "type": "img",
-   "src": "img/l06/10.png",
-   "orig": "image9.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/11.png",
-   "orig": "image10.png"
+   "type": "text",
+   "text": "铜损：趋肤深度（铜，约 100 °C）⟦08.png⟧（⟦09.png⟧ 以 Hz 计时的工程近似）。多层绕组还有邻近效应（Dowell 模型）；交错绕法与 Litz（股径 ⟦10.png⟧）是常用对策。按匝数优化时，最优附近常有 ⟦11.png⟧ 的数量级关系。"
   },
   {
    "type": "img",
    "src": "img/l06/12.png",
-   "orig": "image11.png"
+   "w": 1071,
+   "h": 496
   },
   {
    "type": "text",
-   "text": "铜损：趋肤深度（铜，约 100 °C）（ 以 Hz 计时的工程近似）。多层绕组还有邻近效应（Dowell 模型）；交错绕法与 Litz（股径 ）是常用对策。按匝数优化时，最优附近常有  的数量级关系。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l06/13.png",
-   "orig": "image12.png"
-  },
-  {
-   "type": "text",
-   "text": "图　趋肤深度随频率变化",
-   "style": ""
+   "text": "图　趋肤深度随频率变化"
   },
   {
    "type": "text",
@@ -128,94 +56,26 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l06/14.png",
-   "orig": "image13.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/15.png",
-   "orig": "image14.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/16.png",
-   "orig": "image15.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/17.png",
-   "orig": "image16.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/18.png",
-   "orig": "image17.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/19.png",
-   "orig": "image18.png"
+   "type": "text",
+   "text": "沿用第4讲 Buck 电感：⟦13.png⟧、⟦14.png⟧（交流峰值约 55 mT）。采用示例磁芯参数：⟦15.png⟧，⟦16.png⟧、⟦17.png⟧，⟦18.png⟧："
   },
   {
    "type": "text",
-   "text": "沿用第4讲 Buck 电感：、（交流峰值约 55 mT）。采用示例磁芯参数：，、，：",
-   "style": ""
+   "text": "⟦19.png⟧"
   },
   {
-   "type": "img",
-   "src": "img/l06/20.png",
-   "orig": "image19.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/21.png",
-   "orig": "image20.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/22.png",
-   "orig": "image21.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/23.png",
-   "orig": "image22.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/24.png",
-   "orig": "image23.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/25.png",
-   "orig": "image24.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l06/26.png",
-   "orig": "image25.png"
+   "type": "text",
+   "text": "⟦20.png⟧。沿用 ⟦21.png⟧、⟦22.png⟧，则 ⟦23.png⟧，⟦24.png⟧。若 ⟦25.png⟧ 示例 5 mΩ，则 ⟦26.png⟧（未计交流电阻放大）。"
   },
   {
    "type": "img",
    "src": "img/l06/27.png",
-   "orig": "image26.png"
+   "w": 861,
+   "h": 495
   },
   {
    "type": "text",
-   "text": "。沿用 、，则 ，。若  示例 5 mΩ，则 （未计交流电阻放大）。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l06/28.png",
-   "orig": "image27.png"
-  },
-  {
-   "type": "text",
-   "text": "图　算例铁损与铜损对比",
-   "style": ""
+   "text": "图　算例铁损与铜损对比"
   },
   {
    "type": "text",
@@ -223,14 +83,8 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l06/29.png",
-   "orig": "image28.png"
-  },
-  {
    "type": "text",
-   "text": "PFC 电感与 LLC 变压器是 OBC 热设计两大户。SiC 提频后铁损与铜损的分配会变：频率升、 降时铁损不一定升（见自测），但趋肤效应强迫你改用 Litz 或 PCB 绕组。",
-   "style": ""
+   "text": "PFC 电感与 LLC 变压器是 OBC 热设计两大户。SiC 提频后铁损与铜损的分配会变：频率升、⟦28.png⟧ 降时铁损不一定升（见自测），但趋肤效应强迫你改用 Litz 或 PCB 绕组。"
   },
   {
    "type": "text",
@@ -238,24 +92,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l06/30.png",
-   "orig": "image29.png"
+   "type": "text",
+   "text": "1. 同磁芯、同匝数、同电压激励，频率从 100 kHz 升到 200 kHz（⟦29.png⟧），磁芯损耗变为多少倍？"
   },
   {
    "type": "text",
-   "text": "1. 同磁芯、同匝数、同电压激励，频率从 100 kHz 升到 200 kHz（），磁芯损耗变为多少倍？",
-   "style": ""
+   "text": "2. 铜 100 °C 时，65 kHz 与 300 kHz 的趋肤深度各约多少？"
   },
   {
    "type": "text",
-   "text": "2. 铜 100 °C 时，65 kHz 与 300 kHz 的趋肤深度各约多少？",
-   "style": ""
-  },
-  {
-   "type": "text",
-   "text": "（答案下一讲开头公布。）",
-   "style": ""
+   "text": "（答案下一讲开头公布。）"
   },
   {
    "type": "text",
@@ -264,8 +110,7 @@
   },
   {
    "type": "text",
-   "text": "第7讲：PFC 基础（功率因数、平均电流控制、母线电容）。",
-   "style": ""
+   "text": "第7讲：PFC 基础（功率因数、平均电流控制、母线电容）。"
   }
  ]
 }

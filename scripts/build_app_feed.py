@@ -79,6 +79,11 @@ def _parse_item(block: str, item_id: str) -> dict:
         if hm.group("rec"):
             item["rec"] = float(hm.group("rec"))
             item["rec_stars"] = len(hm.group("recstars").replace("\ufe0f", ""))
+        # 2026-11-04 指标统一：单一推荐分 rec10 =（客观+相关）/2，0-10 量纲。
+        # 旧 markdown 里的 5 星制仅作解析兼容，App 只展示 rec10。
+        if "score" in item:
+            rel = item.get("relevance")
+            item["rec10"] = round(((item["score"] + rel) / 2) if rel is not None else item["score"], 1)
     else:
         item["title"] = ""
         item["url"] = ""

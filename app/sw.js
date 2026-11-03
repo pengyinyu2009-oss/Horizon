@@ -1,5 +1,5 @@
 /* Horizon App service worker: app-shell cache-first, 版本号换版本即刷新 */
-const VER = "hz-app-v1";
+const VER = "hz-app-v2";
 const SHELL = [
   "./", "./index.html", "./style.css", "./app.js", "./manifest.webmanifest",
   "./data/lessons.json", "./icons/icon-192.png", "./icons/icon-512.png",

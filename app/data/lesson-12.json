@@ -4,78 +4,20 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第12讲：SiC MOSFET 栅极驱动",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-26（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l12/01.png",
-   "orig": "image1.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/02.png",
-   "orig": "image2.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/03.png",
-   "orig": "image3.png"
+   "type": "text",
+   "text": "⟦01.png⟧、3.3 kW、⟦02.png⟧、⟦03.png⟧："
   },
   {
    "type": "text",
-   "text": "、3.3 kW、、：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l12/04.png",
-   "orig": "image4.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/05.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/06.png",
-   "orig": "image6.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/07.png",
-   "orig": "image7.png"
+   "text": "解 ⟦04.png⟧ 得 ⟦05.png⟧。副边 ZVS 门槛 ⟦06.png⟧，⟦07.png⟧，副边丢 ZVS。"
   },
   {
    "type": "text",
-   "text": "解  得 。副边 ZVS 门槛 ，，副边丢 ZVS。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l12/08.png",
-   "orig": "image8.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/09.png",
-   "orig": "image9.png"
-  },
-  {
-   "type": "text",
-   "text": "母线降到  时 ，有 ZVS。",
-   "style": ""
+   "text": "母线降到 ⟦08.png⟧ 时 ⟦09.png⟧，有 ZVS。"
   },
   {
    "type": "text",
@@ -83,64 +25,44 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l12/10.png",
-   "orig": "image10.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/11.png",
-   "orig": "image11.png"
+   "type": "text",
+   "text": "SiC MOSFET 典型驱动电压约 +18 V / −4 V（器件系列而异）。⟦10.png⟧ 偏低且高温下降，0 V 关断在高 ⟦11.png⟧ 下易米勒误导通。驱动功率与峰值电流："
   },
   {
    "type": "text",
-   "text": "SiC MOSFET 典型驱动电压约 +18 V / −4 V（器件系列而异）。 偏低且高温下降，0 V 关断在高  下易米勒误导通。驱动功率与峰值电流：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l12/12.png",
-   "orig": "image12.png"
+   "text": "⟦12.png⟧"
   },
   {
    "type": "text",
-   "text": "米勒尖峰近似：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l12/13.png",
-   "orig": "image13.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/14.png",
-   "orig": "image14.png"
+   "text": "米勒尖峰近似："
   },
   {
    "type": "text",
-   "text": "对策：负压关断、米勒钳位、开尔文源极（消除共源电感  干扰）、隔离驱动 CMTI 常要求 >100 V/ns。短路耐受约 2–3 µs，需快速 DESAT/过流关断。",
-   "style": ""
+   "text": "⟦13.png⟧"
+  },
+  {
+   "type": "text",
+   "text": "对策：负压关断、米勒钳位、开尔文源极（消除共源电感 ⟦14.png⟧ 干扰）、隔离驱动 CMTI 常要求 >100 V/ns。短路耐受约 2–3 µs，需快速 DESAT/过流关断。"
   },
   {
    "type": "img",
    "src": "img/l12/15.png",
-   "orig": "image15.png"
+   "w": 962,
+   "h": 489
   },
   {
    "type": "text",
-   "text": "图　SiC 栅极驱动回路示意",
-   "style": ""
+   "text": "图　SiC 栅极驱动回路示意"
   },
   {
    "type": "img",
    "src": "img/l12/16.png",
-   "orig": "image16.png"
+   "w": 1102,
+   "h": 495
   },
   {
    "type": "text",
-   "text": "图　米勒尖峰与负压关断对比示意",
-   "style": ""
+   "text": "图　米勒尖峰与负压关断对比示意"
   },
   {
    "type": "text",
@@ -148,64 +70,8 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l12/17.png",
-   "orig": "image17.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/18.png",
-   "orig": "image18.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/19.png",
-   "orig": "image19.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/20.png",
-   "orig": "image20.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/21.png",
-   "orig": "image21.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/22.png",
-   "orig": "image22.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/23.png",
-   "orig": "image23.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/24.png",
-   "orig": "image24.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/25.png",
-   "orig": "image25.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/26.png",
-   "orig": "image26.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/27.png",
-   "orig": "image27.png"
-  },
-  {
    "type": "text",
-   "text": "示例：、、 → 。 → 。、、 → 尖峰 2.5 V。、 → 5 V 源极扰动量级。",
-   "style": ""
+   "text": "示例：⟦17.png⟧、⟦18.png⟧、⟦19.png⟧ → ⟦20.png⟧。⟦21.png⟧ → ⟦22.png⟧。⟦23.png⟧、⟦24.png⟧、⟦25.png⟧ → 尖峰 2.5 V。⟦26.png⟧、⟦27.png⟧ → 5 V 源极扰动量级。"
   },
   {
    "type": "text",
@@ -214,8 +80,7 @@
   },
   {
    "type": "text",
-   "text": "图腾柱快管、DAB/LLC 原边桥臂都是 SiC 主战场。栅极回路的寄生电感与 CMTI 直接决定能否把 SiC 的高速用出来而不直通。",
-   "style": ""
+   "text": "图腾柱快管、DAB/LLC 原边桥臂都是 SiC 主战场。栅极回路的寄生电感与 CMTI 直接决定能否把 SiC 的高速用出来而不直通。"
   },
   {
    "type": "text",
@@ -223,59 +88,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l12/28.png",
-   "orig": "image28.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/29.png",
-   "orig": "image29.png"
+   "type": "text",
+   "text": "1. ⟦28.png⟧、+18/−4 V、⟦29.png⟧、4 管，总驱动功率？"
   },
   {
    "type": "text",
-   "text": "1. 、+18/−4 V、、4 管，总驱动功率？",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l12/30.png",
-   "orig": "image30.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/31.png",
-   "orig": "image31.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/32.png",
-   "orig": "image32.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/33.png",
-   "orig": "image33.png"
+   "text": "2. ⟦30.png⟧、⟦31.png⟧、⟦32.png⟧ 总 6 Ω、⟦33.png⟧。0 V 关断与 −4 V 关断是否会误导通？"
   },
   {
    "type": "text",
-   "text": "2. 、、 总 6 Ω、。0 V 关断与 −4 V 关断是否会误导通？",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l12/34.png",
-   "orig": "image34.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l12/35.png",
-   "orig": "image35.png"
-  },
-  {
-   "type": "text",
-   "text": "（答案：每管 ，四管共约 1.41 W；尖峰 ，0 V 关断会到 +3.6 V > 2 V 误导通，−4 V 关断到 −0.4 V 不会。）",
-   "style": ""
+   "text": "（答案：每管 ⟦34.png⟧，四管共约 1.41 W；尖峰 ⟦35.png⟧，0 V 关断会到 +3.6 V > 2 V 误导通，−4 V 关断到 −0.4 V 不会。）"
   },
   {
    "type": "text",
@@ -284,8 +106,7 @@
   },
   {
    "type": "text",
-   "text": "本系列第1–12讲告一段落。后续可延伸：CLLC、多移相 DAB、数字控制实现与 EMI。",
-   "style": ""
+   "text": "本系列第1–12讲告一段落。后续可延伸：CLLC、多移相 DAB、数字控制实现与 EMI。"
   }
  ]
 }

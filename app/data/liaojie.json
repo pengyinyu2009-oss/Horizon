@@ -1,0 +1,147 @@
+{
+ "version": 1,
+ "items": [
+  {
+   "name": "P1 · LLC 300W (L6599)",
+   "source": "立创",
+   "oneliner": "PFC+LLC 架构 30V/10A，UCC28180+L6599；你的 300W 桌面电源主参考。",
+   "link": "https://oshwhub.com/lai-baobaobaobao/llc_300w_6599（**注：本次核验"
+  },
+  {
+   "name": "P3 · Zeruns STM32G4 450W 同步 Buck-Boost",
+   "source": "立创",
+   "oneliner": "效率 94.3%、HRPWM 184ps 分辨率、数字控制环路——数字电源必读。",
+   "link": "https://oshwhub.com/zeruns/ji-yu-stm32-de-buck-boost-xing-shu-zi-dian-yuan"
+  },
+  {
+   "name": "P4 · FLPowerPro",
+   "source": "立创",
+   "oneliner": "SC8701+AT32+PD 诱骗+CC 表+电子负载，7.7w 收藏的全能桌面电源。",
+   "link": "https://oshwhub.com/flyn/flpowerpro"
+  },
+  {
+   "name": "P5 · 山雀桌面电源",
+   "source": "立创",
+   "oneliner": "LM25116 电流模式 Buck+RS 锁存过流+继电器切断，1750 次下载。",
+   "link": "https://oshwhub.com/Parus_major/shan-que-mu-ni-_zhuo-mian-dian-y"
+  },
+  {
+   "name": "P6 · SC8701+SW2305 100W",
+   "source": "立创",
+   "oneliner": "23.4×18mm 跑满 100W 无散热，5.5k 收藏的极限小型化。",
+   "link": "https://oshwhub.com/ml_m/sc8701_sw2303"
+  },
+  {
+   "name": "P7 · LGS6302 Boost",
+   "source": "立创",
+   "oneliner": "3-60V 宽输入 Boost，BOM 完整，6.2k 收藏。",
+   "link": "https://oshwhub.com/wupengwp/lgs6302dc-dc-boost"
+  },
+  {
+   "name": "E1 · FLPowerPro 嵌入式侧",
+   "source": "立创",
+   "oneliner": "AT32+FUSB302 状态机+TFT 多页面+FreeRTOS，PD 界面层范本。",
+   "link": "https://oshwhub.com/flyn/flpowerpro"
+  },
+  {
+   "name": "E2 · 数显 PD 电源",
+   "source": "立创",
+   "oneliner": "PL5501+SW2303+STC8H+IPS，4.9k 收藏的数显 PD 方案。",
+   "link": "https://oshwhub.com/kevin_tan/digital-pd-power-supply"
+  },
+  {
+   "name": "E3 · USB 可编程电源",
+   "source": "立创",
+   "oneliner": "AT32F415+INA3221 16-bit+BLE+小程序，资料 9/10。",
+   "link": "https://oshwhub.com/bryan_he/usb_programmable_dc_ps"
+  },
+  {
+   "name": "E5 · Zeruns STM32G4 嵌入式侧",
+   "source": "立创",
+   "oneliner": "HRPWM 184ps+数字环路，与 P3 同源，嵌入式视角。",
+   "link": "https://oshwhub.com/zeruns/ji-yu-stm32-de-buck-boost-xing-shu-zi-dian-yuan"
+  },
+  {
+   "name": "E6 · 数控稳压电源 V1.0",
+   "source": "立创",
+   "oneliner": "STC 8A8K64S4A12+TL431，830 次下载的入门数控。",
+   "link": "https://oshwhub.com/leichaolin/dian-zi-mu-kuai-shuo-kong-ke-diao-wen-ya-dian-yuan-she-ji-v1-0"
+  },
+  {
+   "name": "E7 · PD 诱骗双向监测表头",
+   "source": "立创",
+   "oneliner": "CH32V003 RISC-V+CH224K+INA219+OLED。",
+   "link": "https://oshwhub.com/wandaeda/ji-yu-ch32v003-he-ch224k-de-dianyuanyoupianqi"
+  },
+  {
+   "name": "TIDA-050074",
+   "source": "TI",
+   "oneliner": "140W Boost-PFC+AHB GaN，地球上最接近你 300W 目标的官方参考（>95.5% 效率）。",
+   "link": "https://www.ti.com/tool/TIDA-050074"
+  },
+  {
+   "name": "PMP41115",
+   "source": "TI",
+   "oneliner": "240W Buck-Boost PD3.1 EPR，97.6% 满载效率。",
+   "link": "https://www.ti.com/tool/PMP41115"
+  },
+  {
+   "name": "PMP23558",
+   "source": "TI",
+   "oneliner": "240W GaN PFC+LLC（UCC25661+LMG3622），95.96% 峰值。",
+   "link": "https://www.ti.com/tool/PMP23558"
+  },
+  {
+   "name": "TIDA-01623",
+   "source": "TI",
+   "oneliner": "100W 极紧凑 PFC+ACF GaN，30 W/in³。",
+   "link": "https://www.ti.com/tool/TIDA-01623"
+  },
+  {
+   "name": "TIDA-010047",
+   "source": "TI",
+   "oneliner": "100W PFC+ACF Si 双口 USB-PD（UCC28780+TPS65987D）。",
+   "link": "https://www.ti.com/tool/TIDA-010047"
+  },
+  {
+   "name": "DER-1077",
+   "source": "PI",
+   "oneliner": "140W PowiGaN PD3.2 EPR，>95% 效率。",
+   "link": "https://power.com/design-support/design-examples/der-1077/"
+  },
+  {
+   "name": "DER-1065",
+   "source": "PI",
+   "oneliner": "90W 双口共享容量（INN5375F-H907+IP2738），>93.5%。",
+   "link": "https://power.com/design-support/design-examples/der-1065/"
+  },
+  {
+   "name": "LeoDJ/USB-C_PD_PSU",
+   "source": "GitHub",
+   "oneliner": "唯一开源 240W EPR（BQ25758A+CH32X035 双控），WIP 但稀缺。",
+   "link": "https://github.com/LeoDJ/USB-C_PD_PSU"
+  },
+  {
+   "name": "Jana-Marie/Otter-Iron",
+   "source": "GitHub",
+   "oneliner": "USB-PD 完整协议栈，519 stars。",
+   "link": "https://github.com/Jana-Marie/Otter-Iron"
+  },
+  {
+   "name": "sydundar/BenchVolt-PD",
+   "source": "GitHub",
+   "oneliner": "工作台级 USB-PD 桌面电源，77 stars。",
+   "link": "https://github.com/sydundar/BenchVolt-PD"
+  },
+  {
+   "name": "Motoori 2025 论文",
+   "source": "IEEE",
+   "oneliner": "Voltage-clamper + Mid-voltage AHB + SR——直接对应你的动态 AHB 母线架构。"
+  },
+  {
+   "name": "Cao 2023 论文",
+   "source": "IEEE",
+   "oneliner": "135W AHB Type-C（P Cao, Y Wang, Y Sun, X Lyu, F Yu）。"
+  }
+ ]
+}

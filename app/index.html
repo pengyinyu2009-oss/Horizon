@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0a59f7">
-<title>Horizon · 日报与电源课</title>
+<meta name="theme-color" content="#f2f2f7">
+<title>Horizon</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -12,57 +12,62 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">⚡ Horizon</div>
-  <div class="date" id="hdr-date">…</div>
-  <button class="iconbtn" id="theme-btn" aria-label="主题">🌙</button>
+  <div class="tt" id="view-title">日报</div>
+  <div class="tr">
+    <span class="date" id="hdr-date"></span>
+    <button class="iconbtn" id="theme-btn" aria-label="主题">🌙</button>
+  </div>
 </header>
 
 <main id="main">
-  <!-- ============ 日报 tab ============ -->
   <section id="view-report" class="view">
-    <div class="feeddate" id="feed-date">加载中…</div>
-    <div class="chips" id="board-chips"></div>
+    <div class="seg" id="board-seg"></div>
+    <div class="feedmeta" id="feed-date"></div>
     <div id="board-list"></div>
     <div class="err" id="feed-err" hidden></div>
   </section>
 
-  <!-- ============ 课程 tab ============ -->
   <section id="view-lesson" class="view" hidden>
     <div class="err" id="lesson-err" hidden></div>
     <div id="lesson-today"></div>
-    <div class="lesson-outline-head">课程大纲 <span class="sub" id="lesson-count"></span></div>
+    <div class="otitle">大纲 · <span id="lesson-count"></span></div>
     <div id="lesson-outline"></div>
-    <div class="sub" style="text-align:center;margin:14px 0 6px">—— 以下为系列预告 ——</div>
-    <div class="sub" style="text-align:center;margin:0 0 10px" id="lesson-tail"></div>
+    <div class="tailnote">第 21 讲起按需扩展：图腾柱双闭环 · CLLC 同步整流时序 · CAN 充电握手 · 800V 专题</div>
   </section>
 
-  <!-- ============ 我的 tab ============ -->
+  <section id="view-fuke" class="view" hidden>
+    <div class="err" id="fuke-err" hidden></div>
+    <div id="fuke-today"></div>
+    <div id="fuke-series"></div>
+  </section>
+
   <section id="view-me" class="view" hidden>
     <div class="card">
-      <div class="me-title">学习进度</div>
-      <div class="me-stats" id="me-stats"></div>
-      <div class="stagebars" id="stage-bars"></div>
+      <div class="ct">学习进度</div>
+      <div class="mstats" id="me-stats"></div>
+      <div class="sbars" id="stage-bars"></div>
     </div>
     <div class="card">
-      <div class="me-title">设置</div>
-      <div class="me-row"><span>深色模式</span>
+      <div class="ct">设置</div>
+      <div class="mrow"><span>深色模式</span>
         <select id="theme-select">
           <option value="auto">跟随系统</option>
           <option value="light">浅色</option>
-          <option value="dark">深色</option
+          <option value="dark">深色</option>
         </select>
       </div>
-      <div class="me-row"><span>清除本地缓存</span><button class="mini" id="btn-clear">清除</button></div>
-      <div class="me-row"><span>Web 版日报</span><a href="/reports-html/index.html">打开 ↗</a></div>
-      <div class="me-row"><span>关于</span><span class="sub">Horizon App · 数据来自 horizon.pyyaiai.com</span></div>
+      <div class="mrow"><span>清除本地缓存</span><button class="mini" id="btn-clear">清除</button></div>
+      <div class="mrow"><span>Web 版日报</span><a href="/reports-html/index.html">打开 ↗</a></div>
+      <div class="mrow"><span>关于</span><span class="sub">Horizon App · 数据源 horizon.pyyaiai.com</span></div>
     </div>
   </section>
 </main>
 
 <nav class="tabbar">
-  <button class="tab active" data-view="report"><span class="ticon">📰</span><span>日报</span></button>
-  <button class="tab" data-view="lesson"><span class="ticon">⚡</span><span>课程</span></button>
-  <button class="tab" data-view="me"><span class="ticon">📈</span><span>我的</span></button>
+  <button class="tab active" data-view="report"><svg viewBox="0 0 24 24" class="ti"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5v-13Zm3 4h10M7 13h10M7 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>日报</span></button>
+  <button class="tab" data-view="lesson"><svg viewBox="0 0 24 24" class="ti"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>课程</span></button>
+  <button class="tab" data-view="fuke"><svg viewBox="0 0 24 24" class="ti"><path d="m6.5 7.5 4 4.5-4 4.5M12.5 16.5h5.5M4 4.5h16a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 18V6A1.5 1.5 0 0 1 4 4.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>复刻</span></button>
+  <button class="tab" data-view="me"><svg viewBox="0 0 24 24" class="ti"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7.5 9c.8-3.5 3.9-6 7.5-6s6.7 2.5 7.5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>我的</span></button>
 </nav>
 
 <script src="app.js"></script>

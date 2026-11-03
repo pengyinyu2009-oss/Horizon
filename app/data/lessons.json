@@ -24,23 +24,12 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第1讲：伏秒/电荷平衡与 Buck",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-15（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
      "type": "text",
-     "text": "（本讲为第1讲，无上讲自测。）",
-     "style": ""
+     "text": "（本讲为第1讲，无上讲自测。）"
     },
     {
      "type": "text",
@@ -49,38 +38,33 @@
     },
     {
      "type": "text",
-     "text": "开关电源稳态工作时，电感两端电压在一个开关周期内的时间积分必须为零，否则电感电流会单向发散——这就是伏秒平衡（Volt-Second Balance）：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l01/01.png",
-     "orig": "image1.png"
+     "text": "开关电源稳态工作时，电感两端电压在一个开关周期内的时间积分必须为零，否则电感电流会单向发散——这就是伏秒平衡（Volt-Second Balance）："
     },
     {
      "type": "text",
-     "text": "同理，电容电流在一个周期内的电荷积分必须为零，否则电容电压会单向漂移——这就是电荷平衡（Charge Balance）：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l01/02.png",
-     "orig": "image2.png"
+     "text": "⟦img/l01/01.png⟧"
     },
     {
      "type": "text",
-     "text": "这两条是推导 Buck、Boost、Buck-Boost 等拓扑稳态变比、纹波的出发点。",
-     "style": ""
+     "text": "同理，电容电流在一个周期内的电荷积分必须为零，否则电容电压会单向漂移——这就是电荷平衡（Charge Balance）："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l01/02.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "这两条是推导 Buck、Boost、Buck-Boost 等拓扑稳态变比、纹波的出发点。"
     },
     {
      "type": "img",
      "src": "img/l01/03.png",
-     "orig": "image3.png"
+     "w": 1142,
+     "h": 624
     },
     {
      "type": "text",
-     "text": "图　Buck 关键波形与伏秒平衡示意",
-     "style": ""
+     "text": "图　Buck 关键波形与伏秒平衡示意"
     },
     {
      "type": "text",
@@ -88,59 +72,34 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l01/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/05.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/06.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/07.png",
-     "orig": "image7.png"
+     "type": "text",
+     "text": "同步/异步 Buck：开关导通时电感电压 ⟦img/l01/04.png⟧，关断时 ⟦img/l01/05.png⟧（忽略二极管压降）。设占空比为 ⟦img/l01/06.png⟧，开关周期为 ⟦img/l01/07.png⟧，伏秒平衡给出："
     },
     {
      "type": "text",
-     "text": "同步/异步 Buck：开关导通时电感电压 ，关断时 （忽略二极管压降）。设占空比为 ，开关周期为 ，伏秒平衡给出：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l01/08.png",
-     "orig": "image8.png"
+     "text": "⟦img/l01/08.png⟧"
     },
     {
      "type": "text",
-     "text": "电感电流纹波峰峰值：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l01/09.png",
-     "orig": "image9.png"
+     "text": "电感电流纹波峰峰值："
     },
     {
      "type": "text",
-     "text": "输出电容上的电荷平衡可进一步给出电压纹波（与 ESR、ESL 有关）。",
-     "style": ""
+     "text": "⟦img/l01/09.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "输出电容上的电荷平衡可进一步给出电压纹波（与 ESR、ESL 有关）。"
     },
     {
      "type": "img",
      "src": "img/l01/10.png",
-     "orig": "image10.png"
+     "w": 924,
+     "h": 464
     },
     {
      "type": "text",
-     "text": "图　Buck 拓扑示意",
-     "style": ""
+     "text": "图　Buck 拓扑示意"
     },
     {
      "type": "text",
@@ -148,39 +107,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l01/11.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/12.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/13.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/14.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/15.png",
-     "orig": "image15.png"
+     "type": "text",
+     "text": "取 Buck：⟦img/l01/11.png⟧、⟦img/l01/12.png⟧，则 ⟦img/l01/13.png⟧。若 ⟦img/l01/14.png⟧、⟦img/l01/15.png⟧："
     },
     {
      "type": "text",
-     "text": "取 Buck：、，则 。若 、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l01/16.png",
-     "orig": "image16.png"
+     "text": "⟦img/l01/16.png⟧"
     },
     {
      "type": "text",
@@ -189,8 +121,7 @@
     },
     {
      "type": "text",
-     "text": "车载 OBC 后级隔离 DC/DC 前常有 400 V 母线；辅助电源、风扇/继电器供电等多处用到 Buck。伏秒平衡是后续 Boost PFC、LLC、DAB 分析的共同语言。",
-     "style": ""
+     "text": "车载 OBC 后级隔离 DC/DC 前常有 400 V 母线；辅助电源、风扇/继电器供电等多处用到 Buck。伏秒平衡是后续 Boost PFC、LLC、DAB 分析的共同语言。"
     },
     {
      "type": "text",
@@ -198,39 +129,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l01/17.png",
-     "orig": "image17.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/18.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/19.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/20.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l01/21.png",
-     "orig": "image20.png"
+     "type": "text",
+     "text": "Boost 变换器：⟦img/l01/17.png⟧，⟦img/l01/18.png⟧，⟦img/l01/19.png⟧，CCM。求占空比 ⟦img/l01/06.png⟧ 与电感电流纹波 ⟦img/l01/20.png⟧。"
     },
     {
      "type": "text",
-     "text": "Boost 变换器：，，，CCM。求占空比  与电感电流纹波 。",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -239,8 +143,7 @@
     },
     {
      "type": "text",
-     "text": "第2讲：Boost 与 Buck-Boost（含 PFC 中的 Boost）。",
-     "style": ""
+     "text": "第2讲：Boost 与 Buck-Boost（含 PFC 中的 Boost）。"
     }
    ]
   },
@@ -253,38 +156,16 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第2讲：Boost 与 Buck-Boost",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-16（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l02/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/02.png",
-     "orig": "image2.png"
+     "type": "text",
+     "text": "Boost：⟦img/l02/01.png⟧，CCM 下 ⟦img/l02/02.png⟧。"
     },
     {
      "type": "text",
-     "text": "Boost：，CCM 下 。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l02/03.png",
-     "orig": "image3.png"
+     "text": "⟦img/l02/03.png⟧"
     },
     {
      "type": "text",
@@ -292,49 +173,34 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l02/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/05.png",
-     "orig": "image5.png"
+     "type": "text",
+     "text": "导通时电感充磁 ⟦img/l02/04.png⟧，关断时 ⟦img/l02/05.png⟧。伏秒平衡："
     },
     {
      "type": "text",
-     "text": "导通时电感充磁 ，关断时 。伏秒平衡：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l02/06.png",
-     "orig": "image6.png"
+     "text": "⟦img/l02/06.png⟧"
     },
     {
      "type": "text",
-     "text": "纹波：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l02/07.png",
-     "orig": "image7.png"
+     "text": "纹波："
     },
     {
      "type": "text",
-     "text": "Boost 电流型特性强，输出侧电容承担较大脉冲电流；控制上存在右半平面零点（RHPZ），电压环带宽受限。",
-     "style": ""
+     "text": "⟦img/l02/07.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "Boost 电流型特性强，输出侧电容承担较大脉冲电流；控制上存在右半平面零点（RHPZ），电压环带宽受限。"
     },
     {
      "type": "img",
      "src": "img/l02/08.png",
-     "orig": "image8.png"
+     "w": 924,
+     "h": 464
     },
     {
      "type": "text",
-     "text": "图　Boost 拓扑示意",
-     "style": ""
+     "text": "图　Boost 拓扑示意"
     },
     {
      "type": "text",
@@ -342,49 +208,34 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l02/09.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/10.png",
-     "orig": "image9.png"
+     "type": "text",
+     "text": "反极性 Buck-Boost：导通 ⟦img/l02/04.png⟧，关断 ⟦img/l02/09.png⟧（取绝对值约定）："
     },
     {
      "type": "text",
-     "text": "反极性 Buck-Boost：导通 ，关断 （取绝对值约定）：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l02/11.png",
-     "orig": "image10.png"
+     "text": "⟦img/l02/10.png⟧"
     },
     {
      "type": "text",
-     "text": "极性反转是其标志；隔离反激可看作带变压器的 Buck-Boost 族。",
-     "style": ""
+     "text": "极性反转是其标志；隔离反激可看作带变压器的 Buck-Boost 族。"
     },
     {
      "type": "text",
-     "text": "纹波：",
-     "style": ""
+     "text": "纹波："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l02/11.png⟧"
     },
     {
      "type": "img",
      "src": "img/l02/12.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/13.png",
-     "orig": "image12.png"
+     "w": 994,
+     "h": 464
     },
     {
      "type": "text",
-     "text": "图　反极性 Buck-Boost 拓扑示意",
-     "style": ""
+     "text": "图　反极性 Buck-Boost 拓扑示意"
     },
     {
      "type": "text",
@@ -392,39 +243,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l02/14.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/15.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/16.png",
-     "orig": "image15.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/17.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/18.png",
-     "orig": "image17.png"
+     "type": "text",
+     "text": "Buck-Boost：⟦img/l02/13.png⟧、⟦img/l02/14.png⟧ 时 ⟦img/l02/15.png⟧。若再给 ⟦img/l02/16.png⟧、⟦img/l02/17.png⟧："
     },
     {
      "type": "text",
-     "text": "Buck-Boost：、 时 。若再给 、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l02/19.png",
-     "orig": "image18.png"
+     "text": "⟦img/l02/18.png⟧"
     },
     {
      "type": "text",
@@ -433,8 +257,7 @@
     },
     {
      "type": "text",
-     "text": "OBC 前级几乎都是 Boost 型 PFC（有桥或图腾柱无桥）：把整流后的馒头波抬到约 400 V 母线，并做功率因数校正。后级隔离级多为 LLC 或 DAB；辅助电源里偶尔见到反激（Buck-Boost 族）。",
-     "style": ""
+     "text": "OBC 前级几乎都是 Boost 型 PFC（有桥或图腾柱无桥）：把整流后的馒头波抬到约 400 V 母线，并做功率因数校正。后级隔离级多为 LLC 或 DAB；辅助电源里偶尔见到反激（Buck-Boost 族）。"
     },
     {
      "type": "text",
@@ -442,44 +265,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l02/20.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/21.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/22.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/23.png",
-     "orig": "image17.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/24.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l02/25.png",
-     "orig": "image20.png"
+     "type": "text",
+     "text": "Buck-Boost：⟦img/l02/13.png⟧、⟦img/l02/14.png⟧、⟦img/l02/16.png⟧、⟦img/l02/17.png⟧。求 CCM 下占空比 ⟦img/l02/19.png⟧ 与 ⟦img/l02/20.png⟧。"
     },
     {
      "type": "text",
-     "text": "Buck-Boost：、、、。求 CCM 下占空比  与 。",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -488,8 +279,7 @@
     },
     {
      "type": "text",
-     "text": "第3讲：连续/断续导通（CCM/DCM）与边界条件（BCM）。",
-     "style": ""
+     "text": "第3讲：连续/断续导通（CCM/DCM）与边界条件（BCM）。"
     }
    ]
   },
@@ -502,33 +292,12 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第3讲：CCM / DCM / BCM",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-17（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l03/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/02.png",
-     "orig": "image2.png"
-    },
-    {
      "type": "text",
-     "text": "Buck-Boost：，。",
-     "style": ""
+     "text": "Buck-Boost：⟦img/l03/01.png⟧，⟦img/l03/02.png⟧。"
     },
     {
      "type": "text",
@@ -537,48 +306,33 @@
     },
     {
      "type": "text",
-     "text": "电感电流谷值碰到零即为边界导通（BCM / CRM）；再轻载则进入断续（DCM）。CCM 下三角波中心即平均值；边界条件：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l03/03.png",
-     "orig": "image3.png"
+     "text": "电感电流谷值碰到零即为边界导通（BCM / CRM）；再轻载则进入断续（DCM）。CCM 下三角波中心即平均值；边界条件："
     },
     {
      "type": "text",
-     "text": "对 Buck，临界输出电流：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l03/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/05.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/06.png",
-     "orig": "image6.png"
+     "text": "⟦img/l03/03.png⟧"
     },
     {
      "type": "text",
-     "text": "也可用无量纲参数 ： 为 CCM，反之为 DCM。DCM 下变比随负载变化，小信号阶次与 RHP 零点行为也与 CCM 不同。",
-     "style": ""
+     "text": "对 Buck，临界输出电流："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l03/04.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "也可用无量纲参数 ⟦img/l03/05.png⟧：⟦img/l03/06.png⟧ 为 CCM，反之为 DCM。DCM 下变比随负载变化，小信号阶次与 RHP 零点行为也与 CCM 不同。"
     },
     {
      "type": "img",
      "src": "img/l03/07.png",
-     "orig": "image7.png"
+     "w": 1340,
+     "h": 464
     },
     {
      "type": "text",
-     "text": "图　电感电流：CCM / BCM / DCM 对比",
-     "style": ""
+     "text": "图　电感电流：CCM / BCM / DCM 对比"
     },
     {
      "type": "text",
@@ -606,34 +360,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l03/08.png",
-     "orig": "image8.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/09.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/10.png",
-     "orig": "image10.png"
+     "type": "text",
+     "text": "Buck：⟦img/l03/08.png⟧、⟦img/l03/09.png⟧、⟦img/l03/10.png⟧："
     },
     {
      "type": "text",
-     "text": "Buck：、、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l03/11.png",
-     "orig": "image11.png"
+     "text": "⟦img/l03/11.png⟧"
     },
     {
      "type": "text",
-     "text": "低于 2.25 A 即进入 DCM。",
-     "style": ""
+     "text": "低于 2.25 A 即进入 DCM。"
     },
     {
      "type": "text",
@@ -642,8 +378,7 @@
     },
     {
      "type": "text",
-     "text": "6.6 kW OBC 的 SiC 图腾柱 PFC 额定多在 CCM；市电过零附近必然 DCM。交错 PFC 各相独立判断模式。后级 LLC 轻载也会进不同模态，但机制不同于电感 DCM。",
-     "style": ""
+     "text": "6.6 kW OBC 的 SiC 图腾柱 PFC 额定多在 CCM；市电过零附近必然 DCM。交错 PFC 各相独立判断模式。后级 LLC 轻载也会进不同模态，但机制不同于电感 DCM。"
     },
     {
      "type": "text",
@@ -651,39 +386,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l03/12.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/13.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/14.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/15.png",
-     "orig": "image15.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l03/16.png",
-     "orig": "image16.png"
+     "type": "text",
+     "text": "Boost：⟦img/l03/12.png⟧、⟦img/l03/13.png⟧、⟦img/l03/14.png⟧。求进入 DCM 的临界电感平均电流与对应输入功率；若 ⟦img/l03/15.png⟧ 减半到 ⟦img/l03/16.png⟧ 又如何？"
     },
     {
      "type": "text",
-     "text": "Boost：、、。求进入 DCM 的临界电感平均电流与对应输入功率；若  减半到  又如何？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -692,8 +400,7 @@
     },
     {
      "type": "text",
-     "text": "第4讲：磁件基础——电感设计（AL 值、磁通密度、饱和、气隙）。",
-     "style": ""
+     "text": "第4讲：磁件基础——电感设计（AL 值、磁通密度、饱和、气隙）。"
     }
    ]
   },
@@ -706,68 +413,16 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第4讲：电感设计（AL、Bpk、气隙）",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-18（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l04/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/05.png",
-     "orig": "image5.png"
+     "type": "text",
+     "text": "Boost 临界：⟦img/l04/01.png⟧。⟦img/l04/02.png⟧ 时 ⟦img/l04/03.png⟧，临界平均电流 ⟦img/l04/04.png⟧，输入功率约 ⟦img/l04/05.png⟧。"
     },
     {
      "type": "text",
-     "text": "Boost 临界：。 时 ，临界平均电流 ，输入功率约 。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l04/06.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/07.png",
-     "orig": "image7.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/08.png",
-     "orig": "image8.png"
-    },
-    {
-     "type": "text",
-     "text": "时纹波加倍，，功率约 。",
-     "style": ""
+     "text": "⟦img/l04/06.png⟧ 时纹波加倍，⟦img/l04/07.png⟧，功率约 ⟦img/l04/08.png⟧。"
     },
     {
      "type": "text",
@@ -776,73 +431,43 @@
     },
     {
      "type": "text",
-     "text": "电感：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l04/09.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/10.png",
-     "orig": "image10.png"
+     "text": "电感："
     },
     {
      "type": "text",
-     "text": "开气隙后（忽略磁芯磁阻）。峰值磁密与交流磁摆：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l04/11.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/12.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/13.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/14.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/15.png",
-     "orig": "image15.png"
+     "text": "⟦img/l04/09.png⟧"
     },
     {
      "type": "text",
-     "text": "铁氧体  随温度下降，设计常取 。储能主要在气隙：。粉芯软饱和，有效  随直流偏置下降，要用厂家偏置曲线。粗选磁芯可用 AP 法（面积积）。",
-     "style": ""
+     "text": "开气隙后（忽略磁芯磁阻）⟦img/l04/10.png⟧。峰值磁密与交流磁摆："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l04/11.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "铁氧体 ⟦img/l04/12.png⟧ 随温度下降，设计常取 ⟦img/l04/13.png⟧。储能主要在气隙：⟦img/l04/14.png⟧。粉芯软饱和，有效 ⟦img/l04/15.png⟧ 随直流偏置下降，要用厂家偏置曲线。粗选磁芯可用 AP 法（面积积）。"
     },
     {
      "type": "img",
      "src": "img/l04/16.png",
-     "orig": "image16.png"
+     "w": 838,
+     "h": 514
     },
     {
      "type": "text",
-     "text": "图　开气隙电感磁芯示意",
-     "style": ""
+     "text": "图　开气隙电感磁芯示意"
     },
     {
      "type": "img",
      "src": "img/l04/17.png",
-     "orig": "image17.png"
+     "w": 1069,
+     "h": 475
     },
     {
      "type": "text",
-     "text": "图　峰值电流与磁密关系示意",
-     "style": ""
+     "text": "图　峰值电流与磁密关系示意"
     },
     {
      "type": "text",
@@ -850,59 +475,20 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l04/18.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/19.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/20.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/21.png",
-     "orig": "image21.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/22.png",
-     "orig": "image22.png"
+     "type": "text",
+     "text": "Buck 电感：⟦img/l04/18.png⟧、⟦img/l04/19.png⟧、⟦img/l04/20.png⟧、⟦img/l04/21.png⟧。取 ⟦img/l04/22.png⟧："
     },
     {
      "type": "text",
-     "text": "Buck 电感：、、、。取 ：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l04/23.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/24.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/25.png",
-     "orig": "image25.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/26.png",
-     "orig": "image26.png"
+     "text": "⟦img/l04/23.png⟧"
     },
     {
      "type": "text",
-     "text": "若 ，则 。",
-     "style": ""
+     "text": "⟦img/l04/24.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "若 ⟦img/l04/25.png⟧，则 ⟦img/l04/26.png⟧。"
     },
     {
      "type": "text",
@@ -910,24 +496,8 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l04/27.png",
-     "orig": "image27.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/28.png",
-     "orig": "image28.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/29.png",
-     "orig": "image29.png"
-    },
-    {
      "type": "text",
-     "text": "PFC 升压电感、交错相电感、EMI 差模电感都要按  校核 ，并兼顾高频铜损与铁损。SiC 把开关频率推高后， 可减小，但趋肤/邻近效应更重（第6讲）。",
-     "style": ""
+     "text": "PFC 升压电感、交错相电感、EMI 差模电感都要按 ⟦img/l04/27.png⟧ 校核 ⟦img/l04/28.png⟧，并兼顾高频铜损与铁损。SiC 把开关频率推高后，⟦img/l04/29.png⟧ 可减小，但趋肤/邻近效应更重（第6讲）。"
     },
     {
      "type": "text",
@@ -935,64 +505,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l04/30.png",
-     "orig": "image30.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/31.png",
-     "orig": "image31.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/32.png",
-     "orig": "image32.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/33.png",
-     "orig": "image33.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/34.png",
-     "orig": "image34.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/35.png",
-     "orig": "image35.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/36.png",
-     "orig": "image36.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/37.png",
-     "orig": "image27.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/38.png",
-     "orig": "image28.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l04/39.png",
-     "orig": "image37.png"
+     "type": "text",
+     "text": "⟦img/l04/30.png⟧、⟦img/l04/31.png⟧、⟦img/l04/32.png⟧、⟦img/l04/33.png⟧。求最小匝数 ⟦img/l04/34.png⟧、所需 ⟦img/l04/35.png⟧ 与气隙 ⟦img/l04/36.png⟧；若 ⟦img/l04/27.png⟧ 升到 18 A，⟦img/l04/28.png⟧ 多少？是否超 ⟦img/l04/37.png⟧？"
     },
     {
      "type": "text",
-     "text": "、、、。求最小匝数 、所需  与气隙 ；若  升到 18 A， 多少？是否超 ？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -1001,8 +519,7 @@
     },
     {
      "type": "text",
-     "text": "第5讲（嵌入式穿插）：C2000 ePWM 与 ADC 同步采样（平均电流采样）。",
-     "style": ""
+     "text": "第5讲（嵌入式穿插）：C2000 ePWM 与 ADC 同步采样（平均电流采样）。"
     }
    ]
   },
@@ -1015,68 +532,24 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第5讲：C2000 ePWM 与 ADC 同步采样",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-19（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l05/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/02.png",
-     "orig": "image2.png"
+     "type": "text",
+     "text": "由 ⟦img/l05/01.png⟧ 得 ⟦img/l05/02.png⟧："
     },
     {
      "type": "text",
-     "text": "由  得 ：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l05/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/05.png",
-     "orig": "image5.png"
+     "text": "⟦img/l05/03.png⟧"
     },
     {
      "type": "text",
-     "text": "，。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l05/06.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/07.png",
-     "orig": "image7.png"
+     "text": "⟦img/l05/04.png⟧，⟦img/l05/05.png⟧。"
     },
     {
      "type": "text",
-     "text": "时 ，有饱和风险。",
-     "style": ""
+     "text": "⟦img/l05/06.png⟧ 时 ⟦img/l05/07.png⟧，有饱和风险。"
     },
     {
      "type": "text",
@@ -1085,48 +558,43 @@
     },
     {
      "type": "text",
-     "text": "C2000 ePWM 增减计数（up-down）实现中心对齐 PWM：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l05/08.png",
-     "orig": "image8.png"
+     "text": "C2000 ePWM 增减计数（up-down）实现中心对齐 PWM："
     },
     {
      "type": "text",
-     "text": "在计数器 CTR=ZERO 或 CTR=PRD 处触发 SOCA，正好落在导通/关断区间中点，CCM 下采到的就是平均电流。偏离中点的误差：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l05/09.png",
-     "orig": "image9.png"
+     "text": "⟦img/l05/08.png⟧"
     },
     {
      "type": "text",
-     "text": "DCM 下中点≠平均值；还要考虑 S+H 窗口与 ADC 转换延迟。交错 PFC 各相用独立 SOC；过零附近进 DCM 会导致采样失真，控制上常做过零区特殊处理。",
-     "style": ""
+     "text": "在计数器 CTR=ZERO 或 CTR=PRD 处触发 SOCA，正好落在导通/关断区间中点，CCM 下采到的就是平均电流。偏离中点的误差："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l05/09.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "DCM 下中点≠平均值；还要考虑 S+H 窗口与 ADC 转换延迟。交错 PFC 各相用独立 SOC；过零附近进 DCM 会导致采样失真，控制上常做过零区特殊处理。"
     },
     {
      "type": "img",
      "src": "img/l05/10.png",
-     "orig": "image10.png"
+     "w": 1131,
+     "h": 624
     },
     {
      "type": "text",
-     "text": "图　中心对齐 ePWM 与中点采样示意",
-     "style": ""
+     "text": "图　中心对齐 ePWM 与中点采样示意"
     },
     {
      "type": "img",
      "src": "img/l05/11.png",
-     "orig": "image11.png"
+     "w": 1101,
+     "h": 463
     },
     {
      "type": "text",
-     "text": "图　采样时刻偏离中点的电流误差",
-     "style": ""
+     "text": "图　采样时刻偏离中点的电流误差"
     },
     {
      "type": "text",
@@ -1134,49 +602,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l05/12.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/13.png",
-     "orig": "image13.png"
+     "type": "text",
+     "text": "⟦img/l05/12.png⟧、⟦img/l05/13.png⟧："
     },
     {
      "type": "text",
-     "text": "、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l05/14.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/15.png",
-     "orig": "image15.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/16.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/17.png",
-     "orig": "image17.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/18.png",
-     "orig": "image18.png"
+     "text": "⟦img/l05/14.png⟧"
     },
     {
      "type": "text",
-     "text": "Buck：、，上升斜率 。采样偏晚 100 ns：误差 。",
-     "style": ""
+     "text": "Buck：⟦img/l05/15.png⟧、⟦img/l05/16.png⟧，上升斜率 ⟦img/l05/17.png⟧。采样偏晚 100 ns：误差 ⟦img/l05/18.png⟧。"
     },
     {
      "type": "text",
@@ -1185,8 +620,7 @@
     },
     {
      "type": "text",
-     "text": "图腾柱 PFC 与 DAB 电流环都依赖「PWM 中点同步采样」。采样相位错了，等于给电流环塞进噪声与直流偏置，轻则 THD 变差，重则过流误动作。",
-     "style": ""
+     "text": "图腾柱 PFC 与 DAB 电流环都依赖「PWM 中点同步采样」。采样相位错了，等于给电流环塞进噪声与直流偏置，轻则 THD 变差，重则过流误动作。"
     },
     {
      "type": "text",
@@ -1194,49 +628,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l05/19.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/20.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/21.png",
-     "orig": "image21.png"
+     "type": "text",
+     "text": "1. ⟦img/l05/19.png⟧、⟦img/l05/20.png⟧，求中心对齐 ⟦img/l05/21.png⟧。"
     },
     {
      "type": "text",
-     "text": "1. 、，求中心对齐 。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l05/22.png",
-     "orig": "image22.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/23.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l05/24.png",
-     "orig": "image24.png"
+     "text": "2. Boost PFC：⟦img/l05/22.png⟧、⟦img/l05/23.png⟧、⟦img/l05/24.png⟧。采样比导通中点晚 200 ns 的电流误差？改在关断中点晚 200 ns 呢？"
     },
     {
      "type": "text",
-     "text": "2. Boost PFC：、、。采样比导通中点晚 200 ns 的电流误差？改在关断中点晚 200 ns 呢？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -1245,8 +646,7 @@
     },
     {
      "type": "text",
-     "text": "第6讲：磁芯损耗与铜损（Steinmetz、趋肤/邻近效应）。",
-     "style": ""
+     "text": "第6讲：磁芯损耗与铜损（Steinmetz、趋肤/邻近效应）。"
     }
    ]
   },
@@ -1259,58 +659,20 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第6讲：磁芯损耗与铜损",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-20（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l06/01.png",
-     "orig": "image1.png"
+     "type": "text",
+     "text": "⟦img/l06/01.png⟧。"
     },
     {
      "type": "text",
-     "text": "。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l06/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/03.png",
-     "orig": "image3.png"
+     "text": "导通段斜率 ⟦img/l06/02.png⟧，晚 200 ns → 读高 ⟦img/l06/03.png⟧。"
     },
     {
      "type": "text",
-     "text": "导通段斜率 ，晚 200 ns → 读高 。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l06/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/05.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "text",
-     "text": "关断段斜率 ，晚 200 ns → 读低 。",
-     "style": ""
+     "text": "关断段斜率 ⟦img/l06/04.png⟧，晚 200 ns → 读低 ⟦img/l06/03.png⟧。"
     },
     {
      "type": "text",
@@ -1319,63 +681,29 @@
     },
     {
      "type": "text",
-     "text": "经典 Steinmetz：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l06/06.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/07.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/08.png",
-     "orig": "image7.png"
+     "text": "经典 Steinmetz："
     },
     {
      "type": "text",
-     "text": "其中  取交流峰值（常用 ）。非正弦激励用 iGSE；直流偏置会抬高损耗。铁氧体损耗密度常在约 80–100 °C 最低。",
-     "style": ""
+     "text": "⟦img/l06/05.png⟧"
     },
     {
-     "type": "img",
-     "src": "img/l06/09.png",
-     "orig": "image8.png"
+     "type": "text",
+     "text": "其中 ⟦img/l06/06.png⟧ 取交流峰值（常用 ⟦img/l06/07.png⟧）。非正弦激励用 iGSE；直流偏置会抬高损耗。铁氧体损耗密度常在约 80–100 °C 最低。"
     },
     {
-     "type": "img",
-     "src": "img/l06/10.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/11.png",
-     "orig": "image10.png"
+     "type": "text",
+     "text": "铜损：趋肤深度（铜，约 100 °C）⟦img/l06/08.png⟧（⟦img/l06/09.png⟧ 以 Hz 计时的工程近似）。多层绕组还有邻近效应（Dowell 模型）；交错绕法与 Litz（股径 ⟦img/l06/10.png⟧）是常用对策。按匝数优化时，最优附近常有 ⟦img/l06/11.png⟧ 的数量级关系。"
     },
     {
      "type": "img",
      "src": "img/l06/12.png",
-     "orig": "image11.png"
+     "w": 1071,
+     "h": 496
     },
     {
      "type": "text",
-     "text": "铜损：趋肤深度（铜，约 100 °C）（ 以 Hz 计时的工程近似）。多层绕组还有邻近效应（Dowell 模型）；交错绕法与 Litz（股径 ）是常用对策。按匝数优化时，最优附近常有  的数量级关系。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l06/13.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "text",
-     "text": "图　趋肤深度随频率变化",
-     "style": ""
+     "text": "图　趋肤深度随频率变化"
     },
     {
      "type": "text",
@@ -1383,94 +711,26 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l06/14.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/15.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/16.png",
-     "orig": "image15.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/17.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/18.png",
-     "orig": "image17.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/19.png",
-     "orig": "image18.png"
+     "type": "text",
+     "text": "沿用第4讲 Buck 电感：⟦img/l06/13.png⟧、⟦img/l06/14.png⟧（交流峰值约 55 mT）。采用示例磁芯参数：⟦img/l06/15.png⟧，⟦img/l06/16.png⟧、⟦img/l06/17.png⟧，⟦img/l06/18.png⟧："
     },
     {
      "type": "text",
-     "text": "沿用第4讲 Buck 电感：、（交流峰值约 55 mT）。采用示例磁芯参数：，、，：",
-     "style": ""
+     "text": "⟦img/l06/19.png⟧"
     },
     {
-     "type": "img",
-     "src": "img/l06/20.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/21.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/22.png",
-     "orig": "image21.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/23.png",
-     "orig": "image22.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/24.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/25.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l06/26.png",
-     "orig": "image25.png"
+     "type": "text",
+     "text": "⟦img/l06/20.png⟧。沿用 ⟦img/l06/21.png⟧、⟦img/l06/22.png⟧，则 ⟦img/l06/23.png⟧，⟦img/l06/24.png⟧。若 ⟦img/l06/25.png⟧ 示例 5 mΩ，则 ⟦img/l06/26.png⟧（未计交流电阻放大）。"
     },
     {
      "type": "img",
      "src": "img/l06/27.png",
-     "orig": "image26.png"
+     "w": 861,
+     "h": 495
     },
     {
      "type": "text",
-     "text": "。沿用 、，则 ，。若  示例 5 mΩ，则 （未计交流电阻放大）。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l06/28.png",
-     "orig": "image27.png"
-    },
-    {
-     "type": "text",
-     "text": "图　算例铁损与铜损对比",
-     "style": ""
+     "text": "图　算例铁损与铜损对比"
     },
     {
      "type": "text",
@@ -1478,14 +738,8 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l06/29.png",
-     "orig": "image28.png"
-    },
-    {
      "type": "text",
-     "text": "PFC 电感与 LLC 变压器是 OBC 热设计两大户。SiC 提频后铁损与铜损的分配会变：频率升、 降时铁损不一定升（见自测），但趋肤效应强迫你改用 Litz 或 PCB 绕组。",
-     "style": ""
+     "text": "PFC 电感与 LLC 变压器是 OBC 热设计两大户。SiC 提频后铁损与铜损的分配会变：频率升、⟦img/l06/28.png⟧ 降时铁损不一定升（见自测），但趋肤效应强迫你改用 Litz 或 PCB 绕组。"
     },
     {
      "type": "text",
@@ -1493,24 +747,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l06/30.png",
-     "orig": "image29.png"
+     "type": "text",
+     "text": "1. 同磁芯、同匝数、同电压激励，频率从 100 kHz 升到 200 kHz（⟦img/l06/29.png⟧），磁芯损耗变为多少倍？"
     },
     {
      "type": "text",
-     "text": "1. 同磁芯、同匝数、同电压激励，频率从 100 kHz 升到 200 kHz（），磁芯损耗变为多少倍？",
-     "style": ""
+     "text": "2. 铜 100 °C 时，65 kHz 与 300 kHz 的趋肤深度各约多少？"
     },
     {
      "type": "text",
-     "text": "2. 铜 100 °C 时，65 kHz 与 300 kHz 的趋肤深度各约多少？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -1519,8 +765,7 @@
     },
     {
      "type": "text",
-     "text": "第7讲：PFC 基础（功率因数、平均电流控制、母线电容）。",
-     "style": ""
+     "text": "第7讲：PFC 基础（功率因数、平均电流控制、母线电容）。"
     }
    ]
   },
@@ -1533,48 +778,20 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第7讲：PFC 基础",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-21（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l07/01.png",
-     "orig": "image1.png"
+     "type": "text",
+     "text": "频率加倍且 ⟦img/l07/01.png⟧ 时："
     },
     {
      "type": "text",
-     "text": "频率加倍且  时：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/04.png",
-     "orig": "image4.png"
+     "text": "⟦img/l07/02.png⟧"
     },
     {
      "type": "text",
-     "text": "（约降 59%）。，。",
-     "style": ""
+     "text": "（约降 59%）。⟦img/l07/03.png⟧，⟦img/l07/04.png⟧。"
     },
     {
      "type": "text",
@@ -1583,73 +800,63 @@
     },
     {
      "type": "text",
-     "text": "功率因数：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/05.png",
-     "orig": "image5.png"
+     "text": "功率因数："
     },
     {
      "type": "text",
-     "text": "IEC 61000-3-2 等规范限制谐波电流。Boost PFC 平均电流控制常用：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/06.png",
-     "orig": "image6.png"
+     "text": "⟦img/l07/05.png⟧"
     },
     {
      "type": "text",
-     "text": "（带输入电压前馈）。稳态占空比：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/07.png",
-     "orig": "image7.png"
+     "text": "IEC 61000-3-2 等规范限制谐波电流。Boost PFC 平均电流控制常用："
     },
     {
      "type": "text",
-     "text": "瞬时输入功率含二倍工频分量，母线电压纹波：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/08.png",
-     "orig": "image8.png"
+     "text": "⟦img/l07/06.png⟧"
     },
     {
      "type": "text",
-     "text": "电压环带宽常取约 10–20 Hz，以免把 2 倍工频纹波放大进电流指令。保持时间要求：",
-     "style": ""
+     "text": "（带输入电压前馈）。稳态占空比："
     },
     {
-     "type": "img",
-     "src": "img/l07/09.png",
-     "orig": "image9.png"
+     "type": "text",
+     "text": "⟦img/l07/07.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "瞬时输入功率含二倍工频分量，母线电压纹波："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l07/08.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "电压环带宽常取约 10–20 Hz，以免把 2 倍工频纹波放大进电流指令。保持时间要求："
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l07/09.png⟧"
     },
     {
      "type": "img",
      "src": "img/l07/10.png",
-     "orig": "image10.png"
+     "w": 962,
+     "h": 489
     },
     {
      "type": "text",
-     "text": "图　Boost PFC 平均电流控制示意",
-     "style": ""
+     "text": "图　Boost PFC 平均电流控制示意"
     },
     {
      "type": "img",
      "src": "img/l07/11.png",
-     "orig": "image11.png"
+     "w": 1100,
+     "h": 431
     },
     {
      "type": "text",
-     "text": "图　母线二倍工频纹波示意",
-     "style": ""
+     "text": "图　母线二倍工频纹波示意"
     },
     {
      "type": "text",
@@ -1657,44 +864,20 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l07/12.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/13.png",
-     "orig": "image13.png"
+     "type": "text",
+     "text": "6.6 kW、230 V/50 Hz、⟦img/l07/12.png⟧、⟦img/l07/13.png⟧："
     },
     {
      "type": "text",
-     "text": "6.6 kW、230 V/50 Hz、、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/14.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/15.png",
-     "orig": "image15.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/16.png",
-     "orig": "image16.png"
+     "text": "⟦img/l07/14.png⟧"
     },
     {
      "type": "text",
-     "text": "峰值处 。若要 ：",
-     "style": ""
+     "text": "峰值处 ⟦img/l07/15.png⟧。若要 ⟦img/l07/16.png⟧："
     },
     {
-     "type": "img",
-     "src": "img/l07/17.png",
-     "orig": "image17.png"
+     "type": "text",
+     "text": "⟦img/l07/17.png⟧"
     },
     {
      "type": "text",
@@ -1703,8 +886,7 @@
     },
     {
      "type": "text",
-     "text": "OBC 前级即 PFC：SiC 图腾柱或交错 Boost，母线约 400 V。母线纹波会调制后级 LLC/DAB 的增益与电流应力，电容寿命（纹波电流）也是寿命瓶颈。",
-     "style": ""
+     "text": "OBC 前级即 PFC：SiC 图腾柱或交错 Boost，母线约 400 V。母线纹波会调制后级 LLC/DAB 的增益与电流应力，电容寿命（纹波电流）也是寿命瓶颈。"
     },
     {
      "type": "text",
@@ -1712,44 +894,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l07/18.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/19.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/20.png",
-     "orig": "image19.png"
+     "type": "text",
+     "text": "1. 3.3 kW、50 Hz、⟦img/l07/12.png⟧、⟦img/l07/18.png⟧，求 ⟦img/l07/19.png⟧。"
     },
     {
      "type": "text",
-     "text": "1. 3.3 kW、50 Hz、、，求 。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l07/21.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l07/22.png",
-     "orig": "image21.png"
+     "text": "2. ⟦img/l07/20.png⟧、⟦img/l07/21.png⟧，求 PF。"
     },
     {
      "type": "text",
-     "text": "2. 、，求 PF。",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -1758,8 +912,7 @@
     },
     {
      "type": "text",
-     "text": "第8讲：图腾柱无桥 PFC（SiC 快管/工频管、过零尖峰与软启动）。",
-     "style": ""
+     "text": "第8讲：图腾柱无桥 PFC（SiC 快管/工频管、过零尖峰与软启动）。"
     }
    ]
   },
@@ -1772,28 +925,16 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第8讲：图腾柱无桥 PFC",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-22（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l08/01.png",
-     "orig": "image1.png"
+     "type": "text",
+     "text": "⟦img/l08/01.png⟧"
     },
     {
-     "type": "img",
-     "src": "img/l08/02.png",
-     "orig": "image2.png"
+     "type": "text",
+     "text": "⟦img/l08/02.png⟧"
     },
     {
      "type": "text",
@@ -1802,8 +943,7 @@
     },
     {
      "type": "text",
-     "text": "图腾柱无桥 PFC：",
-     "style": ""
+     "text": "图腾柱无桥 PFC："
     },
     {
      "type": "text",
@@ -1816,54 +956,32 @@
      "style": "ListBullet"
     },
     {
-     "type": "img",
-     "src": "img/l08/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/05.png",
-     "orig": "image4.png"
+     "type": "text",
+     "text": "正半周：下管为主开关，⟦img/l08/03.png⟧，上管同步；负半周角色互换。CCM 下快管桥臂同步管的体二极管会硬恢复，普通 Si MOSFET 的 ⟦img/l08/04.png⟧ 太大，快管必须用低 ⟦img/l08/04.png⟧ 的 SiC/GaN。导通路径通常只有 2 个半导体，省掉整流桥的两串二极管压降。"
     },
     {
      "type": "text",
-     "text": "正半周：下管为主开关，，上管同步；负半周角色互换。CCM 下快管桥臂同步管的体二极管会硬恢复，普通 Si MOSFET 的  太大，快管必须用低  的 SiC/GaN。导通路径通常只有 2 个半导体，省掉整流桥的两串二极管压降。",
-     "style": ""
+     "text": "过零尖峰：慢管桥臂切换时开关节点电压跳变约 ⟦img/l08/05.png⟧，寄生电容充放电叠加主/同步角色与占空比突变，形成电流尖峰。对策：过零死区封波、新主管占空比从 0 软启动、慢管延时导通、极性检测加滞环。电感电流双向，需霍尔或合适 CT。拓扑天然双向，便于 V2G；可两相交错或做到三相 11/22 kW。"
     },
     {
      "type": "img",
      "src": "img/l08/06.png",
-     "orig": "image5.png"
+     "w": 900,
+     "h": 563
     },
     {
      "type": "text",
-     "text": "过零尖峰：慢管桥臂切换时开关节点电压跳变约 ，寄生电容充放电叠加主/同步角色与占空比突变，形成电流尖峰。对策：过零死区封波、新主管占空比从 0 软启动、慢管延时导通、极性检测加滞环。电感电流双向，需霍尔或合适 CT。拓扑天然双向，便于 V2G；可两相交错或做到三相 11/22 kW。",
-     "style": ""
+     "text": "图　图腾柱无桥 PFC 拓扑示意"
     },
     {
      "type": "img",
      "src": "img/l08/07.png",
-     "orig": "image6.png"
+     "w": 1101,
+     "h": 463
     },
     {
      "type": "text",
-     "text": "图　图腾柱无桥 PFC 拓扑示意",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l08/08.png",
-     "orig": "image7.png"
-    },
-    {
-     "type": "text",
-     "text": "图　过零切换时的电流尖峰示意",
-     "style": ""
+     "text": "图　过零切换时的电流尖峰示意"
     },
     {
      "type": "text",
@@ -1871,39 +989,8 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l08/09.png",
-     "orig": "image8.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/10.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/11.png",
-     "orig": "image10.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/12.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/13.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/14.png",
-     "orig": "image13.png"
-    },
-    {
      "type": "text",
-     "text": "6.6 kW、。整流桥两管 ，按正弦半波平均电流 ，损耗约 。慢管示例  损耗约 。省约 39.5 W，约 0.6 个百分点效率。",
-     "style": ""
+     "text": "6.6 kW、⟦img/l08/08.png⟧。整流桥两管 ⟦img/l08/09.png⟧，按正弦半波平均电流 ⟦img/l08/10.png⟧，损耗约 ⟦img/l08/11.png⟧。慢管示例 ⟦img/l08/12.png⟧ 损耗约 ⟦img/l08/13.png⟧。省约 39.5 W，约 0.6 个百分点效率。"
     },
     {
      "type": "text",
@@ -1912,8 +999,7 @@
     },
     {
      "type": "text",
-     "text": "量产车载 OBC 前级已大量采用 SiC 图腾柱。过零尖峰、双向电流采样、与后级 LLC/DAB 的母线协同是三大工程点。",
-     "style": ""
+     "text": "量产车载 OBC 前级已大量采用 SiC 图腾柱。过零尖峰、双向电流采样、与后级 LLC/DAB 的母线协同是三大工程点。"
     },
     {
      "type": "text",
@@ -1921,39 +1007,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l08/15.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/16.png",
-     "orig": "image15.png"
+     "type": "text",
+     "text": "1. 3.3 kW、230 V（忽略效率）、桥 ⟦img/l08/14.png⟧、慢管 ⟦img/l08/15.png⟧。省多少损耗？约占输入功率比例？"
     },
     {
      "type": "text",
-     "text": "1. 3.3 kW、230 V（忽略效率）、桥 、慢管 。省多少损耗？约占输入功率比例？",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l08/17.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l08/18.png",
-     "orig": "image17.png"
+     "text": "2. ⟦img/l08/16.png⟧、⟦img/l08/17.png⟧ 时主开关占空比？为何过零直接切换会出尖峰？"
     },
     {
      "type": "text",
-     "text": "2. 、 时主开关占空比？为何过零直接切换会出尖峰？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -1962,8 +1025,7 @@
     },
     {
      "type": "text",
-     "text": "第9讲（嵌入式穿插）：数字 PI 控制器。",
-     "style": ""
+     "text": "第9讲（嵌入式穿插）：数字 PI 控制器。"
     }
    ]
   },
@@ -1976,58 +1038,16 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第9讲：数字 PI",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-23（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l09/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/04.png",
-     "orig": "image4.png"
+     "type": "text",
+     "text": "⟦img/l09/01.png⟧。桥损耗按 ⟦img/l09/02.png⟧ 计为 ⟦img/l09/03.png⟧；慢管 ⟦img/l09/04.png⟧；省约 22.7 W（约 0.69%）。"
     },
     {
      "type": "text",
-     "text": "。桥损耗按  计为 ；慢管 ；省约 22.7 W（约 0.69%）。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l09/05.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/06.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "text",
-     "text": "。过零尖峰：慢管切换使开关节点跳变约 ，寄生电容充放电，且主/同步角色与占空比突变。",
-     "style": ""
+     "text": "⟦img/l09/05.png⟧。过零尖峰：慢管切换使开关节点跳变约 ⟦img/l09/06.png⟧，寄生电容充放电，且主/同步角色与占空比突变。"
     },
     {
      "type": "text",
@@ -2035,74 +1055,44 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l09/07.png",
-     "orig": "image7.png"
+     "type": "text",
+     "text": "连续域 ⟦img/l09/07.png⟧。离散化常用后向欧拉或 Tustin。位置式："
     },
     {
      "type": "text",
-     "text": "连续域 。离散化常用后向欧拉或 Tustin。位置式：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l09/08.png",
-     "orig": "image8.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/09.png",
-     "orig": "image9.png"
+     "text": "⟦img/l09/08.png⟧"
     },
     {
      "type": "text",
-     "text": "亦可写增量式。数字控制总延迟约「采样 + 计算 + PWM 更新」≈ （单次采样对称 PWM 典型值），相位滞后：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l09/10.png",
-     "orig": "image10.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/11.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/12.png",
-     "orig": "image12.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/13.png",
-     "orig": "image13.png"
+     "text": "亦可写增量式。数字控制总延迟约「采样 + 计算 + PWM 更新」≈ ⟦img/l09/09.png⟧（单次采样对称 PWM 典型值），相位滞后："
     },
     {
      "type": "text",
-     "text": "电流环穿越频率通常 。抗积分饱和：输出限幅 + 条件积分/反计算。C2000 可用浮点、CLA 或 IQmath。PFC 电流环常叠加  前馈与占空比前馈 。",
-     "style": ""
+     "text": "⟦img/l09/10.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "电流环穿越频率通常 ⟦img/l09/11.png⟧。抗积分饱和：输出限幅 + 条件积分/反计算。C2000 可用浮点、CLA 或 IQmath。PFC 电流环常叠加 ⟦img/l09/12.png⟧ 前馈与占空比前馈 ⟦img/l09/13.png⟧。"
     },
     {
      "type": "img",
      "src": "img/l09/14.png",
-     "orig": "image14.png"
+     "w": 962,
+     "h": 415
     },
     {
      "type": "text",
-     "text": "图　位置式数字 PI 框图",
-     "style": ""
+     "text": "图　位置式数字 PI 框图"
     },
     {
      "type": "img",
      "src": "img/l09/15.png",
-     "orig": "image15.png"
+     "w": 1070,
+     "h": 462
     },
     {
      "type": "text",
-     "text": "图　数字控制延迟引起的相位滞后",
-     "style": ""
+     "text": "图　数字控制延迟引起的相位滞后"
     },
     {
      "type": "text",
@@ -2110,49 +1100,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l09/16.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/17.png",
-     "orig": "image17.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/18.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/19.png",
-     "orig": "image19.png"
+     "type": "text",
+     "text": "PFC 电流环：⟦img/l09/16.png⟧ 单次采样，⟦img/l09/17.png⟧、⟦img/l09/18.png⟧，目标 ⟦img/l09/19.png⟧。"
     },
     {
      "type": "text",
-     "text": "PFC 电流环： 单次采样，、，目标 。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l09/20.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/21.png",
-     "orig": "image21.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/22.png",
-     "orig": "image22.png"
+     "text": "⟦img/l09/20.png⟧"
     },
     {
      "type": "text",
-     "text": "PI 零点置 1 kHz：，。延迟滞后约 41.5°，若被控对象近似 −90°，则相位裕度约 37.2°。",
-     "style": ""
+     "text": "PI 零点置 1 kHz：⟦img/l09/21.png⟧，⟦img/l09/22.png⟧。延迟滞后约 41.5°，若被控对象近似 −90°，则相位裕度约 37.2°。"
     },
     {
      "type": "text",
@@ -2161,8 +1118,7 @@
     },
     {
      "type": "text",
-     "text": "PFC 电流环、母线电压环、DAB 功率/电流环都是数字 PI（或 PR/重复控制增强）。带宽与 1.5 拍延迟、ADC 中点采样（第5讲）绑在一起设计。",
-     "style": ""
+     "text": "PFC 电流环、母线电压环、DAB 功率/电流环都是数字 PI（或 PR/重复控制增强）。带宽与 1.5 拍延迟、ADC 中点采样（第5讲）绑在一起设计。"
     },
     {
      "type": "text",
@@ -2170,44 +1126,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l09/23.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/24.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/25.png",
-     "orig": "image25.png"
+     "type": "text",
+     "text": "1. ⟦img/l09/23.png⟧ 单次采样、⟦img/l09/24.png⟧、PI 零点在 ⟦img/l09/25.png⟧，估算相位裕度 PM。"
     },
     {
      "type": "text",
-     "text": "1.  单次采样、、PI 零点在 ，估算相位裕度 PM。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l09/26.png",
-     "orig": "image26.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l09/27.png",
-     "orig": "image27.png"
+     "text": "2. 若要求 ⟦img/l09/26.png⟧（其它条件同结构），最大 ⟦img/l09/27.png⟧ 约多少？"
     },
     {
      "type": "text",
-     "text": "2. 若要求 （其它条件同结构），最大  约多少？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -2216,8 +1144,7 @@
     },
     {
      "type": "text",
-     "text": "第10讲：LLC 谐振变换器入门。",
-     "style": ""
+     "text": "第10讲：LLC 谐振变换器入门。"
     }
    ]
   },
@@ -2230,43 +1157,12 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第10讲：LLC 入门",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-24（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l10/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/04.png",
-     "orig": "image4.png"
-    },
-    {
      "type": "text",
-     "text": "延迟滞后 。对象约 −90°，PI 在  处超前约  量级贡献需按完整 Bode 核算；按本系列口径得 PM≈32.8°。要 PM≥45° 时最大 。",
-     "style": ""
+     "text": "延迟滞后 ⟦img/l10/01.png⟧。对象约 −90°，PI 在 ⟦img/l10/02.png⟧ 处超前约 ⟦img/l10/03.png⟧ 量级贡献需按完整 Bode 核算；按本系列口径得 PM≈32.8°。要 PM≥45° 时最大 ⟦img/l10/04.png⟧。"
     },
     {
      "type": "text",
@@ -2275,118 +1171,54 @@
     },
     {
      "type": "text",
-     "text": "谐振频率与并联频率：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l10/05.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/06.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/07.png",
-     "orig": "image7.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/08.png",
-     "orig": "image8.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/09.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/10.png",
-     "orig": "image10.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/11.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/12.png",
-     "orig": "image12.png"
+     "text": "谐振频率与并联频率："
     },
     {
      "type": "text",
-     "text": "基波近似（FHA）下交流等效负载 ，品质因数 ，电感比 。增益  在 （即 ）时  且与负载无关。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l10/13.png",
-     "orig": "image13.png"
+     "text": "⟦img/l10/05.png⟧"
     },
     {
      "type": "text",
-     "text": "：升压区，原边易 ZVS、副边整流可 ZCS；",
+     "text": "基波近似（FHA）下交流等效负载 ⟦img/l10/06.png⟧，品质因数 ⟦img/l10/07.png⟧，电感比 ⟦img/l10/08.png⟧。增益 ⟦img/l10/09.png⟧ 在 ⟦img/l10/10.png⟧（即 ⟦img/l10/11.png⟧）时 ⟦img/l10/12.png⟧ 且与负载无关。"
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l10/13.png⟧：升压区，原边易 ZVS、副边整流可 ZCS；",
      "style": "ListBullet"
     },
     {
-     "type": "img",
-     "src": "img/l10/14.png",
-     "orig": "image14.png"
-    },
-    {
      "type": "text",
-     "text": "：降压区；",
+     "text": "⟦img/l10/14.png⟧：降压区；",
      "style": "ListBullet"
     },
     {
-     "type": "img",
-     "src": "img/l10/15.png",
-     "orig": "image15.png"
-    },
-    {
      "type": "text",
-     "text": "：容性区，易丢 ZVS，危险。",
+     "text": "⟦img/l10/15.png⟧：容性区，易丢 ZVS，危险。",
      "style": "ListBullet"
     },
     {
-     "type": "img",
-     "src": "img/l10/16.png",
-     "orig": "image16.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/17.png",
-     "orig": "image17.png"
-    },
-    {
      "type": "text",
-     "text": "ZVS 条件：励磁电流峰值  须在死区内抽走  的电荷。",
-     "style": ""
+     "text": "ZVS 条件：励磁电流峰值 ⟦img/l10/16.png⟧ 须在死区内抽走 ⟦img/l10/17.png⟧ 的电荷。"
     },
     {
      "type": "img",
      "src": "img/l10/18.png",
-     "orig": "image18.png"
+     "w": 962,
+     "h": 464
     },
     {
      "type": "text",
-     "text": "图　LLC 谐振变换器拓扑示意",
-     "style": ""
+     "text": "图　LLC 谐振变换器拓扑示意"
     },
     {
      "type": "img",
      "src": "img/l10/19.png",
-     "orig": "image19.png"
+     "w": 1100,
+     "h": 527
     },
     {
      "type": "text",
-     "text": "图　LLC 增益曲线分区示意",
-     "style": ""
+     "text": "图　LLC 增益曲线分区示意"
     },
     {
      "type": "text",
@@ -2394,69 +1226,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l10/20.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/21.png",
-     "orig": "image21.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/22.png",
-     "orig": "image22.png"
+     "type": "text",
+     "text": "6.6 kW 全桥，⟦img/l10/20.png⟧、⟦img/l10/21.png⟧、⟦img/l10/22.png⟧："
     },
     {
      "type": "text",
-     "text": "6.6 kW 全桥，、、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l10/23.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/24.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/25.png",
-     "orig": "image25.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/26.png",
-     "orig": "image26.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/27.png",
-     "orig": "image27.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/28.png",
-     "orig": "image28.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/29.png",
-     "orig": "image29.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/30.png",
-     "orig": "image30.png"
+     "text": "⟦img/l10/23.png⟧"
     },
     {
      "type": "text",
-     "text": "取  得 、； 则 ，。示例  所需死区约 10 ns 量级（实际还要留裕量）。",
-     "style": ""
+     "text": "取 ⟦img/l10/24.png⟧ 得 ⟦img/l10/25.png⟧、⟦img/l10/26.png⟧；⟦img/l10/27.png⟧ 则 ⟦img/l10/28.png⟧，⟦img/l10/29.png⟧。示例 ⟦img/l10/30.png⟧ 所需死区约 10 ns 量级（实际还要留裕量）。"
     },
     {
      "type": "text",
@@ -2465,8 +1244,7 @@
     },
     {
      "type": "text",
-     "text": "电池 250–450 V 宽电压让固定母线 LLC 增益吃力：常用 PFC 母线跟随、改 CLLC 双向，或直接上 DAB。轻载调频范围与爆音、同步整流是工程痛点。",
-     "style": ""
+     "text": "电池 250–450 V 宽电压让固定母线 LLC 增益吃力：常用 PFC 母线跟随、改 CLLC 双向，或直接上 DAB。轻载调频范围与爆音、同步整流是工程痛点。"
     },
     {
      "type": "text",
@@ -2474,54 +1252,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l10/31.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/32.png",
-     "orig": "image27.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/33.png",
-     "orig": "image31.png"
+     "type": "text",
+     "text": "1. ⟦img/l10/24.png⟧、⟦img/l10/27.png⟧、⟦img/l10/31.png⟧ 时 FHA 增益是否够把 400 V 变到 450 V？"
     },
     {
      "type": "text",
-     "text": "1. 、、 时 FHA 增益是否够把 400 V 变到 450 V？",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l10/34.png",
-     "orig": "image32.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/35.png",
-     "orig": "image33.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/36.png",
-     "orig": "image34.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l10/37.png",
-     "orig": "image35.png"
+     "text": "2. ⟦img/l10/32.png⟧ 改 50 µH 时 ⟦img/l10/33.png⟧？（⟦img/l10/34.png⟧、⟦img/l10/35.png⟧ 口径）"
     },
     {
      "type": "text",
-     "text": "2.  改 50 µH 时 ？（、 口径）",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -2530,8 +1270,7 @@
     },
     {
      "type": "text",
-     "text": "第11讲：双有源桥 DAB 单移相（SPS）。",
-     "style": ""
+     "text": "第11讲：双有源桥 DAB 单移相（SPS）。"
     }
    ]
   },
@@ -2544,53 +1283,12 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第11讲：DAB 单移相",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-25（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l11/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/03.png",
-     "orig": "image3.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/05.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/06.png",
-     "orig": "image6.png"
-    },
-    {
      "type": "text",
-     "text": "、、 时 FHA 增益 ，不够。 时 。",
-     "style": ""
+     "text": "⟦img/l11/01.png⟧、⟦img/l11/02.png⟧、⟦img/l11/03.png⟧ 时 FHA 增益 ⟦img/l11/04.png⟧，不够。⟦img/l11/05.png⟧ 时 ⟦img/l11/06.png⟧。"
     },
     {
      "type": "text",
@@ -2598,84 +1296,44 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l11/07.png",
-     "orig": "image7.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/08.png",
-     "orig": "image8.png"
+     "type": "text",
+     "text": "外移相占空比 ⟦img/l11/07.png⟧（⟦img/l11/08.png⟧ 为桥间移相角）。传输功率："
     },
     {
      "type": "text",
-     "text": "外移相占空比 （ 为桥间移相角）。传输功率：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l11/09.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/10.png",
-     "orig": "image10.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/11.png",
-     "orig": "image11.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/12.png",
-     "orig": "image12.png"
+     "text": "⟦img/l11/09.png⟧"
     },
     {
      "type": "text",
-     "text": "时最大：。电压比 。电感电流拐点：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l11/13.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/14.png",
-     "orig": "image14.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/15.png",
-     "orig": "image15.png"
+     "text": "⟦img/l11/10.png⟧ 时最大：⟦img/l11/11.png⟧。电压比 ⟦img/l11/12.png⟧。电感电流拐点："
     },
     {
      "type": "text",
-     "text": "时副边 ZVS 需 。轻载或电池电压偏离匹配点时易丢 ZVS，回流功率大。改进：母线电压跟随、扩展移相 EPS/DPS/TPS。DAB 天然双向，适合 V2G。",
-     "style": ""
+     "text": "⟦img/l11/13.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "⟦img/l11/14.png⟧ 时副边 ZVS 需 ⟦img/l11/15.png⟧。轻载或电池电压偏离匹配点时易丢 ZVS，回流功率大。改进：母线电压跟随、扩展移相 EPS/DPS/TPS。DAB 天然双向，适合 V2G。"
     },
     {
      "type": "img",
      "src": "img/l11/16.png",
-     "orig": "image16.png"
+     "w": 962,
+     "h": 464
     },
     {
      "type": "text",
-     "text": "图　双有源桥 DAB 与单移相",
-     "style": ""
+     "text": "图　双有源桥 DAB 与单移相"
     },
     {
      "type": "img",
      "src": "img/l11/17.png",
-     "orig": "image17.png"
+     "w": 1131,
+     "h": 703
     },
     {
      "type": "text",
-     "text": "图　单移相关键波形示意",
-     "style": ""
+     "text": "图　单移相关键波形示意"
     },
     {
      "type": "text",
@@ -2683,59 +1341,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l11/18.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/19.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/20.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/21.png",
-     "orig": "image21.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/22.png",
-     "orig": "image22.png"
+     "type": "text",
+     "text": "6.6 kW，⟦img/l11/18.png⟧、⟦img/l11/19.png⟧、⟦img/l11/20.png⟧、⟦img/l11/21.png⟧、额定 ⟦img/l11/22.png⟧："
     },
     {
      "type": "text",
-     "text": "6.6 kW，、、、、额定 ：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l11/23.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/24.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/25.png",
-     "orig": "image25.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/26.png",
-     "orig": "image26.png"
+     "text": "⟦img/l11/23.png⟧"
     },
     {
      "type": "text",
-     "text": "；，，两侧均可 ZVS。",
-     "style": ""
+     "text": "⟦img/l11/24.png⟧；⟦img/l11/25.png⟧，⟦img/l11/26.png⟧，两侧均可 ZVS。"
     },
     {
      "type": "text",
@@ -2744,8 +1359,7 @@
     },
     {
      "type": "text",
-     "text": "宽电池电压 + 双向需求推动部分 OBC 从 LLC 转向 DAB/CLLC。单移相最简单，但轻载效率与回流是短板，量产多用多移相或变母线。",
-     "style": ""
+     "text": "宽电池电压 + 双向需求推动部分 OBC 从 LLC 转向 DAB/CLLC。单移相最简单，但轻载效率与回流是短板，量产多用多移相或变母线。"
     },
     {
      "type": "text",
@@ -2753,29 +1367,12 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l11/27.png",
-     "orig": "image27.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/28.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l11/29.png",
-     "orig": "image28.png"
+     "type": "text",
+     "text": "同 ⟦img/l11/27.png⟧、⟦img/l11/18.png⟧、电池 250 V、功率 3.3 kW：求 ⟦img/l11/28.png⟧ 并判断副边是否 ZVS；若母线降到 300 V 呢？"
     },
     {
      "type": "text",
-     "text": "同 、、电池 250 V、功率 3.3 kW：求  并判断副边是否 ZVS；若母线降到 300 V 呢？",
-     "style": ""
-    },
-    {
-     "type": "text",
-     "text": "（答案下一讲开头公布。）",
-     "style": ""
+     "text": "（答案下一讲开头公布。）"
     },
     {
      "type": "text",
@@ -2784,8 +1381,7 @@
     },
     {
      "type": "text",
-     "text": "第12讲：SiC MOSFET 栅极驱动。",
-     "style": ""
+     "text": "第12讲：SiC MOSFET 栅极驱动。"
     }
    ]
   },
@@ -2798,78 +1394,20 @@
    "blocks": [
     {
      "type": "text",
-     "text": "每日电源基础课 · 第12讲：SiC MOSFET 栅极驱动",
-     "style": "Heading1"
-    },
-    {
-     "type": "text",
-     "text": "推送日期：2026-10-26（Asia/Hong_Kong）",
-     "style": ""
-    },
-    {
-     "type": "text",
      "text": "上讲自测答案",
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l12/01.png",
-     "orig": "image1.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/02.png",
-     "orig": "image2.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/03.png",
-     "orig": "image3.png"
+     "type": "text",
+     "text": "⟦img/l12/01.png⟧、3.3 kW、⟦img/l12/02.png⟧、⟦img/l12/03.png⟧："
     },
     {
      "type": "text",
-     "text": "、3.3 kW、、：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l12/04.png",
-     "orig": "image4.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/05.png",
-     "orig": "image5.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/06.png",
-     "orig": "image6.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/07.png",
-     "orig": "image7.png"
+     "text": "解 ⟦img/l12/04.png⟧ 得 ⟦img/l12/05.png⟧。副边 ZVS 门槛 ⟦img/l12/06.png⟧，⟦img/l12/07.png⟧，副边丢 ZVS。"
     },
     {
      "type": "text",
-     "text": "解  得 。副边 ZVS 门槛 ，，副边丢 ZVS。",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l12/08.png",
-     "orig": "image8.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/09.png",
-     "orig": "image9.png"
-    },
-    {
-     "type": "text",
-     "text": "母线降到  时 ，有 ZVS。",
-     "style": ""
+     "text": "母线降到 ⟦img/l12/08.png⟧ 时 ⟦img/l12/09.png⟧，有 ZVS。"
     },
     {
      "type": "text",
@@ -2877,64 +1415,44 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l12/10.png",
-     "orig": "image10.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/11.png",
-     "orig": "image11.png"
+     "type": "text",
+     "text": "SiC MOSFET 典型驱动电压约 +18 V / −4 V（器件系列而异）。⟦img/l12/10.png⟧ 偏低且高温下降，0 V 关断在高 ⟦img/l12/11.png⟧ 下易米勒误导通。驱动功率与峰值电流："
     },
     {
      "type": "text",
-     "text": "SiC MOSFET 典型驱动电压约 +18 V / −4 V（器件系列而异）。 偏低且高温下降，0 V 关断在高  下易米勒误导通。驱动功率与峰值电流：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l12/12.png",
-     "orig": "image12.png"
+     "text": "⟦img/l12/12.png⟧"
     },
     {
      "type": "text",
-     "text": "米勒尖峰近似：",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l12/13.png",
-     "orig": "image13.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/14.png",
-     "orig": "image14.png"
+     "text": "米勒尖峰近似："
     },
     {
      "type": "text",
-     "text": "对策：负压关断、米勒钳位、开尔文源极（消除共源电感  干扰）、隔离驱动 CMTI 常要求 >100 V/ns。短路耐受约 2–3 µs，需快速 DESAT/过流关断。",
-     "style": ""
+     "text": "⟦img/l12/13.png⟧"
+    },
+    {
+     "type": "text",
+     "text": "对策：负压关断、米勒钳位、开尔文源极（消除共源电感 ⟦img/l12/14.png⟧ 干扰）、隔离驱动 CMTI 常要求 >100 V/ns。短路耐受约 2–3 µs，需快速 DESAT/过流关断。"
     },
     {
      "type": "img",
      "src": "img/l12/15.png",
-     "orig": "image15.png"
+     "w": 962,
+     "h": 489
     },
     {
      "type": "text",
-     "text": "图　SiC 栅极驱动回路示意",
-     "style": ""
+     "text": "图　SiC 栅极驱动回路示意"
     },
     {
      "type": "img",
      "src": "img/l12/16.png",
-     "orig": "image16.png"
+     "w": 1102,
+     "h": 495
     },
     {
      "type": "text",
-     "text": "图　米勒尖峰与负压关断对比示意",
-     "style": ""
+     "text": "图　米勒尖峰与负压关断对比示意"
     },
     {
      "type": "text",
@@ -2942,64 +1460,8 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l12/17.png",
-     "orig": "image17.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/18.png",
-     "orig": "image18.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/19.png",
-     "orig": "image19.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/20.png",
-     "orig": "image20.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/21.png",
-     "orig": "image21.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/22.png",
-     "orig": "image22.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/23.png",
-     "orig": "image23.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/24.png",
-     "orig": "image24.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/25.png",
-     "orig": "image25.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/26.png",
-     "orig": "image26.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/27.png",
-     "orig": "image27.png"
-    },
-    {
      "type": "text",
-     "text": "示例：、、 → 。 → 。、、 → 尖峰 2.5 V。、 → 5 V 源极扰动量级。",
-     "style": ""
+     "text": "示例：⟦img/l12/17.png⟧、⟦img/l12/18.png⟧、⟦img/l12/19.png⟧ → ⟦img/l12/20.png⟧。⟦img/l12/21.png⟧ → ⟦img/l12/22.png⟧。⟦img/l12/23.png⟧、⟦img/l12/24.png⟧、⟦img/l12/25.png⟧ → 尖峰 2.5 V。⟦img/l12/26.png⟧、⟦img/l12/27.png⟧ → 5 V 源极扰动量级。"
     },
     {
      "type": "text",
@@ -3008,8 +1470,7 @@
     },
     {
      "type": "text",
-     "text": "图腾柱快管、DAB/LLC 原边桥臂都是 SiC 主战场。栅极回路的寄生电感与 CMTI 直接决定能否把 SiC 的高速用出来而不直通。",
-     "style": ""
+     "text": "图腾柱快管、DAB/LLC 原边桥臂都是 SiC 主战场。栅极回路的寄生电感与 CMTI 直接决定能否把 SiC 的高速用出来而不直通。"
     },
     {
      "type": "text",
@@ -3017,59 +1478,16 @@
      "style": "Heading2"
     },
     {
-     "type": "img",
-     "src": "img/l12/28.png",
-     "orig": "image28.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/29.png",
-     "orig": "image29.png"
+     "type": "text",
+     "text": "1. ⟦img/l12/28.png⟧、+18/−4 V、⟦img/l12/29.png⟧、4 管，总驱动功率？"
     },
     {
      "type": "text",
-     "text": "1. 、+18/−4 V、、4 管，总驱动功率？",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l12/30.png",
-     "orig": "image30.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/31.png",
-     "orig": "image31.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/32.png",
-     "orig": "image32.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/33.png",
-     "orig": "image33.png"
+     "text": "2. ⟦img/l12/30.png⟧、⟦img/l12/31.png⟧、⟦img/l12/32.png⟧ 总 6 Ω、⟦img/l12/33.png⟧。0 V 关断与 −4 V 关断是否会误导通？"
     },
     {
      "type": "text",
-     "text": "2. 、、 总 6 Ω、。0 V 关断与 −4 V 关断是否会误导通？",
-     "style": ""
-    },
-    {
-     "type": "img",
-     "src": "img/l12/34.png",
-     "orig": "image34.png"
-    },
-    {
-     "type": "img",
-     "src": "img/l12/35.png",
-     "orig": "image35.png"
-    },
-    {
-     "type": "text",
-     "text": "（答案：每管 ，四管共约 1.41 W；尖峰 ，0 V 关断会到 +3.6 V > 2 V 误导通，−4 V 关断到 −0.4 V 不会。）",
-     "style": ""
+     "text": "（答案：每管 ⟦img/l12/34.png⟧，四管共约 1.41 W；尖峰 ⟦img/l12/35.png⟧，0 V 关断会到 +3.6 V > 2 V 误导通，−4 V 关断到 −0.4 V 不会。）"
     },
     {
      "type": "text",
@@ -3078,8 +1496,7 @@
     },
     {
      "type": "text",
-     "text": "本系列第1–12讲告一段落。后续可延伸：CLLC、多移相 DAB、数字控制实现与 EMI。",
-     "style": ""
+     "text": "本系列第1–12讲告一段落。后续可延伸：CLLC、多移相 DAB、数字控制实现与 EMI。"
     }
    ]
   },

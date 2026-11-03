@@ -58,13 +58,18 @@ def main():
         else:
             raise SystemExit(f"missing lesson {n}")
         title = d.get("title") or re.match(r"# 第 ?(\d+) 讲 · (.+)", open(mp, encoding="utf-8").read().split("\n")[0]).group(2)
+        blocks = d["blocks"]
+        # 行内公式标记展开为完整路径（App 渲染为行内小图）
+        for b in blocks:
+            if b.get("type") == "text" and "⟦" in b.get("text", ""):
+                b["text"] = re.sub(r"⟦([^⟧]+)⟧", rf"⟦img/l{n:02d}/\1⟧", b["text"])
         lessons.append({
             "n": n,
             "title": title,
             "minutes": d.get("minutes", 6 if src == "converted" else 6),
             "tags": d.get("tags", []),
             "source": src,
-            "blocks": d["blocks"],
+            "blocks": blocks,
         })
     out = {
         "version": "2026.11.04.1",

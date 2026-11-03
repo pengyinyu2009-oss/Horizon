@@ -4,23 +4,12 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第1讲：伏秒/电荷平衡与 Buck",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-15（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
    "type": "text",
-   "text": "（本讲为第1讲，无上讲自测。）",
-   "style": ""
+   "text": "（本讲为第1讲，无上讲自测。）"
   },
   {
    "type": "text",
@@ -29,38 +18,33 @@
   },
   {
    "type": "text",
-   "text": "开关电源稳态工作时，电感两端电压在一个开关周期内的时间积分必须为零，否则电感电流会单向发散——这就是伏秒平衡（Volt-Second Balance）：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l01/01.png",
-   "orig": "image1.png"
+   "text": "开关电源稳态工作时，电感两端电压在一个开关周期内的时间积分必须为零，否则电感电流会单向发散——这就是伏秒平衡（Volt-Second Balance）："
   },
   {
    "type": "text",
-   "text": "同理，电容电流在一个周期内的电荷积分必须为零，否则电容电压会单向漂移——这就是电荷平衡（Charge Balance）：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l01/02.png",
-   "orig": "image2.png"
+   "text": "⟦01.png⟧"
   },
   {
    "type": "text",
-   "text": "这两条是推导 Buck、Boost、Buck-Boost 等拓扑稳态变比、纹波的出发点。",
-   "style": ""
+   "text": "同理，电容电流在一个周期内的电荷积分必须为零，否则电容电压会单向漂移——这就是电荷平衡（Charge Balance）："
+  },
+  {
+   "type": "text",
+   "text": "⟦02.png⟧"
+  },
+  {
+   "type": "text",
+   "text": "这两条是推导 Buck、Boost、Buck-Boost 等拓扑稳态变比、纹波的出发点。"
   },
   {
    "type": "img",
    "src": "img/l01/03.png",
-   "orig": "image3.png"
+   "w": 1142,
+   "h": 624
   },
   {
    "type": "text",
-   "text": "图　Buck 关键波形与伏秒平衡示意",
-   "style": ""
+   "text": "图　Buck 关键波形与伏秒平衡示意"
   },
   {
    "type": "text",
@@ -68,59 +52,34 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l01/04.png",
-   "orig": "image4.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/05.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/06.png",
-   "orig": "image6.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/07.png",
-   "orig": "image7.png"
+   "type": "text",
+   "text": "同步/异步 Buck：开关导通时电感电压 ⟦04.png⟧，关断时 ⟦05.png⟧（忽略二极管压降）。设占空比为 ⟦06.png⟧，开关周期为 ⟦07.png⟧，伏秒平衡给出："
   },
   {
    "type": "text",
-   "text": "同步/异步 Buck：开关导通时电感电压 ，关断时 （忽略二极管压降）。设占空比为 ，开关周期为 ，伏秒平衡给出：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l01/08.png",
-   "orig": "image8.png"
+   "text": "⟦08.png⟧"
   },
   {
    "type": "text",
-   "text": "电感电流纹波峰峰值：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l01/09.png",
-   "orig": "image9.png"
+   "text": "电感电流纹波峰峰值："
   },
   {
    "type": "text",
-   "text": "输出电容上的电荷平衡可进一步给出电压纹波（与 ESR、ESL 有关）。",
-   "style": ""
+   "text": "⟦09.png⟧"
+  },
+  {
+   "type": "text",
+   "text": "输出电容上的电荷平衡可进一步给出电压纹波（与 ESR、ESL 有关）。"
   },
   {
    "type": "img",
    "src": "img/l01/10.png",
-   "orig": "image10.png"
+   "w": 924,
+   "h": 464
   },
   {
    "type": "text",
-   "text": "图　Buck 拓扑示意",
-   "style": ""
+   "text": "图　Buck 拓扑示意"
   },
   {
    "type": "text",
@@ -128,39 +87,12 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l01/11.png",
-   "orig": "image11.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/12.png",
-   "orig": "image12.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/13.png",
-   "orig": "image13.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/14.png",
-   "orig": "image14.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/15.png",
-   "orig": "image15.png"
+   "type": "text",
+   "text": "取 Buck：⟦11.png⟧、⟦12.png⟧，则 ⟦13.png⟧。若 ⟦14.png⟧、⟦15.png⟧："
   },
   {
    "type": "text",
-   "text": "取 Buck：、，则 。若 、：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l01/16.png",
-   "orig": "image16.png"
+   "text": "⟦16.png⟧"
   },
   {
    "type": "text",
@@ -169,8 +101,7 @@
   },
   {
    "type": "text",
-   "text": "车载 OBC 后级隔离 DC/DC 前常有 400 V 母线；辅助电源、风扇/继电器供电等多处用到 Buck。伏秒平衡是后续 Boost PFC、LLC、DAB 分析的共同语言。",
-   "style": ""
+   "text": "车载 OBC 后级隔离 DC/DC 前常有 400 V 母线；辅助电源、风扇/继电器供电等多处用到 Buck。伏秒平衡是后续 Boost PFC、LLC、DAB 分析的共同语言。"
   },
   {
    "type": "text",
@@ -178,39 +109,12 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l01/17.png",
-   "orig": "image17.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/18.png",
-   "orig": "image18.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/19.png",
-   "orig": "image19.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/20.png",
-   "orig": "image6.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l01/21.png",
-   "orig": "image20.png"
+   "type": "text",
+   "text": "Boost 变换器：⟦17.png⟧，⟦18.png⟧，⟦19.png⟧，CCM。求占空比 ⟦06.png⟧ 与电感电流纹波 ⟦20.png⟧。"
   },
   {
    "type": "text",
-   "text": "Boost 变换器：，，，CCM。求占空比  与电感电流纹波 。",
-   "style": ""
-  },
-  {
-   "type": "text",
-   "text": "（答案下一讲开头公布。）",
-   "style": ""
+   "text": "（答案下一讲开头公布。）"
   },
   {
    "type": "text",
@@ -219,8 +123,7 @@
   },
   {
    "type": "text",
-   "text": "第2讲：Boost 与 Buck-Boost（含 PFC 中的 Boost）。",
-   "style": ""
+   "text": "第2讲：Boost 与 Buck-Boost（含 PFC 中的 Boost）。"
   }
  ]
 }

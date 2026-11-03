@@ -4,43 +4,12 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第10讲：LLC 入门",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-24（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l10/01.png",
-   "orig": "image1.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/02.png",
-   "orig": "image2.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/03.png",
-   "orig": "image3.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/04.png",
-   "orig": "image4.png"
-  },
-  {
    "type": "text",
-   "text": "延迟滞后 。对象约 −90°，PI 在  处超前约  量级贡献需按完整 Bode 核算；按本系列口径得 PM≈32.8°。要 PM≥45° 时最大 。",
-   "style": ""
+   "text": "延迟滞后 ⟦01.png⟧。对象约 −90°，PI 在 ⟦02.png⟧ 处超前约 ⟦03.png⟧ 量级贡献需按完整 Bode 核算；按本系列口径得 PM≈32.8°。要 PM≥45° 时最大 ⟦04.png⟧。"
   },
   {
    "type": "text",
@@ -49,118 +18,54 @@
   },
   {
    "type": "text",
-   "text": "谐振频率与并联频率：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l10/05.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/06.png",
-   "orig": "image6.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/07.png",
-   "orig": "image7.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/08.png",
-   "orig": "image8.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/09.png",
-   "orig": "image9.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/10.png",
-   "orig": "image10.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/11.png",
-   "orig": "image11.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/12.png",
-   "orig": "image12.png"
+   "text": "谐振频率与并联频率："
   },
   {
    "type": "text",
-   "text": "基波近似（FHA）下交流等效负载 ，品质因数 ，电感比 。增益  在 （即 ）时  且与负载无关。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l10/13.png",
-   "orig": "image13.png"
+   "text": "⟦05.png⟧"
   },
   {
    "type": "text",
-   "text": "：升压区，原边易 ZVS、副边整流可 ZCS；",
+   "text": "基波近似（FHA）下交流等效负载 ⟦06.png⟧，品质因数 ⟦07.png⟧，电感比 ⟦08.png⟧。增益 ⟦09.png⟧ 在 ⟦10.png⟧（即 ⟦11.png⟧）时 ⟦12.png⟧ 且与负载无关。"
+  },
+  {
+   "type": "text",
+   "text": "⟦13.png⟧：升压区，原边易 ZVS、副边整流可 ZCS；",
    "style": "ListBullet"
   },
   {
-   "type": "img",
-   "src": "img/l10/14.png",
-   "orig": "image14.png"
-  },
-  {
    "type": "text",
-   "text": "：降压区；",
+   "text": "⟦14.png⟧：降压区；",
    "style": "ListBullet"
   },
   {
-   "type": "img",
-   "src": "img/l10/15.png",
-   "orig": "image15.png"
-  },
-  {
    "type": "text",
-   "text": "：容性区，易丢 ZVS，危险。",
+   "text": "⟦15.png⟧：容性区，易丢 ZVS，危险。",
    "style": "ListBullet"
   },
   {
-   "type": "img",
-   "src": "img/l10/16.png",
-   "orig": "image16.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/17.png",
-   "orig": "image17.png"
-  },
-  {
    "type": "text",
-   "text": "ZVS 条件：励磁电流峰值  须在死区内抽走  的电荷。",
-   "style": ""
+   "text": "ZVS 条件：励磁电流峰值 ⟦16.png⟧ 须在死区内抽走 ⟦17.png⟧ 的电荷。"
   },
   {
    "type": "img",
    "src": "img/l10/18.png",
-   "orig": "image18.png"
+   "w": 962,
+   "h": 464
   },
   {
    "type": "text",
-   "text": "图　LLC 谐振变换器拓扑示意",
-   "style": ""
+   "text": "图　LLC 谐振变换器拓扑示意"
   },
   {
    "type": "img",
    "src": "img/l10/19.png",
-   "orig": "image19.png"
+   "w": 1100,
+   "h": 527
   },
   {
    "type": "text",
-   "text": "图　LLC 增益曲线分区示意",
-   "style": ""
+   "text": "图　LLC 增益曲线分区示意"
   },
   {
    "type": "text",
@@ -168,69 +73,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l10/20.png",
-   "orig": "image20.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/21.png",
-   "orig": "image21.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/22.png",
-   "orig": "image22.png"
+   "type": "text",
+   "text": "6.6 kW 全桥，⟦20.png⟧、⟦21.png⟧、⟦22.png⟧："
   },
   {
    "type": "text",
-   "text": "6.6 kW 全桥，、、：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l10/23.png",
-   "orig": "image23.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/24.png",
-   "orig": "image24.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/25.png",
-   "orig": "image25.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/26.png",
-   "orig": "image26.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/27.png",
-   "orig": "image27.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/28.png",
-   "orig": "image28.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/29.png",
-   "orig": "image29.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/30.png",
-   "orig": "image30.png"
+   "text": "⟦23.png⟧"
   },
   {
    "type": "text",
-   "text": "取  得 、； 则 ，。示例  所需死区约 10 ns 量级（实际还要留裕量）。",
-   "style": ""
+   "text": "取 ⟦24.png⟧ 得 ⟦25.png⟧、⟦26.png⟧；⟦27.png⟧ 则 ⟦28.png⟧，⟦29.png⟧。示例 ⟦30.png⟧ 所需死区约 10 ns 量级（实际还要留裕量）。"
   },
   {
    "type": "text",
@@ -239,8 +91,7 @@
   },
   {
    "type": "text",
-   "text": "电池 250–450 V 宽电压让固定母线 LLC 增益吃力：常用 PFC 母线跟随、改 CLLC 双向，或直接上 DAB。轻载调频范围与爆音、同步整流是工程痛点。",
-   "style": ""
+   "text": "电池 250–450 V 宽电压让固定母线 LLC 增益吃力：常用 PFC 母线跟随、改 CLLC 双向，或直接上 DAB。轻载调频范围与爆音、同步整流是工程痛点。"
   },
   {
    "type": "text",
@@ -248,54 +99,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l10/31.png",
-   "orig": "image24.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/32.png",
-   "orig": "image27.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/33.png",
-   "orig": "image31.png"
+   "type": "text",
+   "text": "1. ⟦24.png⟧、⟦27.png⟧、⟦31.png⟧ 时 FHA 增益是否够把 400 V 变到 450 V？"
   },
   {
    "type": "text",
-   "text": "1. 、、 时 FHA 增益是否够把 400 V 变到 450 V？",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l10/34.png",
-   "orig": "image32.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/35.png",
-   "orig": "image33.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/36.png",
-   "orig": "image34.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l10/37.png",
-   "orig": "image35.png"
+   "text": "2. ⟦32.png⟧ 改 50 µH 时 ⟦33.png⟧？（⟦34.png⟧、⟦35.png⟧ 口径）"
   },
   {
    "type": "text",
-   "text": "2.  改 50 µH 时 ？（、 口径）",
-   "style": ""
-  },
-  {
-   "type": "text",
-   "text": "（答案下一讲开头公布。）",
-   "style": ""
+   "text": "（答案下一讲开头公布。）"
   },
   {
    "type": "text",
@@ -304,8 +117,7 @@
   },
   {
    "type": "text",
-   "text": "第11讲：双有源桥 DAB 单移相（SPS）。",
-   "style": ""
+   "text": "第11讲：双有源桥 DAB 单移相（SPS）。"
   }
  ]
 }

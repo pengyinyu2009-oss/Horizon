@@ -4,53 +4,12 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第11讲：DAB 单移相",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-25（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l11/01.png",
-   "orig": "image1.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/02.png",
-   "orig": "image2.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/03.png",
-   "orig": "image3.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/04.png",
-   "orig": "image4.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/05.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/06.png",
-   "orig": "image6.png"
-  },
-  {
    "type": "text",
-   "text": "、、 时 FHA 增益 ，不够。 时 。",
-   "style": ""
+   "text": "⟦01.png⟧、⟦02.png⟧、⟦03.png⟧ 时 FHA 增益 ⟦04.png⟧，不够。⟦05.png⟧ 时 ⟦06.png⟧。"
   },
   {
    "type": "text",
@@ -58,84 +17,44 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l11/07.png",
-   "orig": "image7.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/08.png",
-   "orig": "image8.png"
+   "type": "text",
+   "text": "外移相占空比 ⟦07.png⟧（⟦08.png⟧ 为桥间移相角）。传输功率："
   },
   {
    "type": "text",
-   "text": "外移相占空比 （ 为桥间移相角）。传输功率：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l11/09.png",
-   "orig": "image9.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/10.png",
-   "orig": "image10.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/11.png",
-   "orig": "image11.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/12.png",
-   "orig": "image12.png"
+   "text": "⟦09.png⟧"
   },
   {
    "type": "text",
-   "text": "时最大：。电压比 。电感电流拐点：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l11/13.png",
-   "orig": "image13.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/14.png",
-   "orig": "image14.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/15.png",
-   "orig": "image15.png"
+   "text": "⟦10.png⟧ 时最大：⟦11.png⟧。电压比 ⟦12.png⟧。电感电流拐点："
   },
   {
    "type": "text",
-   "text": "时副边 ZVS 需 。轻载或电池电压偏离匹配点时易丢 ZVS，回流功率大。改进：母线电压跟随、扩展移相 EPS/DPS/TPS。DAB 天然双向，适合 V2G。",
-   "style": ""
+   "text": "⟦13.png⟧"
+  },
+  {
+   "type": "text",
+   "text": "⟦14.png⟧ 时副边 ZVS 需 ⟦15.png⟧。轻载或电池电压偏离匹配点时易丢 ZVS，回流功率大。改进：母线电压跟随、扩展移相 EPS/DPS/TPS。DAB 天然双向，适合 V2G。"
   },
   {
    "type": "img",
    "src": "img/l11/16.png",
-   "orig": "image16.png"
+   "w": 962,
+   "h": 464
   },
   {
    "type": "text",
-   "text": "图　双有源桥 DAB 与单移相",
-   "style": ""
+   "text": "图　双有源桥 DAB 与单移相"
   },
   {
    "type": "img",
    "src": "img/l11/17.png",
-   "orig": "image17.png"
+   "w": 1131,
+   "h": 703
   },
   {
    "type": "text",
-   "text": "图　单移相关键波形示意",
-   "style": ""
+   "text": "图　单移相关键波形示意"
   },
   {
    "type": "text",
@@ -143,59 +62,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l11/18.png",
-   "orig": "image18.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/19.png",
-   "orig": "image19.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/20.png",
-   "orig": "image20.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/21.png",
-   "orig": "image21.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/22.png",
-   "orig": "image22.png"
+   "type": "text",
+   "text": "6.6 kW，⟦18.png⟧、⟦19.png⟧、⟦20.png⟧、⟦21.png⟧、额定 ⟦22.png⟧："
   },
   {
    "type": "text",
-   "text": "6.6 kW，、、、、额定 ：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l11/23.png",
-   "orig": "image23.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/24.png",
-   "orig": "image24.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/25.png",
-   "orig": "image25.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/26.png",
-   "orig": "image26.png"
+   "text": "⟦23.png⟧"
   },
   {
    "type": "text",
-   "text": "；，，两侧均可 ZVS。",
-   "style": ""
+   "text": "⟦24.png⟧；⟦25.png⟧，⟦26.png⟧，两侧均可 ZVS。"
   },
   {
    "type": "text",
@@ -204,8 +80,7 @@
   },
   {
    "type": "text",
-   "text": "宽电池电压 + 双向需求推动部分 OBC 从 LLC 转向 DAB/CLLC。单移相最简单，但轻载效率与回流是短板，量产多用多移相或变母线。",
-   "style": ""
+   "text": "宽电池电压 + 双向需求推动部分 OBC 从 LLC 转向 DAB/CLLC。单移相最简单，但轻载效率与回流是短板，量产多用多移相或变母线。"
   },
   {
    "type": "text",
@@ -213,29 +88,12 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l11/27.png",
-   "orig": "image27.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/28.png",
-   "orig": "image18.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l11/29.png",
-   "orig": "image28.png"
+   "type": "text",
+   "text": "同 ⟦27.png⟧、⟦18.png⟧、电池 250 V、功率 3.3 kW：求 ⟦28.png⟧ 并判断副边是否 ZVS；若母线降到 300 V 呢？"
   },
   {
    "type": "text",
-   "text": "同 、、电池 250 V、功率 3.3 kW：求  并判断副边是否 ZVS；若母线降到 300 V 呢？",
-   "style": ""
-  },
-  {
-   "type": "text",
-   "text": "（答案下一讲开头公布。）",
-   "style": ""
+   "text": "（答案下一讲开头公布。）"
   },
   {
    "type": "text",
@@ -244,8 +102,7 @@
   },
   {
    "type": "text",
-   "text": "第12讲：SiC MOSFET 栅极驱动。",
-   "style": ""
+   "text": "第12讲：SiC MOSFET 栅极驱动。"
   }
  ]
 }

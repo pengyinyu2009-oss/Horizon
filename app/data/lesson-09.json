@@ -4,58 +4,16 @@
  "blocks": [
   {
    "type": "text",
-   "text": "每日电源基础课 · 第9讲：数字 PI",
-   "style": "Heading1"
-  },
-  {
-   "type": "text",
-   "text": "推送日期：2026-10-23（Asia/Hong_Kong）",
-   "style": ""
-  },
-  {
-   "type": "text",
    "text": "上讲自测答案",
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l09/01.png",
-   "orig": "image1.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/02.png",
-   "orig": "image2.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/03.png",
-   "orig": "image3.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/04.png",
-   "orig": "image4.png"
+   "type": "text",
+   "text": "⟦01.png⟧。桥损耗按 ⟦02.png⟧ 计为 ⟦03.png⟧；慢管 ⟦04.png⟧；省约 22.7 W（约 0.69%）。"
   },
   {
    "type": "text",
-   "text": "。桥损耗按  计为 ；慢管 ；省约 22.7 W（约 0.69%）。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l09/05.png",
-   "orig": "image5.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/06.png",
-   "orig": "image6.png"
-  },
-  {
-   "type": "text",
-   "text": "。过零尖峰：慢管切换使开关节点跳变约 ，寄生电容充放电，且主/同步角色与占空比突变。",
-   "style": ""
+   "text": "⟦05.png⟧。过零尖峰：慢管切换使开关节点跳变约 ⟦06.png⟧，寄生电容充放电，且主/同步角色与占空比突变。"
   },
   {
    "type": "text",
@@ -63,74 +21,44 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l09/07.png",
-   "orig": "image7.png"
+   "type": "text",
+   "text": "连续域 ⟦07.png⟧。离散化常用后向欧拉或 Tustin。位置式："
   },
   {
    "type": "text",
-   "text": "连续域 。离散化常用后向欧拉或 Tustin。位置式：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l09/08.png",
-   "orig": "image8.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/09.png",
-   "orig": "image9.png"
+   "text": "⟦08.png⟧"
   },
   {
    "type": "text",
-   "text": "亦可写增量式。数字控制总延迟约「采样 + 计算 + PWM 更新」≈ （单次采样对称 PWM 典型值），相位滞后：",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l09/10.png",
-   "orig": "image10.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/11.png",
-   "orig": "image11.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/12.png",
-   "orig": "image12.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/13.png",
-   "orig": "image13.png"
+   "text": "亦可写增量式。数字控制总延迟约「采样 + 计算 + PWM 更新」≈ ⟦09.png⟧（单次采样对称 PWM 典型值），相位滞后："
   },
   {
    "type": "text",
-   "text": "电流环穿越频率通常 。抗积分饱和：输出限幅 + 条件积分/反计算。C2000 可用浮点、CLA 或 IQmath。PFC 电流环常叠加  前馈与占空比前馈 。",
-   "style": ""
+   "text": "⟦10.png⟧"
+  },
+  {
+   "type": "text",
+   "text": "电流环穿越频率通常 ⟦11.png⟧。抗积分饱和：输出限幅 + 条件积分/反计算。C2000 可用浮点、CLA 或 IQmath。PFC 电流环常叠加 ⟦12.png⟧ 前馈与占空比前馈 ⟦13.png⟧。"
   },
   {
    "type": "img",
    "src": "img/l09/14.png",
-   "orig": "image14.png"
+   "w": 962,
+   "h": 415
   },
   {
    "type": "text",
-   "text": "图　位置式数字 PI 框图",
-   "style": ""
+   "text": "图　位置式数字 PI 框图"
   },
   {
    "type": "img",
    "src": "img/l09/15.png",
-   "orig": "image15.png"
+   "w": 1070,
+   "h": 462
   },
   {
    "type": "text",
-   "text": "图　数字控制延迟引起的相位滞后",
-   "style": ""
+   "text": "图　数字控制延迟引起的相位滞后"
   },
   {
    "type": "text",
@@ -138,49 +66,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l09/16.png",
-   "orig": "image16.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/17.png",
-   "orig": "image17.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/18.png",
-   "orig": "image18.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/19.png",
-   "orig": "image19.png"
+   "type": "text",
+   "text": "PFC 电流环：⟦16.png⟧ 单次采样，⟦17.png⟧、⟦18.png⟧，目标 ⟦19.png⟧。"
   },
   {
    "type": "text",
-   "text": "PFC 电流环： 单次采样，、，目标 。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l09/20.png",
-   "orig": "image20.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/21.png",
-   "orig": "image21.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/22.png",
-   "orig": "image22.png"
+   "text": "⟦20.png⟧"
   },
   {
    "type": "text",
-   "text": "PI 零点置 1 kHz：，。延迟滞后约 41.5°，若被控对象近似 −90°，则相位裕度约 37.2°。",
-   "style": ""
+   "text": "PI 零点置 1 kHz：⟦21.png⟧，⟦22.png⟧。延迟滞后约 41.5°，若被控对象近似 −90°，则相位裕度约 37.2°。"
   },
   {
    "type": "text",
@@ -189,8 +84,7 @@
   },
   {
    "type": "text",
-   "text": "PFC 电流环、母线电压环、DAB 功率/电流环都是数字 PI（或 PR/重复控制增强）。带宽与 1.5 拍延迟、ADC 中点采样（第5讲）绑在一起设计。",
-   "style": ""
+   "text": "PFC 电流环、母线电压环、DAB 功率/电流环都是数字 PI（或 PR/重复控制增强）。带宽与 1.5 拍延迟、ADC 中点采样（第5讲）绑在一起设计。"
   },
   {
    "type": "text",
@@ -198,44 +92,16 @@
    "style": "Heading2"
   },
   {
-   "type": "img",
-   "src": "img/l09/23.png",
-   "orig": "image23.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/24.png",
-   "orig": "image24.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/25.png",
-   "orig": "image25.png"
+   "type": "text",
+   "text": "1. ⟦23.png⟧ 单次采样、⟦24.png⟧、PI 零点在 ⟦25.png⟧，估算相位裕度 PM。"
   },
   {
    "type": "text",
-   "text": "1.  单次采样、、PI 零点在 ，估算相位裕度 PM。",
-   "style": ""
-  },
-  {
-   "type": "img",
-   "src": "img/l09/26.png",
-   "orig": "image26.png"
-  },
-  {
-   "type": "img",
-   "src": "img/l09/27.png",
-   "orig": "image27.png"
+   "text": "2. 若要求 ⟦26.png⟧（其它条件同结构），最大 ⟦27.png⟧ 约多少？"
   },
   {
    "type": "text",
-   "text": "2. 若要求 （其它条件同结构），最大  约多少？",
-   "style": ""
-  },
-  {
-   "type": "text",
-   "text": "（答案下一讲开头公布。）",
-   "style": ""
+   "text": "（答案下一讲开头公布。）"
   },
   {
    "type": "text",
@@ -244,8 +110,7 @@
   },
   {
    "type": "text",
-   "text": "第10讲：LLC 谐振变换器入门。",
-   "style": ""
+   "text": "第10讲：LLC 谐振变换器入门。"
   }
  ]
 }
