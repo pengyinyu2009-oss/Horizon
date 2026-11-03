@@ -1,5 +1,6 @@
 """AI client abstraction supporting multiple providers."""
 
+import asyncio
 import os
 import re
 from abc import ABC, abstractmethod
@@ -518,60 +519,65 @@ def create_ai_client(config: AIConfig) -> AIClient:
         return OpenAIClient(config)
     else:
         raise ValueError(f"Unsupported AI provider: {config.provider}")
+# 2026-11-04 fallback policy (user directive: DeepSeek is a PAID backup —
+# only switch when MiniMax is completely unusable, never on a whim):
+#   - 401/403 (auth/quota dead)          -> switch to the next provider at once
+#   - 429 / 5xx / network & timeout      -> retry the SAME provider with
+#     backoff; retries exhausted -> count toward a run-scoped circuit
+#     breaker; only when the breaker trips (consecutive failures) does the
+#     run move to the fallback. A single success resets the streak.
+#   - 400 and other 4xx                  -> raise at once (schema/prompt
+#     problem; it would fail identically everywhere).
+_FALLBACK_STATUS_CODES = {401, 403}
+_TRANSIENT_MAX_ATTEMPTS = 3            # 1 call + 2 retries
+_TRANSIENT_BACKOFF_S = (2.0, 4.0)      # sleep before retry #1 / #2
+_BREAKER_THRESHOLD = 5                 # consecutive exhausted calls
 
 
-# 2026-08-08: fallback trigger codes. 401 = quota/auth exhausted (minimax
-# token-plan outage returns 401 + "invalid api key (2049)"); 429 = rate
-# limit / quota; 5xx = provider-side fault. 400 and network/timeout errors
-# deliberately NOT included: 400 is a prompt/schema problem that will fail
-# identically on every fallback; timeout/connection failures are local to
-# the network path, not provider attribution.
-_FALLBACK_STATUS_CODES = {401, 429}
+def _classify_failure(exc: BaseException) -> Optional[str]:
+    """'auth' | 'transient' | None. Duck-typed on .status_code so the
+    module keeps zero SDK error-class imports; None = not a provider
+    failure at all (400 schema errors, local ValueErrors, ...)."""
+    if isinstance(exc, (ValueError, TypeError, KeyError)):
+        return None  # 本地逻辑错误，换谁都没用
+    code = getattr(exc, "status_code", None)
+    if code in _FALLBACK_STATUS_CODES:
+        return "auth"
+    if code == 400:
+        return None
+    if code is None or code == 429 or code >= 500:
+        return "transient"
+    return None
 
 
 def _should_fallback(exc: BaseException) -> bool:
-    """Duck-typed check on SDK errors. Avoids importing SDK-specific error
-    classes (the codebase currently has zero references to openai/anthropic
-    error types). Relies on .status_code attribute set by openai's
-    APIStatusError family; returns False for any other exception shape.
-    """
-    code = getattr(exc, "status_code", None)
-    if code is None:
-        return False
-    if code in _FALLBACK_STATUS_CODES:
-        return True
-    if code >= 500:
-        return True
-    return False
+    """Backwards-compatible shim: True when the failure justifies moving
+    off this provider (auth immediately; transient only after the caller
+    exhausts its retries — callers should prefer _classify_failure)."""
+    return _classify_failure(exc) is not None
 
 
 class FallbackAIClient(AIClient):
-    """Wrapper that tries multiple AI clients in order on 401/429/5xx.
+    """Provider chain with a paid-backup-friendly switch policy.
 
-    self.config points at the primary config so downstream code that reads
-    client.config.throttle_sec / analysis_concurrency / prompt_overrides
-    keeps working unchanged. Fallback progression is logged via print()
-    (matches the codebase's logging pattern in scripts/push_hiboard_daily.py
-    and append_* scripts) so GHA logs show which providers were attempted.
+    self.config points at the primary config so analyzer/enricher keep
+    reading throttle_sec / analysis_concurrency / prompt_overrides from
+    the primary. Switching to the (paid) fallback happens only when:
+      - the primary fails auth/quota (401/403), or
+      - the run-scoped breaker opens after _BREAKER_THRESHOLD consecutive
+        transient failures (each retried _TRANSIENT_MAX_ATTEMPTS times).
+    A single success resets the transient streak.
     """
 
     def __init__(self, configs):
         if not configs:
             raise ValueError("FallbackAIClient requires at least one config")
-        self.config = configs[0]  # primary — what analyzer/enricher see
-        # Lazy-build: children are NOT constructed here. A missing fallback
-        # key (e.g. MINIMAX_API_KEY set but DEEPSEEK_API_KEY unset in a
-        # monthly-summary job) must not prevent the primary from working.
-        # Building is deferred to complete() where each child is built on
-        # first attempt and cached.
+        self.config = configs[0]
         self._configs = list(configs)
         self._clients: list = [None] * len(configs)
-        # Run-scoped circuit breaker. Authentication/quota failures and
-        # build-time configuration failures cannot recover between two
-        # adjacent completion calls, so retrying them for every item only
-        # adds latency and log noise. Transient 429/5xx errors are not kept
-        # here; a later request may probe the primary again.
         self._disabled_indices: set[int] = set()
+        # 连续瞬态失败计数（仅对主 provider；成功即清零）
+        self._transient_streak = 0
 
     @staticmethod
     def _build_one(config: AIConfig) -> AIClient:
@@ -598,6 +604,10 @@ class FallbackAIClient(AIClient):
             self._clients[idx] = self._build_one(self._configs[idx])
         return self._clients[idx]
 
+    def _provider_str(self, idx: int) -> str:
+        provider = getattr(self._configs[idx], "provider", "?")
+        return provider.value if hasattr(provider, "value") else str(provider)
+
     async def complete(
         self,
         system: str,
@@ -610,36 +620,57 @@ class FallbackAIClient(AIClient):
         for idx in range(len(self._configs)):
             if idx in self._disabled_indices:
                 continue
-            cfg = self._configs[idx]
-            provider = getattr(cfg, "provider", "?")
-            provider_str = provider.value if hasattr(provider, "value") else str(provider)
             try:
                 client = self._get_client(idx)
             except Exception as e:
-                # Build-time failure (e.g. missing API key for this provider).
-                # Treat as skippable — move to next provider in the chain.
-                last_exc = e
-                last_provider = provider_str
+                # Build-time failure (e.g. missing API key) — skippable.
                 self._disabled_indices.add(idx)
+                last_exc, last_provider = e, self._provider_str(idx)
                 print(
-                    f"[ai_fallback] {provider_str} build failed "
+                    f"[ai_fallback] {last_provider} build failed "
                     f"({type(e).__name__}: {e}) — trying next provider"
                 )
                 continue
-            try:
-                return await client.complete(system, user, temperature, max_tokens)
-            except Exception as e:
-                last_exc = e
-                last_provider = provider_str
-                if not _should_fallback(e):
-                    raise
-                if getattr(e, "status_code", None) == 401:
-                    self._disabled_indices.add(idx)
-                if idx < len(self._configs) - 1:
-                    print(
-                        f"[ai_fallback] {provider_str} status="
-                        f"{getattr(e, 'status_code', '?')} — trying next provider"
-                    )
+
+            for attempt in range(_TRANSIENT_MAX_ATTEMPTS):
+                try:
+                    out = await client.complete(system, user, temperature, max_tokens)
+                    if idx == 0:
+                        self._transient_streak = 0
+                    return out
+                except Exception as e:
+                    kind = _classify_failure(e)
+                    if kind is None:
+                        raise  # 400/本地错误：换谁都没用
+                    last_exc, last_provider = e, self._provider_str(idx)
+                    if kind == "auth":
+                        self._disabled_indices.add(idx)
+                        print(
+                            f"[ai_fallback] {last_provider} auth/quota dead "
+                            f"(status={getattr(e, 'status_code', '?')}) — "
+                            f"switching to next provider for this run"
+                        )
+                        break  # 下一个 provider
+                    # transient：先重试
+                    if attempt + 1 < _TRANSIENT_MAX_ATTEMPTS:
+                        await asyncio.sleep(
+                            _TRANSIENT_BACKOFF_S[min(attempt, len(_TRANSIENT_BACKOFF_S) - 1)]
+                        )
+                        continue
+                    # 重试耗尽
+                    if idx == 0:
+                        self._transient_streak += 1
+                        if self._transient_streak >= _BREAKER_THRESHOLD:
+                            self._disabled_indices.add(idx)
+                            print(
+                                f"[ai_fallback] {last_provider} unavailable "
+                                f"{self._transient_streak} consecutive calls — "
+                                f"circuit open, switching to next provider "
+                                f"for this run"
+                            )
+                            break  # 本次调用由 fallback 接管
+                        raise
+                    raise  # 备胎自己也瞬态失败：如实上抛
         if last_exc is None:
             raise RuntimeError("All AI providers are disabled for this run")
         print(f"[ai_fallback] all providers exhausted (last={last_provider})")

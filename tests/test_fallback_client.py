@@ -10,7 +10,8 @@ import pytest
 from src.ai.client import (
     FallbackAIClient,
     OpenAIClient,
-    _should_fallback,
+    _classify_failure,
+    _TRANSIENT_BACKOFF_S,
     create_ai_client,
 )
 from src.models import AIConfig, AIProvider
@@ -55,28 +56,32 @@ def _ok_response(text: str = '{"ok": true}') -> MagicMock:
     return r
 
 
-class TestShouldFallback:
-    def test_401_triggers(self):
-        assert _should_fallback(_StatusError(401))
+class TestClassifyFailure:
+    """2026-11-04 语义：401/403=auth（立即切）；429/5xx/网络=transient（重试）；400/其它=None。"""
 
-    def test_429_triggers(self):
-        assert _should_fallback(_StatusError(429))
+    def test_401_is_auth(self):
+        assert _classify_failure(_StatusError(401)) == "auth"
+
+    def test_403_is_auth(self):
+        assert _classify_failure(_StatusError(403)) == "auth"
+
+    def test_429_is_transient(self):
+        assert _classify_failure(_StatusError(429)) == "transient"
 
     @pytest.mark.parametrize("code", [500, 502, 503, 504])
-    def test_5xx_triggers(self, code):
-        assert _should_fallback(_StatusError(code))
+    def test_5xx_is_transient(self, code):
+        assert _classify_failure(_StatusError(code)) == "transient"
 
-    @pytest.mark.parametrize("code", [400, 403, 404])
-    def test_4xx_others_do_not(self, code):
-        assert not _should_fallback(_StatusError(code))
+    def test_network_error_is_transient(self):
+        assert _classify_failure(RuntimeError("boom")) == "transient"
+        assert _classify_failure(TimeoutError("slow")) == "transient"
 
-    def test_no_status_code_does_not(self):
-        assert not _should_fallback(RuntimeError("boom"))
-        assert not _should_fallback(TimeoutError("slow"))
+    @pytest.mark.parametrize("code", [400, 404])
+    def test_4xx_other_is_none(self, code):
+        assert _classify_failure(_StatusError(code)) is None
 
-    def test_value_error_missing_key_does_not(self):
-        # _resolve_api_key raises ValueError("Missing API key ...") with no status_code
-        assert not _should_fallback(ValueError("Missing API key environment variable"))
+    def test_value_error_missing_key_is_none(self):
+        assert _classify_failure(ValueError("Missing API key environment variable")) is None
 
 
 class TestFactoryDispatch:
@@ -188,7 +193,30 @@ class TestFallbackBehaviour:
         assert "[ai_fallback]" in captured
         assert "401" in captured
 
-    def test_primary_429_then_fallback_succeeds(self, monkeypatch):
+    def test_primary_429_retries_then_raises_without_fallback(self, monkeypatch):
+        """付费备胎纪律：429 限流只重试 MiniMax，绝不烧 DeepSeek。"""
+        monkeypatch.setattr("src.ai.client._TRANSIENT_BACKOFF_S", (0.0, 0.0))
+        monkeypatch.setenv("MINIMAX_API_KEY", "k")
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
+
+        with patch.object(
+            primary.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_primary, patch.object(
+            backup.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_backup:
+            m_primary.side_effect = _StatusError(429, "rate")
+            with pytest.raises(_StatusError) as exc:
+                asyncio.run(c.complete(system="s", user="u"))
+            assert exc.value.status_code == 429
+            assert m_primary.call_count == 3   # 1 + 2 retries
+            assert m_backup.call_count == 0    # DeepSeek 一分钱不花
+
+    def test_breaker_opens_after_consecutive_transient_failures(self, monkeypatch, capsys):
+        """连续 5 次重试耗尽 = MiniMax 彻底用不了 → 本次运行切到备胎。"""
+        monkeypatch.setattr("src.ai.client._TRANSIENT_BACKOFF_S", (0.0, 0.0))
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
         monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
         c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
@@ -202,6 +230,69 @@ class TestFallbackBehaviour:
         ) as m_backup:
             m_primary.side_effect = _StatusError(429, "rate")
             m_backup.return_value = _ok_response('{"from": "deepseek"}')
+
+            for _ in range(4):   # 连续 4 次耗尽（streak 1-4），仍然抛错
+                with pytest.raises(_StatusError):
+                    asyncio.run(c.complete(system="s", user="u"))
+            assert m_backup.call_count == 0      # 期间没动备胎
+            assert c._transient_streak == 4
+
+            # 第 5 次耗尽 = 熔断点：本次调用直接由备胎接管
+            out = asyncio.run(c.complete(system="s", user="u"))
+            assert "deepseek" in out
+            assert m_primary.call_count == 15    # 5 轮 × 3 attempts
+            assert m_backup.call_count == 1
+
+        captured = capsys.readouterr().out
+        assert "circuit open" in captured
+
+    def test_breaker_resets_on_success(self, monkeypatch):
+        """429 耗尽 ×4 后成功一次 → 计数清零，再来 4 次耗尽也不熔断。"""
+        monkeypatch.setattr("src.ai.client._TRANSIENT_BACKOFF_S", (0.0, 0.0))
+        monkeypatch.setenv("MINIMAX_API_KEY", "k")
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
+
+        with patch.object(
+            primary.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_primary, patch.object(
+            backup.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_backup:
+            m_primary.side_effect = [
+                *[_StatusError(429, "rate") for _ in range(12)],  # 4 轮耗尽
+                _ok_response('{"ok": 1}'),                        # 成功 → 清零
+                *[_StatusError(429, "rate") for _ in range(9)],   # 再 3 轮耗尽
+            ]
+            for _ in range(4):   # 4 轮耗尽
+                with pytest.raises(_StatusError):
+                    asyncio.run(c.complete(system="s", user="u"))
+            asyncio.run(c.complete(system="s", user="u"))  # 成功一次 → streak 清零
+            for _ in range(3):
+                with pytest.raises(_StatusError):
+                    asyncio.run(c.complete(system="s", user="u"))
+            assert c._transient_streak == 3          # 未达 5 → 没熔断
+            assert m_backup.call_count == 0          # DeepSeek 全程未动
+
+    def test_network_errors_count_toward_breaker(self, monkeypatch):
+        monkeypatch.setattr("src.ai.client._TRANSIENT_BACKOFF_S", (0.0, 0.0))
+        monkeypatch.setenv("MINIMAX_API_KEY", "k")
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "d")
+        c = create_ai_client(_make_primary(fallbacks=[_make_deepseek_fallback()]))
+        primary = c._get_client(0)
+        backup = c._get_client(1)
+
+        with patch.object(
+            primary.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_primary, patch.object(
+            backup.client.chat.completions, "create", new_callable=AsyncMock
+        ) as m_backup:
+            m_primary.side_effect = TimeoutError("slow")
+            m_backup.return_value = _ok_response('{"from": "deepseek"}')
+            for _ in range(4):
+                with pytest.raises(TimeoutError):
+                    asyncio.run(c.complete(system="s", user="u"))
             out = asyncio.run(c.complete(system="s", user="u"))
             assert "deepseek" in out
 
@@ -235,13 +326,14 @@ class TestFallbackBehaviour:
         ) as m_primary, patch.object(
             backup.client.chat.completions, "create", new_callable=AsyncMock
         ) as m_backup:
+            monkeypatch.setattr("src.ai.client._TRANSIENT_BACKOFF_S", (0.0, 0.0))
             m_primary.side_effect = _StatusError(401, "quota")
             m_backup.side_effect = _StatusError(503, "deepseek down")
             with pytest.raises(_StatusError) as exc:
                 asyncio.run(c.complete(system="s", user="u"))
             assert exc.value.status_code == 503  # last error bubbles up
-            assert m_primary.call_count == 1
-            assert m_backup.call_count == 1
+            assert m_primary.call_count == 1     # 401 立即切换，不重试
+            assert m_backup.call_count == 3      # 503 瞬态：1 + 2 重试
 
     def test_primary_success_never_touches_fallback(self, monkeypatch):
         monkeypatch.setenv("MINIMAX_API_KEY", "k")
