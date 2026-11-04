@@ -288,32 +288,48 @@ function renderFuke() {
       <div class="kd">${esc(lj.oneliner)}</div>
       ${lj.link ? `<div class="kmeta"><a class="kbtn ghost" href="${esc(lj.link)}" target="_blank" rel="noopener">项目页 ↗</a></div>` : ""}
     </div>`;
-  // 精讲连载
+
+  // 精讲连载：今日一期
   const epIdx = Math.min(dayIdx, FUJING.episodes.length - 1);
   const ep = FUJING.episodes[epIdx];
   const epDone = fukeDoneSet.has(String(ep.n));
   const pct = Math.round(((epIdx + 1) / FUJING.episodes.length) * 100);
+  const weekTitle = (FUJING.week_titles || {})[String(ep.week)] || "";
   $("fuke-series").innerHTML = `
     <div class="kcard">
-      <div class="kick">精讲连载 · ${esc(FUJING.stage)}</div>
-      <div class="kt">${esc(FUJING.project)}</div>
-      <div class="kd">${esc(FUJING.pitch)}</div>
-      <div class="kmeta">${esc(FUJING.author ? "作者 " + FUJING.author + " · " : "")}${esc(FUJING.license ? FUJING.license + " · " : "")}${FUJING.episodes.length} 期</div>
+      <div class="kick">精讲连载 · 第 ${ep.week} 周 ${esc(weekTitle)}</div>
+      <div class="kt">${esc(ep.title)}</div>
+      <div class="kmeta"><span class="kind">${esc(ep.kind)}</span> 第 ${ep.n}/${FUJING.episodes.length} 期 · 约 ${esc(FUJING.minutes || 12)} 分钟</div>
+      <div class="goal">🎯 本期目标：${esc(ep.goal)}</div>
       <div class="epbar"><i style="width:${pct}%"></i></div>
-      <div class="kmeta">第 ${ep.n}/${FUJING.episodes.length} 期 · ${esc(ep.title)}</div>
+      <div class="kmeta">${esc(FUJING.stage)} · 共 ${FUJING.episodes.length} 期 / ${FUJING.weeks.length} 周</div>
       <div class="epbody lbody">${mdHtml(ep.body)}</div>
       <button class="done-btn" id="fuke-done">${epDone ? "✓ 本期已读" : "本期已读"}</button>
     </div>
     <div class="kcard">
-      <div class="ct">全部 ${FUJING.episodes.length} 期</div>
-      ${FUJING.episodes.map((e) => `
-        <div class="epr${fukeDoneSet.has(String(e.n)) ? " done" : ""}" data-n="${e.n}">
-          <span class="en">${String(e.n).padStart(2, "0")}</span>
-          <span class="et">${esc(e.title)}</span>
-          ${e.n === ep.n ? `<span class="ec">今天</span>` : ""}
-        </div>`).join("")}
+      <div class="ct">连载目录</div>
+      ${FUJING.weeks.map((w) => `
+        <div class="wk">第 ${w} 周 · ${esc((FUJING.week_titles || {})[String(w)] || "")}</div>
+        ${FUJING.episodes.filter((e) => e.week === w).map((e) => {
+          const done = fukeDoneSet.has(String(e.n));
+          return `<div class="epr${done ? " done" : ""}" data-n="${e.n}">
+            <span class="en">${String(e.n).padStart(2, "0")}</span>
+            <span class="ek">${esc(e.kind)}</span>
+            <span class="et">${esc(e.title)}</span>
+            ${e.n === ep.n ? `<span class="ec">今天</span>` : ""}
+          </div>`;
+        }).join("")}`).join("")}
       ${FUJING.url ? `<div class="kmeta" style="margin-top:10px">开源项目页：<a href="${esc(FUJING.url)}" target="_blank" rel="noopener">${esc(FUJING.url)}</a></div>` : ""}
+    </div>
+    <div class="kcard">
+      <div class="ct">随查手册（不占每日进度）</div>
+      ${FUJING.appendix.map((a) => `
+        <div class="apx" data-id="${esc(a.id)}">
+          <div class="apx-h"><span>${esc(a.icon)} ${esc(a.title)}</span><span class="apx-t">展开</span></div>
+          <div class="apx-b lbody" hidden>${mdHtml(a.body)}</div>
+        </div>`).join("")}
     </div>`;
+
   $("fuke-done").onclick = () => {
     const k = String(ep.n);
     if (fukeDoneSet.has(k)) fukeDoneSet.delete(k); else fukeDoneSet.add(k);
@@ -322,14 +338,21 @@ function renderFuke() {
   };
   document.querySelectorAll(".epr").forEach((el) => el.addEventListener("click", () => {
     const e = FUJING.episodes.find((x) => x.n === Number(el.dataset.n));
-    $("fuke-series").innerHTML = "";
+    $("fuke-today").insertAdjacentHTML("afterend", "");
+    window.scrollTo(0, 0);
     $("fuke-series").innerHTML = `
       <div class="kcard">
         <div class="kick">精讲连载 · 第 ${e.n} 期</div>
         <div class="kt">${esc(e.title)}</div>
+        <div class="goal">🎯 本期目标：${esc(e.goal)}</div>
         <div class="epbody lbody">${mdHtml(e.body)}</div>
-        <button class="done-btn" onclick="location.hash='';document.querySelector('.tab[data-view=\\\'fuke\\\']').click()">返回连载</button>
+        <button class="done-btn" onclick="document.querySelector('.tab[data-view=fuke]').click()">返回连载</button>
       </div>`;
+  }));
+  document.querySelectorAll(".apx").forEach((el) => el.addEventListener("click", () => {
+    const b = el.querySelector(".apx-b");
+    b.hidden = !b.hidden;
+    el.querySelector(".apx-t").textContent = b.hidden ? "展开" : "收起";
   }));
 }
 
