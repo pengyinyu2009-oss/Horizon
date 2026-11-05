@@ -29,10 +29,13 @@
 
   <section id="view-lesson" class="view" hidden>
     <div class="err" id="lesson-err" hidden></div>
+    <div id="lesson-review"></div>
     <div id="lesson-today"></div>
+    <div class="otitle">测验中心</div>
+    <div id="lesson-quiz"></div>
     <div class="otitle">大纲 · <span id="lesson-count"></span></div>
     <div id="lesson-outline"></div>
-    <div class="tailnote">第 21 讲起按需扩展：图腾柱双闭环 · CLLC 同步整流时序 · CAN 充电握手 · 800V 专题</div>
+    <div class="tailnote">第 21-30 讲实战篇已上线 · 每天解锁一讲 · 31 讲起按需扩展：图腾柱双闭环 · CAN 充电握手 · 800V 专题</div>
   </section>
 
   <section id="view-fuke" class="view" hidden>
@@ -42,10 +45,14 @@
   </section>
 
   <section id="view-me" class="view" hidden>
-    <div class="card">
+      <div class="card">
       <div class="ct">学习进度</div>
       <div class="mstats" id="me-stats"></div>
       <div class="sbars" id="stage-bars"></div>
+    </div>
+    <div class="card">
+      <div class="ct">最近完成</div>
+      <div id="me-recent"></div>
     </div>
     <div class="card">
       <div class="ct">设置</div>
@@ -58,6 +65,7 @@
       </div>
       <div class="mrow"><span>清除本地缓存</span><button class="mini" id="btn-clear">清除</button></div>
       <div class="mrow"><span>Web 版日报</span><a href="/reports-html/index.html">打开 ↗</a></div>
+      <div class="mrow"><span>课程数据</span><span class="sub" id="data-ver"></span></div>
       <div class="mrow"><span>关于</span><span class="sub">Horizon App · 数据源 horizon.pyyaiai.com</span></div>
     </div>
   </section>

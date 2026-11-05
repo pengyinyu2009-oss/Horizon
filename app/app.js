@@ -2,7 +2,7 @@
 "use strict";
 
 const FEED_URL = "/reports-html/data/app-latest.json";
-const LS = { feed: "hz.app.feed", theme: "hz.app.theme", done: "hz.app.done", board: "hz.app.board" };
+const LS = { feed: "hz.app.feed", theme: "hz.app.theme", done: "hz.app.done", board: "hz.app.board", quiz: "hz.app.quiz", review: "hz.app.review" };
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -138,8 +138,10 @@ function renderItems() {
 
 
 /* ---------- lessons ---------- */
-let CUR = null;
+let CUR = null, QUIZ = null;
 let doneSet = new Set(store.get(LS.done, []));
+let reviewMap = store.get(LS.review, {});
+let quizDone = store.get(LS.quiz, {});
 const loadDone = () => { doneSet = new Set(store.get(LS.done, [])); };
 const saveDone = () => store.set(LS.done, [...doneSet]);
 const todayStr = () => {
@@ -147,6 +149,11 @@ const todayStr = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+const addDays = (dateStr, k) => {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + k);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 function todayLesson() {
   if (!CUR) return null;
@@ -182,9 +189,18 @@ function lessonCard(l, opts = {}) {
 function wireDone(l) {
   $("btn-done").onclick = () => {
     const k = String(l.n);
-    if (doneSet.has(k)) doneSet.delete(k); else doneSet.add(k);
+    if (doneSet.has(k)) {
+      doneSet.delete(k);
+      delete reviewMap[k]; // 取消完成则撤销复习排期
+    } else {
+      doneSet.add(k);
+      scheduleReview(l.n); // 标记完成 → 进入遗忘曲线排期
+    }
     saveDone();
+    saveReview();
     renderLessonView(l);
+    renderReview();
+    renderQuizCenter();
     renderMe();
   };
 }
@@ -192,6 +208,10 @@ function wireDone(l) {
 function renderLessonView(l) {
   $("lesson-today").innerHTML = lessonCard(l, { today: l.n === todayLesson()?.n });
   wireDone(l);
+  $("lesson-today").querySelectorAll("img.fml,img.fig").forEach((img) => {
+    img.style.cursor = "zoom-in";
+    img.onclick = () => window.open(img.src, "_blank");
+  });
   renderOutline();
 }
 
@@ -203,9 +223,9 @@ function renderLesson() {
 function renderOutline() {
   const box = $("lesson-outline");
   const t = todayLesson();
-  const groups = [[CUR.stages[0], CUR.lessons.slice(0, 12)], [CUR.stages[1], CUR.lessons.slice(12)]];
+  const groups = CUR.stages.map((st) => [st.title, CUR.lessons.filter((l) => l.n >= st.range[0] && l.n <= st.range[1])]);
   box.innerHTML = groups.map(([st, ls]) => `
-    <div class="stage">${esc(st.title)}</div>
+    <div class="stage">${esc(st)}</div>
     ${ls.map((l) => {
       const done = doneSet.has(String(l.n));
       const isToday = t && l.n === t.n;
@@ -219,6 +239,193 @@ function renderOutline() {
     renderLessonView(CUR.lessons.find((x) => x.n === Number(el.dataset.n)));
     window.scrollTo(0, 0);
   }));
+}
+
+/* ---------- 遗忘曲线复习 + 测验 ---------- */
+const saveReview = () => store.set(LS.review, reviewMap);
+const saveQuiz = () => store.set(LS.quiz, quizDone);
+const reviewSteps = () => QUIZ?.steps || [1, 2, 4, 7, 15, 30];
+
+function scheduleReview(n) {
+  // 艾宾浩斯：完成当天起 +1/+2/+4/+7/+15/+30 天各复习一轮
+  reviewMap[String(n)] = { s: 0, due: addDays(todayStr(), 1) };
+}
+
+function dueReviewList() {
+  const today = todayStr();
+  return Object.entries(reviewMap)
+    .filter(([_, r]) => r.due <= today)
+    .sort((a, b) => (a[1].due < b[1].due ? -1 : 1));
+}
+
+function renderReview() {
+  const box = $("lesson-review");
+  if (!box) return;
+  const due = dueReviewList();
+  if (!due.length) {
+    const pending = Object.keys(reviewMap).length;
+    box.innerHTML = `
+      <div class="kcard">
+        <div class="kick">🧠 遗忘曲线复习</div>
+        <div class="kd">${pending
+          ? `今天没有到期的复习 🎉 排期中的 ${pending} 讲按 1/2/4/7/15/30 天节奏自动出现。`
+          : "学完一讲并点「标记完成」，就会自动进入 1/2/4/7/15/30 天的复习排期。"}</div>
+      </div>`;
+    return;
+  }
+  box.innerHTML = `
+    <div class="kcard">
+      <div class="kick">🧠 今日复习 · ${due.length} 讲到期</div>
+      ${due.map(([n, r]) => {
+        const l = CUR?.lessons.find((x) => x.n === Number(n));
+        return l ? `<div class="epr" data-n="${n}">
+          <span class="en">${String(n).padStart(2, "0")}</span>
+          <span class="et">${esc(l.title)}</span>
+          <span class="ec">第 ${r.s + 1} 轮 →</span>
+        </div>` : "";
+      }).join("")}
+    </div>`;
+  box.querySelectorAll(".epr").forEach((el) =>
+    el.addEventListener("click", () => startReview(Number(el.dataset.n))));
+}
+
+function startReview(n) {
+  const box = $("lesson-review");
+  const l = CUR?.lessons.find((x) => x.n === n);
+  const bank = QUIZ?.bank?.[n] || [];
+  if (!l || !bank.length) { delete reviewMap[String(n)]; saveReview(); renderReview(); return; }
+  const q = bank[Math.floor(Math.random() * bank.length)];
+  const ans = QUIZ?.answers?.[n] || null;
+  box.innerHTML = `
+    <div class="kcard">
+      <div class="kick">复习 · 第 ${n} 讲 ${esc(l.title)}</div>
+      <div class="epbody lbody" style="margin:10px 0">${blockHtml({ type: "text", text: q })}</div>
+      ${ans ? `<button class="pbtn" id="rv-ans">展开参考答案</button>
+        <div class="qans lbody" id="rv-ansbox" hidden>${ans.map((a) => blockHtml({ type: "text", text: a })).join("")}</div>` : ""}
+      <div class="pills">
+        <button class="pbtn good" id="rv-ok">😀 记得</button>
+        <button class="pbtn" id="rv-fuzzy">🤔 模糊</button>
+        <button class="pbtn bad" id="rv-no">😵 忘了</button>
+      </div>
+    </div>`;
+  const ansBtn = $("rv-ans");
+  if (ansBtn) ansBtn.onclick = () => {
+    const b = $("rv-ansbox");
+    b.hidden = !b.hidden;
+    ansBtn.textContent = b.hidden ? "展开参考答案" : "收起答案";
+  };
+  $("rv-ok").onclick = () => gradeReview(n, "ok");
+  $("rv-fuzzy").onclick = () => gradeReview(n, "fuzzy");
+  $("rv-no").onclick = () => gradeReview(n, "no");
+}
+
+function gradeReview(n, g) {
+  const steps = reviewSteps();
+  const r = reviewMap[String(n)] || { s: 0 };
+  if (g === "ok") r.s += 1;
+  else if (g === "no") r.s = 0;
+  if (r.s >= steps.length) delete reviewMap[String(n)]; // 毕业 🎓
+  else {
+    r.due = addDays(todayStr(), g === "fuzzy" ? 1 : steps[r.s]);
+    reviewMap[String(n)] = r;
+  }
+  saveReview();
+  renderReview();
+}
+
+function sampleEvenly(arr, k) {
+  if (arr.length <= k) return arr;
+  const out = [];
+  const step = arr.length / k;
+  for (let i = 0; i < k; i++) out.push(arr[Math.floor(i * step)]);
+  return out;
+}
+
+let quizRun = null;
+
+function renderQuizCenter() {
+  const box = $("lesson-quiz");
+  if (!box) return;
+  quizRun = null;
+  if (!QUIZ?.quizzes?.length) { box.innerHTML = ""; return; }
+  box.innerHTML = QUIZ.quizzes.map((q) => {
+    const done = quizDone[q.id];
+    const missing = q.cover.filter((n) => !doneSet.has(String(n))).length;
+    const ready = missing === 0;
+    const state = done
+      ? `<span class="qscore">✓ ${done.right}/${done.total} · ${done.date.slice(5)}</span>`
+      : ready ? `<span class="ec">开始 →</span>`
+      : `<span class="dim">还差 ${missing} 讲</span>`;
+    return `<div class="epr qz${done ? " done" : ""}${ready ? " ready" : ""}" data-id="${q.id}">
+      <span class="ek">${q.type === "final" ? "综合" : "单元"}</span>
+      <span class="et">${esc(q.title)}</span>${state}
+    </div>`;
+  }).join("");
+  box.querySelectorAll(".qz.ready").forEach((el) =>
+    el.addEventListener("click", () => startQuiz(el.dataset.id)));
+}
+
+function startQuiz(id) {
+  const q = QUIZ.quizzes.find((x) => x.id === id);
+  if (!q) return;
+  const withBank = q.cover.filter((n) => (QUIZ.bank?.[n] || []).length);
+  const lessons = q.type === "final" ? sampleEvenly(withBank, 10) : withBank;
+  quizRun = { q, picks: [], i: 0, right: 0, wrong: [] };
+  for (const n of lessons) {
+    const bank = QUIZ.bank[n];
+    quizRun.picks.push({ n, text: bank[Math.floor(Math.random() * bank.length)] });
+  }
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const box = $("lesson-quiz");
+  const { q, picks, i } = quizRun;
+  const p = picks[i];
+  const ans = QUIZ?.answers?.[p.n] || null;
+  box.innerHTML = `
+    <div class="kcard">
+      <div class="kick">${esc(q.title)} · 第 ${i + 1}/${picks.length} 题（来自第 ${p.n} 讲）</div>
+      <div class="epbar"><i style="width:${Math.round((i / picks.length) * 100)}%"></i></div>
+      <div class="epbody lbody" style="margin:10px 0">${blockHtml({ type: "text", text: p.text })}</div>
+      ${ans ? `<button class="pbtn" id="qz-ans">展开参考答案</button>
+        <div class="qans lbody" id="qz-ansbox" hidden>${ans.map((a) => blockHtml({ type: "text", text: a })).join("")}</div>` : `<div class="kmeta">这题没有参考答案，凭记忆自评。</div>`}
+      <div class="pills">
+        <button class="pbtn good" id="qz-right">答对了</button>
+        <button class="pbtn bad" id="qz-wrong">答错了</button>
+      </div>
+    </div>`;
+  const ansBtn = $("qz-ans");
+  if (ansBtn) ansBtn.onclick = () => {
+    const b = $("qz-ansbox");
+    b.hidden = !b.hidden;
+    ansBtn.textContent = b.hidden ? "展开参考答案" : "收起答案";
+  };
+  $("qz-right").onclick = () => gradeQuiz(true);
+  $("qz-wrong").onclick = () => gradeQuiz(false);
+  window.scrollTo(0, 0);
+}
+
+function gradeQuiz(ok) {
+  const { picks, i } = quizRun;
+  if (!ok) quizRun.wrong.push(picks[i].n);
+  else quizRun.right += 1;
+  quizRun.i += 1;
+  if (quizRun.i < picks.length) { renderQuizQuestion(); return; }
+  // 结算：错题所在讲重置到明天复习
+  for (const n of quizRun.wrong) reviewMap[String(n)] = { s: 0, due: addDays(todayStr(), 1) };
+  saveReview();
+  quizDone[quizRun.q.id] = { right: quizRun.right, total: picks.length, date: todayStr() };
+  saveQuiz();
+  const pct = Math.round((quizRun.right / picks.length) * 100);
+  $("lesson-quiz").innerHTML = `
+    <div class="kcard">
+      <div class="kick">${esc(quizRun.q.title)} · 完成</div>
+      <div class="kt">${quizRun.right}/${picks.length} · ${pct >= 80 ? "优秀 🏆" : pct >= 60 ? "不错，继续 💪" : "建议回看错题讲 📖"}</div>
+      ${quizRun.wrong.length ? `<div class="kd">错题来自第 ${[...new Set(quizRun.wrong)].join("、")} 讲，已重置进明天的复习计划。</div>` : `<div class="kd">全对，相关讲的复习排期保持不变。</div>`}
+      <div class="pills"><button class="pbtn primary" id="qz-back">返回测验中心</button></div>
+    </div>`;
+  $("qz-back").onclick = () => renderQuizCenter();
 }
 
 /* ---------- fuke (立创复刻) ---------- */
@@ -346,7 +553,7 @@ function renderFuke() {
         <div class="kt">${esc(e.title)}</div>
         <div class="goal">🎯 本期目标：${esc(e.goal)}</div>
         <div class="epbody lbody">${mdHtml(e.body)}</div>
-        <button class="done-btn" onclick="document.querySelector('.tab[data-view=fuke]').click()">返回连载</button>
+        <button class="done-btn" onclick="renderFuke()">返回连载</button>
       </div>`;
   }));
   document.querySelectorAll(".apx").forEach((el) => el.addEventListener("click", () => {
@@ -359,7 +566,7 @@ function renderFuke() {
 /* ---------- me ---------- */
 function renderMe() {
   loadDone();
-  const total = CUR ? CUR.lessons.length : 20;
+  const total = CUR ? CUR.lessons.length : 30;
   const doneCount = [...doneSet].filter((x) => Number(x) <= total).length;
   let streak = 0;
   const start = CUR ? CUR.start_date : todayStr();
@@ -379,33 +586,55 @@ function renderMe() {
     <div class="box"><div class="v">${streak}</div><div class="k">连续天数</div></div>
     <div class="box"><div class="v">${doneCount}/${total}</div><div class="k">已完成</div></div>
     <div class="box"><div class="v">${Math.round((doneCount / total) * 100)}%</div><div class="k">进度</div></div>`;
-  const stages = [
-    ["第 1-12 讲 · 基础", 1, 12],
-    ["第 13-20 讲 · OBC 进阶", 13, 20],
-  ];
+  const stages = (CUR?.stages || []).map((st) => [st.title, st.range[0], st.range[1]]);
   $("stage-bars").innerHTML = stages.map(([name, a, b]) => {
     const c = [...doneSet].filter((x) => Number(x) >= a && Number(x) <= b).length;
     const pct = Math.round((c / (b - a + 1)) * 100);
-    return `<div class="sb"><div class="t"><span>${name}</span><span>${c}/${b - a + 1}</span></div>
+    return `<div class="sb"><div class="t"><span>${esc(name)}</span><span>${c}/${b - a + 1}</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div></div>`;
   }).join("");
+  const recent = [...doneSet].map(Number).sort((a, b) => b - a).slice(0, 6);
+  const rec = $("me-recent");
+  if (rec) rec.innerHTML = recent.length
+    ? recent.map((n) => {
+        const l = CUR?.lessons.find((x) => x.n === n);
+        return l ? `<div class="mrow"><span>第 ${n} 讲 · ${esc(l.title)}</span><span class="sub">✓ 完成</span></div>` : "";
+      }).join("")
+    : `<div class="sub" style="padding:4px 0">还没有完成记录 —— 去「课程」看完一讲，点「标记完成」。</div>`;
+  const dv = $("data-ver");
+  if (dv) dv.textContent = CUR ? `v${CUR.version} · 共 ${CUR.lessons.length} 讲` : "";
 }
 
 /* ---------- misc / boot ---------- */
 $("btn-clear").onclick = () => {
   localStorage.removeItem(LS.feed); localStorage.removeItem(LS.done);
   localStorage.removeItem(LS.board); localStorage.removeItem("hz.app.fuke");
+  localStorage.removeItem(LS.quiz); localStorage.removeItem(LS.review);
   location.reload();
 };
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  let swRefreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    location.reload(); // 新版本接管后自动刷新一次，告别旧缓存
+  });
+}
 
 const loadLessons = async () => {
   try {
-    const r = await fetch("./data/lessons.json", { cache: "no-cache" });
-    if (!r.ok) throw new Error(r.status);
-    CUR = await r.json();
+    const [lr, qr] = await Promise.all([
+      fetch("./data/lessons.json", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch("./data/quizzes.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => null),
+    ]);
+    CUR = lr;
+    QUIZ = qr;
+    $("lesson-count").textContent = `${CUR.lessons.length} 讲 · 每天解锁一讲`;
     renderLesson();
+    renderReview();
+    renderQuizCenter();
     renderMe();
   } catch {
     $("lesson-err").hidden = false;
