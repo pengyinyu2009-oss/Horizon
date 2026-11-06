@@ -107,6 +107,11 @@ TEMPLATE = """<!DOCTYPE html>
              border-top: 1px solid #eee; margin-top: 2em; padding-top: 12px; font-size: .9em; }}
   .daynav a {{ color: #1a6fc4; }}
   .sec-anchor {{ display: block; position: relative; top: -52px; visibility: hidden; }}
+  /* 2026-11-06 周期报导航行 */
+  .periodnav {{ display: flex; gap: 6px; margin: 0 0 14px; }}
+  .periodnav a {{ flex: 1; text-align: center; padding: 7px 2px; border-radius: 8px;
+             font-size: .82em; background: #fff7e6; color: #b07a00; white-space: nowrap;
+             border: 1px solid #f0e2c0; }}
 </style>
 <style>
   /* 2026-07-30: bookmark UI — stored in browser localStorage only */
@@ -663,6 +668,29 @@ def period_label(stem: str) -> str:
     return f"📄 {stem}"
 
 
+# 2026-11-06: 周期报导航数据（最新周/月/年榜）
+_latest = {}
+for _s, _k in period_kind.items():
+    if _k in ("weekly", "monthly", "yearly") and _s > _latest.get(_k, ""):
+        _latest[_k] = _s
+
+def build_period_nav(cur_stem, prev_stem, next_stem):
+    items = ['<a href="index.html">📄 首页</a>']
+    wk = _latest.get("weekly")
+    if wk and wk != cur_stem:
+        items.append('<a href="%s.html">📆 周榜</a>' % wk)
+    mo = _latest.get("monthly")
+    if mo and mo != cur_stem:
+        items.append('<a href="%s.html">🗓 月榜</a>' % mo)
+    yr = _latest.get("yearly")
+    if yr and yr != cur_stem:
+        items.append('<a href="%s.html">🏆 年报</a>' % yr)
+    if prev_stem:
+        items.append('<a href="%s.html">← 前期</a>' % prev_stem)
+    if next_stem:
+        items.append('<a href="%s.html">后期 →</a>' % next_stem)
+    return '<nav class="periodnav">%s</nav>' % "".join(items)
+
 # 全量重建输出目录
 for old in DST.glob("*.html"):
     old.unlink()
@@ -689,13 +717,15 @@ for i, date in enumerate(new_dates):
     foot.append(
         f'<a href="{prev_stem}.html">← {new_dates[i-1]}</a>' if prev_stem else "<span></span>"
     )
-    if period:
-        latest_period = sorted(period)[-1]
-        foot.append(f'<a href="{latest_period}.html">{period_label(latest_period)}</a>')
+    if _latest.get("weekly"):
+        foot.append('<a href="%s.html">📆 最新周榜</a>' % _latest["weekly"])
     foot.append(
         f'<a href="{next_stem}.html">{new_dates[i+1]} →</a>' if next_stem else "<span></span>"
     )
     foot.append("</div>")
+
+    # 2026-11-06: 顶部周期报导航行（secnav 之下）
+    nav = nav + build_period_nav(md_stem, prev_stem, next_stem)
 
     # 输出文件名 = md stem(保持原名,sidebar 链接直接命中)
     page_html = render_page(
@@ -764,14 +794,27 @@ for date, secs in old_daily.items():
 for stem, md_file in sorted(period.items()):
     kind = period_kind.get(stem, "other")
     body = render_md(md_file)
-    # 周报/月报/年报(新格式)加 4 榜单吸顶导航
+    # 周报/月报/年报(新格式)加 4 榜单吸顶导航 + 周期报导航行 + 底部前后期
     nav = ""
+    foot_p = ""
     if kind in ("weekly", "monthly", "yearly"):
         nav_items = [f'<a href="#sec-{s}">{NAV_LABELS_NEW[s]}</a>' for s in NAV_ORDER_NEW]
         nav = f'<nav class="secnav">{"".join(nav_items)}</nav>'
+        sib = sorted(s for s, k in period_kind.items() if k == kind)
+        _i = sib.index(stem)
+        prev_p = sib[_i - 1] if _i > 0 else None
+        next_p = sib[_i + 1] if _i < len(sib) - 1 else None
+        nav = nav + build_period_nav(stem, prev_p, next_p)
+        fp = ['<div class="daynav">', '<a href="index.html">📄 首页</a>']
+        if prev_p:
+            fp.append('<a href="%s.html">← %s</a>' % (prev_p, prev_p))
+        if next_p:
+            fp.append('<a href="%s.html">%s →</a>' % (next_p, next_p))
+        fp.append("</div>")
+        foot_p = "".join(fp)
 
     (DST / f"{stem}.html").write_text(
-        render_page(title=period_label(stem), nav=nav, body=body, footer=""),
+        render_page(title=period_label(stem), nav=nav, body=body, footer=foot_p),
         encoding="utf-8",
     )
     count += 1
